@@ -46,7 +46,7 @@
 		 * constructed resource path is authorized for the current user.
 		 * @return  boolean                           Is resource accessible?
 		 */
-		protected function _isAllowed () {
+		protected function _isAllowed (): bool {
 			$resource = $this->_getResourceName ();
 			$session = Mage::getSingleton ("admin/session");
 			return $session->isAllowed ("jetrails/cloudflare/$resource");

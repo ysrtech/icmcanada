@@ -21,7 +21,7 @@
 		 * jetrails/cloudflare resource.
 		 * @return  boolean                           Is access authorized?
 		 */
-		protected function _isAllowed () {
+		protected function _isAllowed (): bool {
 			$session = Mage::getSingleton ("admin/session");
 			return $session->isAllowed ("jetrails/cloudflare");
 		}

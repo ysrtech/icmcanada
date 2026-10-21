@@ -87,7 +87,14 @@ email as a side effect and nothing called it.
   Uni_Common, Uni_Fileuploader, VF_AjaxCart, VF_EasyAjax, VladimirPopov_WebForms.
   Fixes: removed `Mysql4`/`Entity` class names mapped to the `Resource` classes,
   `$str{$i}` offsets, implicit nullable parameters, method signatures (WebForms captcha),
-  `null` passed to string functions, MailGun failed-send handling.
+  `null` passed to string functions, MailGun failed-send handling, admin controllers
+  `_isAllowed()` now declared `: bool` like the OpenMage parent (iBanners, Fileuploader,
+  Clarion, Cloudflare, CustomerActivation, GroupsCatalog2 screens were fatal without it),
+  JetRails Cloudflare `setData()`/`delete()` signatures. Every custom class was loaded
+  against OpenMage to check for incompatible overrides.
+* WebForms and Out of stock keep their own admin URLs (`/index.php/webforms/...`,
+  `/index.php/outofstock/...`); OpenMage still allows these because
+  "Admin routes compatibility mode" is enabled in the store config.
 * Removed: Maven_Html5uploader (OpenMage has its own HTML5 uploader), and code that was not
   enabled: Inchoo_PHP7, ICM_Adminhtml (+ admin theme `icm`), Santhosh_* (+ admin theme
   `santhosh`), TBT_MassRelater, JetRails_TwoFactor, FreeLunchLabs SendGrid/CloudFront,

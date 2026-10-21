@@ -46,7 +46,7 @@ class Netzarbeiter_GroupsCatalog2_Adminhtml_Netzarbeiter_GroupsCatalog2_Migratio
         $this->_redirect('*/*/index');
     }
 
-    protected function _isAllowed()
+    protected function _isAllowed(): bool
     {
         return Mage::getSingleton('admin/session')->isAllowed('system/tools/netzarbeiter_groupscatalog2');
     }

@@ -1,45 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Fieldset renderer for PayPal solution
  *
- * @category    Mage
- * @package     Mage_Paypal
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
-class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
-        extends Mage_Adminhtml_Block_System_Config_Form_Fieldset
+class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment extends Mage_Adminhtml_Block_System_Config_Form_Fieldset
 {
     /**
      * Add custom css class
      *
-     * @param Varien_Data_Form_Element_Abstract $element
+     * @param  Varien_Data_Form_Element_Abstract $element
      * @return string
      */
+    #[Override]
     protected function _getFrontendClass($element)
     {
         return parent::_getFrontendClass($element) . ' with-button '
@@ -49,14 +30,14 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
     /**
      * Check whether current payment method is enabled
      *
-     * @param Varien_Data_Form_Element_Abstract $element
-     * @param callback|null $configCallback
+     * @param  Varien_Data_Form_Element_Abstract $element
+     * @param  null|callable                     $configCallback
      * @return bool
      */
     protected function _isPaymentEnabled($element, $configCallback = null)
     {
         $groupConfig = $this->getGroup($element)->asArray();
-        $activityPath = isset($groupConfig['activity_path']) ? $groupConfig['activity_path'] : '';
+        $activityPath = $groupConfig['activity_path'] ?? '';
 
         if (empty($activityPath)) {
             return false;
@@ -65,10 +46,10 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
         if ($configCallback && is_callable($configCallback)) {
             $isPaymentEnabled = call_user_func($configCallback, $activityPath);
         } else {
-            $isPaymentEnabled = (bool)(string)$this->_getConfigDataModel()->getConfigDataValue($activityPath);
+            $isPaymentEnabled = (bool) (string) $this->_getConfigDataModel()->getConfigDataValue($activityPath);
         }
 
-        return (bool)$isPaymentEnabled;
+        return (bool) $isPaymentEnabled;
     }
 
     /**
@@ -88,9 +69,10 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
     /**
      * Return header title part of html for payment solution
      *
-     * @param Varien_Data_Form_Element_Abstract $element
+     * @param  Varien_Data_Form_Element_Abstract $element
      * @return string
      */
+    #[Override]
     protected function _getHeaderTitleHtml($element)
     {
         $html = '<div class="config-heading" ><div class="heading"><strong>' . $element->getLegend();
@@ -100,35 +82,37 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
             $html .= '<a class="link-more" href="' . $groupConfig['learn_more_link'] . '" target="_blank">'
                 . $this->__('Learn More') . '</a>';
         }
+
         if (!empty($groupConfig['demo_link'])) {
             $html .= '<a class="link-demo" href="' . $groupConfig['demo_link'] . '" target="_blank">'
                 . $this->__('View Demo') . '</a>';
         }
+
         $html .= '</strong>';
 
         if ($element->getComment()) {
             $html .= '<span class="heading-intro">' . $element->getComment() . '</span>';
         }
+
         $html .= '</div>';
 
-        $html .= '<div class="button-container"><button type="button"'
+        return $html . ('<div class="button-container"><button type="button"'
             . ($this->_isPaymentEnabled($element) ? '' : ' disabled="disabled"') . ' class="button'
             . (empty($groupConfig['paypal_ec_separate']) ? '' : ' paypal-ec-separate')
             . ($this->_isPaymentEnabled($element) ? '' : ' disabled') . '" id="' . $element->getHtmlId()
-            . '-head" onclick="paypalToggleSolution.call(this, \'' . $element->getHtmlId() . '\', \''
+            . '-head" onclick="paypalToggleSolution.call(this, \'' . $element->getHtmlId() . "', '"
             . $this->getUrl('*/*/state') . '\'); return false;"><span class="state-closed">'
             . $this->__('Configure') . '</span><span class="state-opened">'
-            . $this->__('Close') . '</span></button></div></div>';
-
-        return $html;
+            . $this->__('Close') . '</span></button></div></div>');
     }
 
     /**
      * Return header comment part of html for payment solution
      *
-     * @param Varien_Data_Form_Element_Abstract $element
+     * @param  Varien_Data_Form_Element_Abstract $element
      * @return string
      */
+    #[Override]
     protected function _getHeaderCommentHtml($element)
     {
         return '';
@@ -137,9 +121,10 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Payment
     /**
      * Get collapsed state on-load
      *
-     * @param Varien_Data_Form_Element_Abstract $element
+     * @param  Varien_Data_Form_Element_Abstract $element
      * @return bool
      */
+    #[Override]
     protected function _getCollapseState($element)
     {
         return false;

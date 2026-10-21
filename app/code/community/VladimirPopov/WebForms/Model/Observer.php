@@ -12,7 +12,7 @@ class VladimirPopov_WebForms_Model_Observer{
 			
 			$page = Mage::getModel('cms/page')->load($pageId);
 			
-			if(stristr($page->getContent(),'webforms/form')){
+			if(stristr((string) $page->getContent(),'webforms/form')){
 				Mage::helper('webforms')->addAssets($layout);
 			}
 		}

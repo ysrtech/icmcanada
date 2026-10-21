@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Magento
- * @package     Magento_Profiler
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Magento_Profiler
  */
 
 /**
@@ -41,16 +24,16 @@ abstract class Magento_Profiler_OutputAbstract
      *
      * @var array
      */
-    private $_thresholds = array(
+    private $_thresholds = [
         Magento_Profiler::FETCH_TIME    => 0.001,
         Magento_Profiler::FETCH_COUNT   => 10,
         Magento_Profiler::FETCH_EMALLOC => 10000,
-    );
+    ];
 
     /**
      * Initialize profiler output with timer identifiers filter
      *
-     * @param string|null $filter Pattern to filter timers by their identifiers.
+     * @param null|string $filter Pattern to filter timers by their identifiers.
      *                            Supports syntax similar to SQL LIKE operator:
      *                            % - Matches any number of characters, even zero characters
      *                            _ - Matches exactly one character
@@ -68,18 +51,18 @@ abstract class Magento_Profiler_OutputAbstract
     /**
      * Retrieve the list of (column_label; column_id) pairs
      *
-     * @return array
+     * @return array<string, string>
      */
     protected function _getColumns()
     {
-        return array(
+        return [
             'Timer Id' => 'timer_id',
             'Time'     => Magento_Profiler::FETCH_TIME,
             'Avg'      => Magento_Profiler::FETCH_AVG,
             'Cnt'      => Magento_Profiler::FETCH_COUNT,
             'Emalloc'  => Magento_Profiler::FETCH_EMALLOC,
             'RealMem'  => Magento_Profiler::FETCH_REALMEM,
-        );
+        ];
     }
 
     /**
@@ -93,19 +76,19 @@ abstract class Magento_Profiler_OutputAbstract
         if ($columnId == 'timer_id') {
             return $this->_renderTimerId($timerId);
         }
-        $value = (string)Magento_Profiler::fetch($timerId, $columnId);
-        if (in_array($columnId, array(Magento_Profiler::FETCH_TIME, Magento_Profiler::FETCH_AVG))) {
-            $value = number_format($value, 6);
-        } else {
-            $value = number_format($value);
+
+        $value = (float) Magento_Profiler::fetch($timerId, $columnId);
+        if (in_array($columnId, [Magento_Profiler::FETCH_TIME, Magento_Profiler::FETCH_AVG])) {
+            return number_format($value, 6);
         }
-        return $value;
+
+        return number_format($value);
     }
 
     /**
      * Render timer id column value
      *
-     * @param string $timerId
+     * @param  string $timerId
      * @return string
      */
     protected function _renderTimerId($timerId)
@@ -131,23 +114,26 @@ abstract class Magento_Profiler_OutputAbstract
         $patternLastTimerName = '/' . $nestingSep . '(?:.(?!' . $nestingSep . '))+$/';
 
         $prevTimerId = $timerIds[0];
-        $result = array($prevTimerId);
-        for ($i = 1; $i < count($timerIds); $i++) {
+        $result = [$prevTimerId];
+        $counter = count($timerIds);
+        for ($i = 1; $i < $counter; $i++) {
             $timerId = $timerIds[$i];
             /* Skip already added timer */
             if (!$timerId) {
                 continue;
             }
+
             /* Loop over all timers that need to be closed under previous timer */
-            while (strpos($timerId, $prevTimerId . Magento_Profiler::NESTING_SEPARATOR) !== 0) {
+            while (!str_starts_with($timerId, $prevTimerId . Magento_Profiler::NESTING_SEPARATOR)) {
                 /* Add to result all timers nested in the previous timer */
                 for ($j = $i + 1; $j < count($timerIds); $j++) {
-                    if (strpos($timerIds[$j], $prevTimerId . Magento_Profiler::NESTING_SEPARATOR) === 0) {
+                    if (str_starts_with($timerIds[$j], $prevTimerId . Magento_Profiler::NESTING_SEPARATOR)) {
                         $result[] = $timerIds[$j];
                         /* Mark timer as already added */
                         $timerIds[$j] = null;
                     }
                 }
+
                 /* Go to upper level timer */
                 $count = 0;
                 $prevTimerId = preg_replace($patternLastTimerName, '', $prevTimerId, -1, $count);
@@ -157,10 +143,12 @@ abstract class Magento_Profiler_OutputAbstract
                     break;
                 }
             }
+
             /* Add current timer to the result */
             $result[] = $timerId;
             $prevTimerId = $timerId;
         }
+
         return $result;
     }
 
@@ -173,12 +161,13 @@ abstract class Magento_Profiler_OutputAbstract
     {
         $pattern = $this->_filter;
         $timerIds = $this->_getSortedTimers();
-        $result = array();
+        $result = [];
         foreach ($timerIds as $timerId) {
             /* Filter by timer id pattern */
             if ($pattern && !preg_match($pattern, $timerId)) {
                 continue;
             }
+
             /* Filter by column value thresholds */
             $skip = false;
             foreach ($this->_thresholds as $fetchKey => $minAllowedValue) {
@@ -188,10 +177,12 @@ abstract class Magento_Profiler_OutputAbstract
                     break;
                 }
             }
+
             if (!$skip) {
                 $result[] = $timerId;
             }
         }
+
         return $result;
     }
 
@@ -203,16 +194,15 @@ abstract class Magento_Profiler_OutputAbstract
     protected function _renderCaption()
     {
         $result = 'Code Profiler (Memory usage: real - %s, emalloc - %s)';
-        $result = sprintf($result, memory_get_usage(true), memory_get_usage());
-        return $result;
+        return sprintf($result, memory_get_usage(true), memory_get_usage());
     }
 
     /**
      * Set threshold (minimal allowed) value for timer column.
      * Timer is being rendered if at least one of its columns is not less than the minimal allowed value.
      *
-     * @param string $fetchKey
-     * @param int|float|null $minAllowedValue
+     * @param string         $fetchKey
+     * @param null|float|int $minAllowedValue
      */
     public function setThreshold($fetchKey, $minAllowedValue)
     {

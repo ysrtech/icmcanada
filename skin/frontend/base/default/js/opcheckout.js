@@ -1,26 +1,8 @@
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE_AFL.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    design
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
  * @package     base_default
- * @copyright   Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
 var Checkout = Class.create();
 Checkout.prototype = {
@@ -90,9 +72,9 @@ Checkout.prototype = {
 
     _disableEnableAll: function(element, isDisabled) {
         var descendants = element.descendants();
-        for (var k in descendants) {
-            descendants[k].disabled = isDisabled;
-        }
+        descendants.each(function(descendant) {
+            descendant.disabled = isDisabled;
+        });
         element.disabled = isDisabled;
     },
 
@@ -419,6 +401,7 @@ Shipping.prototype = {
         this.form = form;
         if ($(this.form)) {
             $(this.form).observe('submit', function(event){this.save();Event.stop(event);}.bind(this));
+            $(this.form).select('#shipping\\:country_id').first()?.addEventListener('change', () => { if (window.shipping) shipping.setSameAsBilling(false) });
         }
         this.addressUrl = addressUrl;
         this.saveUrl = saveUrl;
@@ -742,7 +725,7 @@ Payment.prototype = {
     changeVisible: function(method, mode) {
         var block = 'payment_form_' + method;
         [block + '_before', block, block + '_after'].each(function(el) {
-            element = $(el);
+            var element = $(el);
             if (element) {
                 element.style.display = (mode) ? 'none' : '';
                 element.select('input', 'select', 'textarea', 'button').each(function(field) {

@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Abstract resource model
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
  */
 abstract class Mage_Core_Model_Resource_Abstract
 {
@@ -49,27 +30,32 @@ abstract class Mage_Core_Model_Resource_Abstract
      *
      * @var array
      */
-    static protected $_commitCallbacks = array();
+    protected static $_commitCallbacks = [];
 
     /**
-     * Resource initialization
+     * Internal constructor not depended on params. Can be used for object initialization
+     *
+     * @return void
      */
     abstract protected function _construct();
 
     /**
      * Retrieve connection for read data
+     *
+     * @return Varien_Db_Adapter_Interface
      */
     abstract protected function _getReadAdapter();
 
     /**
      * Retrieve connection for write data
+     * @return Varien_Db_Adapter_Interface
      */
     abstract protected function _getWriteAdapter();
 
     /**
      * Start resource transaction
      *
-     * @return Mage_Core_Model_Resource_Abstract
+     * @return $this
      */
     public function beginTransaction()
     {
@@ -80,8 +66,9 @@ abstract class Mage_Core_Model_Resource_Abstract
     /**
      * Subscribe some callback to transaction commit
      *
-     * @param callback $callback
-     * @return Mage_Core_Model_Resource_Abstract
+     * @param  callable $callback
+     * @return $this
+     * @SuppressWarnings("PHPMD.CamelCaseVariableName")
      */
     public function addCommitCallback($callback)
     {
@@ -93,7 +80,8 @@ abstract class Mage_Core_Model_Resource_Abstract
     /**
      * Commit resource transaction
      *
-     * @return Mage_Core_Model_Resource_Abstract
+     * @return $this
+     * @SuppressWarnings("PHPMD.CamelCaseVariableName")
      */
     public function commit()
     {
@@ -105,19 +93,21 @@ abstract class Mage_Core_Model_Resource_Abstract
             $adapterKey = spl_object_hash($this->_getWriteAdapter());
             if (isset(self::$_commitCallbacks[$adapterKey])) {
                 $callbacks = self::$_commitCallbacks[$adapterKey];
-                self::$_commitCallbacks[$adapterKey] = array();
-                foreach ($callbacks as $index => $callback) {
+                self::$_commitCallbacks[$adapterKey] = [];
+                foreach ($callbacks as $callback) {
                     call_user_func($callback);
                 }
             }
         }
+
         return $this;
     }
 
     /**
      * Roll back resource transaction
      *
-     * @return Mage_Core_Model_Resource_Abstract
+     * @return $this
+     * @SuppressWarnings("PHPMD.CamelCaseVariableName")
      */
     public function rollBack()
     {
@@ -125,28 +115,29 @@ abstract class Mage_Core_Model_Resource_Abstract
         if ($this->_getWriteAdapter()->getTransactionLevel() === 0) {
             $adapterKey = spl_object_hash($this->_getWriteAdapter());
             if (isset(self::$_commitCallbacks[$adapterKey])) {
-                self::$_commitCallbacks[$adapterKey] = array();
+                self::$_commitCallbacks[$adapterKey] = [];
             }
         }
+
         return $this;
     }
 
     /**
      * Format date to internal format
      *
-     * @param string|Zend_Date $date
-     * @param bool $includeTime
-     * @return string
+     * @param  null|bool|int|string|Zend_Date $date
+     * @param  bool                           $includeTime
+     * @return null|string
      */
-    public function formatDate($date, $includeTime=true)
+    public function formatDate($date, $includeTime = true)
     {
-         return Varien_Date::formatDate($date, $includeTime);
+        return Varien_Date::formatDate($date, $includeTime);
     }
 
     /**
      * Convert internal date to UNIX timestamp
      *
-     * @param string $str
+     * @param  string $str
      * @return int
      */
     public function mktime($str)
@@ -157,11 +148,10 @@ abstract class Mage_Core_Model_Resource_Abstract
     /**
      * Serialize specified field in an object
      *
-     * @param Varien_Object $object
-     * @param string $field
-     * @param mixed $defaultValue
-     * @param bool $unsetEmpty
-     * @return Mage_Core_Model_Resource_Abstract
+     * @param  string $field
+     * @param  mixed  $defaultValue
+     * @param  bool   $unsetEmpty
+     * @return $this
      */
     protected function _serializeField(Varien_Object $object, $field, $defaultValue = null, $unsetEmpty = false)
     {
@@ -173,6 +163,7 @@ abstract class Mage_Core_Model_Resource_Abstract
                 if (is_object($defaultValue) || is_array($defaultValue)) {
                     $defaultValue = serialize($defaultValue);
                 }
+
                 $object->setData($field, $defaultValue);
             }
         } elseif (is_array($value) || is_object($value)) {
@@ -185,9 +176,8 @@ abstract class Mage_Core_Model_Resource_Abstract
     /**
      * Unserialize Varien_Object field in an object
      *
-     * @param Mage_Core_Model_Abstract $object
      * @param string $field
-     * @param mixed $defaultValue
+     * @param mixed  $defaultValue
      */
     protected function _unserializeField(Varien_Object $object, $field, $defaultValue = null)
     {
@@ -195,52 +185,55 @@ abstract class Mage_Core_Model_Resource_Abstract
         if (empty($value)) {
             $object->setData($field, $defaultValue);
         } elseif (!is_array($value) && !is_object($value)) {
-            $object->setData($field, unserialize($value));
+            $object->setData($field, unserialize($value, ['allowed_classes' => ['Varien_Object']]));
         }
     }
 
     /**
      * Prepare data for passed table
      *
-     * @param Varien_Object $object
-     * @param string $table
+     * @param  string $table
      * @return array
      */
     protected function _prepareDataForTable(Varien_Object $object, $table)
     {
-        $data = array();
-        $fields = $this->_getWriteAdapter()->describeTable($table);
+        $data = [];
+        $fields = $this->_getReadAdapter()->describeTable($table);
         foreach (array_keys($fields) as $field) {
             if ($object->hasData($field)) {
                 $fieldValue = $object->getData($field);
                 if ($fieldValue instanceof Zend_Db_Expr) {
                     $data[$field] = $fieldValue;
-                } else {
-                    if (null !== $fieldValue) {
-                        $fieldValue   = $this->_prepareTableValueForSave($fieldValue, $fields[$field]['DATA_TYPE']);
-                        $data[$field] = $this->_getWriteAdapter()->prepareColumnValue($fields[$field], $fieldValue);
-                    } else if (!empty($fields[$field]['NULLABLE'])) {
-                        $data[$field] = null;
-                    }
+                } elseif ($fieldValue !== null) {
+                    $fieldValue   = $this->_prepareTableValueForSave($fieldValue, $fields[$field]['DATA_TYPE']);
+                    $data[$field] = $this->_getWriteAdapter()->prepareColumnValue($fields[$field], $fieldValue);
+                } elseif (!empty($fields[$field]['NULLABLE'])) {
+                    $data[$field] = null;
                 }
             }
         }
+
         return $data;
     }
 
     /**
      * Prepare value for save
      *
-     * @param mixed $value
-     * @param string $type
+     * @param  mixed  $value
+     * @param  string $type
      * @return mixed
      */
     protected function _prepareTableValueForSave($value, $type)
     {
-        $type = strtolower($type);
-        if ($type == 'decimal' || $type == 'numeric' || $type == 'float') {
-            $value = Mage::app()->getLocale()->getNumber($value);
+        if (in_array($type, ['decimal', 'numeric', 'float'])) {
+            return Mage::app()->getLocale()->getNumber($value);
         }
+
         return $value;
+    }
+
+    public function isModuleEnabled(string $moduleName, string $helperAlias = 'core'): bool
+    {
+        return Mage::helper($helperAlias)->isModuleEnabled($moduleName);
     }
 }

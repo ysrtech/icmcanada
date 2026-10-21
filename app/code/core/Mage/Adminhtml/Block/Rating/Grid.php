@@ -1,38 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
- * description
- *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Rating_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_rating_grid';
 
     public function __construct()
     {
@@ -43,6 +23,10 @@ class Mage_Adminhtml_Block_Rating_Grid extends Mage_Adminhtml_Block_Widget_Grid
         $this->setSaveParametersInSession(true);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getModel('rating/rating')
@@ -53,37 +37,42 @@ class Mage_Adminhtml_Block_Rating_Grid extends Mage_Adminhtml_Block_Widget_Grid
     }
 
     /**
-     * Prepare Rating Grid colunms
-     *
-     * @return Mage_Adminhtml_Block_Rating_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('rating_id', array(
+        $this->addColumn('rating_id', [
             'header'    => Mage::helper('rating')->__('ID'),
-            'align'     =>'right',
+            'align'     => 'right',
             'width'     => '50px',
             'index'     => 'rating_id',
-        ));
+        ]);
 
-        $this->addColumn('rating_code', array(
+        $this->addColumn('rating_code', [
             'header'    => Mage::helper('rating')->__('Rating Name'),
             'index'     => 'rating_code',
-        ));
+        ]);
 
-        $this->addColumn('position', array(
+        $this->addColumn('position', [
             'header' => Mage::helper('rating')->__('Sort Order'),
             'align' => 'left',
             'width' => '100px',
             'index' => 'position',
-        ));
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     * @param  Mage_Rating_Model_Rating $row
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/*/edit', array('id' => $row->getId()));
+        return $this->getUrl('*/*/edit', ['id' => $row->getId()]);
     }
-
 }

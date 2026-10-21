@@ -1,38 +1,24 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Customer's tags grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Tag_Model_Resource_Customer_Collection getCollection()
+ * @method int|Mage_Customer_Model_Customer            getCustomerId()
+ * @method $this                                       setCustomerId(int $value)
  */
 class Mage_Adminhtml_Block_Customer_Edit_Tab_Tag extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_customer_edit_tab_tag';
 
     public function __construct()
     {
@@ -44,12 +30,14 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_Tag extends Mage_Adminhtml_Block_Wi
         $this->setFilterVisibility(false);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        $tagId = Mage::registry('tagId');
-
-        if( $this->getCustomerId() instanceof Mage_Customer_Model_Customer ) {
-            $this->setCustomerId( $this->getCustomerId()->getId() );
+        if ($this->getCustomerId() instanceof Mage_Customer_Model_Customer) {
+            $this->setCustomerId($this->getCustomerId()->getId());
         }
 
         $collection = Mage::getResourceModel('tag/customer_collection')
@@ -60,63 +48,80 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_Tag extends Mage_Adminhtml_Block_Wi
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _afterLoadCollection()
     {
-            $this->getCollection()->addProductName();
+        $this->getCollection()->addProductName();
         return parent::_afterLoadCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('name', array(
+        $this->addColumn('name', [
             'header'    => Mage::helper('customer')->__('Tag Name'),
             'index'     => 'name',
-        ));
+        ]);
 
-        $this->addColumn('status', array(
+        $this->addColumn('status', [
             'header'    => Mage::helper('customer')->__('Status'),
             'width'     => '90px',
             'index'     => 'status',
             'type'      => 'options',
-            'options'    => array(
+            'options'    => [
                 Mage_Tag_Model_Tag::STATUS_DISABLED => Mage::helper('customer')->__('Disabled'),
                 Mage_Tag_Model_Tag::STATUS_PENDING  => Mage::helper('customer')->__('Pending'),
                 Mage_Tag_Model_Tag::STATUS_APPROVED => Mage::helper('customer')->__('Approved'),
-            ),
+            ],
             'filter'    => false,
-        ));
+        ]);
 
-        $this->addColumn('product', array(
+        $this->addColumn('product', [
             'header'    => Mage::helper('customer')->__('Product Name'),
             'index'     => 'product',
             'filter'    => false,
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('product_sku', array(
+        $this->addColumn('product_sku', [
             'header'    => Mage::helper('customer')->__('SKU'),
             'index'     => 'product_sku',
             'filter'    => false,
             'sortable'  => false,
-        ));
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     * @param Mage_Customer_Model_Customer $row
+     */
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/tag/edit', array(
+        return $this->getUrl('*/tag/edit', [
             'tag_id' => $row->getTagId(),
             'customer_id' => $this->getCustomerId(),
-        ));
+        ]);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/customer/tagGrid', array(
+        return $this->getUrl('*/customer/tagGrid', [
             '_current' => true,
-            'id'       => $this->getCustomerId()
-        ));
+            'id'       => $this->getCustomerId(),
+        ]);
     }
-
 }

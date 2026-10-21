@@ -34,46 +34,27 @@
  * @method string|null getVarNameSort() Return the variable name used by the grid block for the sort parameter
  * @method string|null getVarNameDir() Return the variable name used by the grid block for the direction parameter
  * @method string|null getVarNameFilter() Return the variable name used by the grid block for the filter parameter
- * @method string|null getVarNamePage() Return the variable name used by the grid block for the page parameter
  * @method int getHasVaryingBlockId() Return whether the corresponding grid block has a varying ID
  */
 
 class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
 {
-    /**
-     * Session keys
-     */
+    const WORKER_TYPE_ABSORBER = 'absorber';
+    const WORKER_TYPE_APPLIER  = 'applier';
+    const WORKER_TYPE_DEFAULT_PARAMS_HANDLER = 'default_params_handler';
+    const WORKER_TYPE_EXPORTER = 'exporter';
+    const WORKER_TYPE_FILTERS_HANDLER = 'filters_handler';
+    const WORKER_TYPE_SENTRY   = 'sentry';
+    
     const SESSION_BASE_KEY_CURRENT_PROFILE = '_blcg_current_profile_';
     
-    /**
-     * Attribute columns base keys
-     */
     const ATTRIBUTE_COLUMN_ID_PREFIX  = '_blcg_attribute_column_';
+    const CUSTOM_COLUMN_ID_PREFIX     = '_blcg_custom_column_';
     const ATTRIBUTE_COLUMN_GRID_ALIAS = 'blcg_attribute_field_';
+    const CUSTOM_COLUMN_GRID_ALIAS    = 'blcg_custom_field_';
     
-    /**
-     * Custom columns base keys
-     */
-    const CUSTOM_COLUMN_ID_PREFIX  = '_blcg_custom_column_';
-    const CUSTOM_COLUMN_GRID_ALIAS = 'blcg_custom_field_';
-    
-    /**
-     * Pitch to put between each column order at initialization
-     * 
-     * @var int
-     */
     const COLUMNS_ORDER_PITCH = 10;
     
-    /**
-     * Default pagination values (usually hard-coded in grid template)
-     * 
-     * @var int[]
-     */
-    static protected $_defaultPaginationValues = array(20, 30, 50, 100, 200);
-    
-    /**
-     * Grid parameters base keys
-     */
     const GRID_PARAM_NONE   = 'none';
     const GRID_PARAM_PAGE   = 'page';
     const GRID_PARAM_LIMIT  = 'limit';
@@ -94,9 +75,6 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
         self::GRID_PARAM_FILTER,
     );
     
-    /**
-     * Default parameters behaviours
-     */
     const DEFAULT_PARAM_DEFAULT             = 'default';
     const DEFAULT_PARAM_FORCE_ORIGINAL      = 'force_original';
     const DEFAULT_PARAM_FORCE_CUSTOM        = 'force_custom';
@@ -115,65 +93,77 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      * Return the worker model of the given type
      * 
      * @param string $type Worker type
-     * @return BL_CustomGrid_Model_Grid_Worker
+     * @return BL_CustomGrid_Model_Grid_Worker_Abstract
      */
     protected function _getWorker($type)
     {
-        if (!$this->hasData($type)) {
-            $worker = Mage::getModel('customgrid/grid_' . $type);
-            
-            if ($worker instanceof BL_CustomGrid_Model_Grid_Worker) {
-                /** @var $worker BL_CustomGrid_Model_Grid_Worker */
-                $worker->setGridModel($this);
-            }
-            
-            $this->setData($type, $worker);
-        }
-        return $this->_getData($type);
+        /** @var BL_CustomGrid_Helper_Worker $helper */
+        $helper = Mage::helper('customgrid/worker');
+        return $helper->getModelWorker($this, $type);
     }
     
     /**
-     * Return the absorber model usable to initialize/update the grid model values from a grid block
+     * Return the absorber model, usable to initialize/update the grid model values from a grid block
      * 
      * @return BL_CustomGrid_Model_Grid_Absorber
      */
     public function getAbsorber()
     {
-        return $this->_getWorker('absorber');
+        return $this->_getWorker(self::WORKER_TYPE_ABSORBER);
     }
     
     /**
-     * Return the applier model usable to apply the grid model values to a grid block
+     * Return the applier model, usable to apply the grid model values to a grid block
      * 
      * @return BL_CustomGrid_Model_Grid_Applier
      */
     public function getApplier()
     {
-        return $this->_getWorker('applier');
+        return $this->_getWorker(self::WORKER_TYPE_APPLIER);
     }
     
     /**
-     * Return the exporter model usable to export the grid results
+     * Return the default parameters handler model, usable to handle the default parameters values
+     * 
+     * @return BL_CustomGrid_Model_Grid_Default_Params_Handler
+     */
+    public function getDefaultParamsHandler()
+    {
+        return $this->_getWorker(self::WORKER_TYPE_DEFAULT_PARAMS_HANDLER);
+    }
+    
+    /**
+     * Return the filters handler model, usable to handle filters appliable and applied to the grid model
+     * 
+     * @return BL_CustomGrid_Model_Grid_Filters_Handler
+     */
+    public function getFiltersHandler()
+    {
+        return $this->_getWorker(self::WORKER_TYPE_FILTERS_HANDLER);
+    }
+    
+    /**
+     * Return the exporter model, usable to export the grid results
      * 
      * @return BL_CustomGrid_Model_Grid_Exporter
      */
     public function getExporter()
     {
-        return $this->_getWorker('exporter');
+        return $this->_getWorker(self::WORKER_TYPE_EXPORTER);
     }
     
     /**
-     * Return the sentry model usable to handle and check user permissions
+     * Return the sentry model, usable to handle and check user permissions
      * 
      * @return BL_CustomGrid_Model_Grid_Sentry
      */
     public function getSentry()
     {
-        return $this->_getWorker('sentry');
+        return $this->_getWorker(self::WORKER_TYPE_SENTRY);
     }
     
     /**
-     * Return base helper
+     * Return the base helper
      * 
      * @return BL_CustomGrid_Helper_Data
      */
@@ -183,7 +173,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return config helper
+     * Return the config helper
      * 
      * @return BL_CustomGrid_Helper_Config
      */
@@ -193,7 +183,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return admin session model
+     * Return the admin session model
      * 
      * @return Mage_Admin_Model_Session
      */
@@ -203,7 +193,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return adminhtml session model
+     * Return the adminhtml session model
      * 
      * @return Mage_Adminhtml_Model_Session
      */
@@ -233,7 +223,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return currently logged-in user
+     * Return the currently logged-in user
      * 
      * @return Mage_Admin_Model_User|null
      */
@@ -255,7 +245,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset given data keys
+     * Reset the given data keys
      * 
      * @param string[] $keys Data keys to reset
      * @return BL_CustomGrid_Model_Grid
@@ -269,7 +259,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to grid type values
+     * Reset the data keys associated to grid type values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -279,7 +269,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to columns values
+     * Reset the data keys associated to columns values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -289,7 +279,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to users config values
+     * Reset the data keys associated to users config values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -299,7 +289,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to roles config values
+     * Reset the data keys associated to roles config values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -309,7 +299,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to profiles values
+     * Reset the data keys associated to profiles values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -320,7 +310,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset data keys associated to available profiles
+     * Reset the data keys associated to available profiles
      * 
      * @return BL_CustomGrid_Model_Grid
      */
@@ -330,7 +320,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset all data keys associated to sub values
+     * Reset all the data keys associated to sub values
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -358,7 +348,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Set default values to uninitialized data keys before save
+     * Apply default values to the uninitialized data keys before save
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -371,7 +361,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Reset all sub values after save
+     * Reset all the sub values after save
      *
      * @return BL_CustomGrid_Model_Grid
      */
@@ -422,7 +412,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return grid parameters base keys
+     * Return the grid parameters base keys
      * 
      * @param bool $withNone Whether "None" option should be included
      * @return string[]
@@ -465,7 +455,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return block variable name
+     * Return the block variable name for the given variable key
      *
      * @param string $key Variable key
      * @return string
@@ -477,7 +467,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return block variable names
+     * Return the block variable names
      *
      * @return string[]
      */
@@ -493,7 +483,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return grid block session key for given parameter
+     * Return the grid block session key for the given parameter
      *
      * @param string $param Grid block parameter (should correspond to variable names)
      * @return string|null
@@ -508,7 +498,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     *  Return grid type model
+     *  Return the grid type model
      *
      * @return BL_CustomGrid_Model_Grid_Type_Abstract|null
      */
@@ -538,31 +528,24 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
                 } 
             } else {
                 $this->unsetData('type_code');
+                
+                $defaultTypeModel = Mage::getSingleton('customgrid/grid_type_default');
+                $this->setData('type_model', $defaultTypeModel);
+                $this->setData('base_type_model', $defaultTypeModel);
             }
         }
         return $this->_getData('type_model');
     }
     
     /**
-     * Return active type model name, or given default value if the grid has no base type nor forced type
+     * Return the name of the base type model
      *
-     * @param string $default Default value
      * @return string
      */
-    public function getTypeModelName($default = '')
+    public function getBaseTypeModelName()
     {
-        return (($typeModel = $this->getTypeModel()) ? $typeModel->getName() : $default);
-    }
-    
-    /**
-     * Return base type model name, or given default value if the grid has no base type
-     *
-     * @param string $default Default value
-     * @return string
-     */
-    public function getBaseTypeModelName($default = '')
-    {
-        return ($this->getTypeModel() && ($typeModel = $this->getBaseTypeModel()) ? $typeModel->getName() : $default);
+        $this->getTypeModel();
+        return $this->getBaseTypeModel()->getName();
     }
     
     /**
@@ -593,7 +576,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Set profiles
+     * Set the grid profiles
      * 
      * @param array $profiles Grid profiles
      * @return BL_CustomGrid_Model_Grid
@@ -618,7 +601,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return all profiles
+     * Return all the profiles
      *
      * @return BL_CustomGrid_Model_Grid_Profile[]
      */
@@ -638,15 +621,17 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      * @param BL_CustomGrid_Model_Grid_Profile $profileB Another profile
      * @return int
      */
-    protected function _sortProfiles($profileA, $profileB)
-    {
+    protected function _sortProfiles(
+        BL_CustomGrid_Model_Grid_Profile $profileA,
+        BL_CustomGrid_Model_Grid_Profile $profileB
+    ) {
         return $profileA->isBase()
             ? -1
             : ($profileB->isBase() ? 1 : strcasecmp($profileA->getName(), $profileB->getName()));
     }
     
     /**
-     * Return profiles list
+     * Return the profiles list
      *
      * @param bool $onlyAvailable Whether only the profiles available to the current user should be returned
      * @param bool $sorted Whether profiles should be sorted
@@ -682,7 +667,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return IDs of the profiles assigned to the given role
+     * Return the IDs of the profiles assigned to the given role
      *
      * @param int|null $roleId Role ID (if null, the role of the current user will be used)
      * @return int[]
@@ -702,7 +687,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return available profiles IDs
+     * Return the available profiles IDs
      * 
      * @return int[]
      */
@@ -725,7 +710,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether given profile ID is available for the current user
+     * Return whether the given profile ID is available for the current user
      * 
      * @param int $profileId Profile Id
      * @return bool
@@ -733,6 +718,53 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     public function isAvailableProfile($profileId)
     {
         return in_array($profileId, $this->getAvailableProfilesIds(), true);
+    }
+    
+    /**
+     * Reapply the previously remembered session values from the given profile
+     * 
+     * @param BL_CustomGrid_Model_Grid_Profile $profile Grid profile
+     * @return BL_CustomGrid_Model_Grid
+     */
+    protected function _reapplyProfileRememberedValues(BL_CustomGrid_Model_Grid_Profile $profile)
+    {
+        $session = $this->getAdminhtmlSession();
+        $rememberedValues = $profile->getRememberedSessionValues();
+        
+        foreach ($this->getBlockVarNames() as $gridParam => $varName) {
+            if ($sessionKey = $this->getBlockParamSessionKey($varName)) {
+                if (isset($rememberedValues[$gridParam])) {
+                    $session->setData($sessionKey, $rememberedValues[$gridParam]);
+                } else {
+                    $session->unsetData($sessionKey);
+                }
+            }
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Return the rememberable session values from the given profile 
+     * 
+     * @param BL_CustomGrid_Model_Grid_Profile $profile Grid profile
+     * @return array
+     */
+    protected function _getProfileRememberableValues(BL_CustomGrid_Model_Grid_Profile $profile)
+    {
+        $session = $this->getAdminhtmlSession();
+        $rememberableParams = $profile->getRememberedSessionParams();
+        $rememberableValues = array();
+        
+        foreach ($this->getBlockVarNames() as $gridParam => $varName) {
+            if ($sessionKey = $this->getBlockParamSessionKey($varName)) {
+                if (in_array($gridParam, $rememberableParams) && $session->hasData($sessionKey)) {
+                    $rememberableValues[$gridParam] = $session->getData($sessionKey);
+                }
+            }
+        }
+        
+        return $rememberableValues;
     }
     
     /**
@@ -744,34 +776,15 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      */
     protected function _handlePermanentProfileChange(
         BL_CustomGrid_Model_Grid_Profile $newProfile,
-        BL_CustomGrid_Model_Grid_Profile $previousProfile = null
+        ?BL_CustomGrid_Model_Grid_Profile $previousProfile = null
     ) {
-        $session = $this->getAdminhtmlSession();
-        $rememberedValues   = $newProfile->getRememberedSessionValues();
-        $rememberableValues = array();
-        $rememberableParams = ($previousProfile ? $previousProfile->getRememberedSessionParams() : array());
-        $isFilterRememberable = false;
-        
-        foreach ($this->getBlockVarNames() as $gridParam => $varName) {
-            $isRememberedValue = isset($rememberedValues[$gridParam]);
-            
-            if ($sessionKey = $this->getBlockParamSessionKey($varName)) {
-                if (in_array($gridParam, $rememberableParams) && $session->hasData($sessionKey)) {
-                    $rememberableValues[$gridParam] = $session->getData($sessionKey);
-                    $isFilterRememberable = ($varName == self::GRID_PARAM_FILTER);
-                }
-                if ($isRememberedValue) {
-                    $session->setData($sessionKey, $rememberedValues[$gridParam]);
-                } else {
-                    $session->unsetData($sessionKey);
-                }
-            }
-        }
+        $this->_reapplyProfileRememberedValues($newProfile);
         
         if ($previousProfile) {
-            $previousProfile->setRememberableSessionValues($rememberableValues);
+            $rememberableValues = $this->_getProfileRememberableValues($previousProfile);
+            $previousProfile->setRememberedSessionValues($rememberableValues);
             
-            if ($isFilterRememberable) {
+            if (isset($rememberableValues[self::GRID_PARAM_FILTER])) {
                 // Ensure that the next filters verification won't mess with the default filters
                 // when switching back to the previous profile
                 $previousProfile->setSessionAppliedFilters(array());
@@ -839,7 +852,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return session key corresponding to the current profile ID
+     * Return the session key corresponding to the current profile ID
      *
      * @return string
      */
@@ -865,7 +878,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return default profile ID for given user
+     * Return the default profile ID for the given user
      *
      * @param int|null $userId User ID (if null, the current user will be used)
      * @return int|null
@@ -885,7 +898,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return default profile ID for given role
+     * Return the default profile ID for the given role
      *
      * @param int|null $roleId Role ID (if null, the role of the current user will be used)
      * @return int|null
@@ -915,6 +928,23 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
+     * Check the session previous profile against the current profile,
+     * and notify the user of any automatic change if necessary
+     * 
+     * @param int $sessionProfileId Session (previous) profile ID
+     * @param int $currentProfileId Current profile ID
+     * @return Bl_CustomGrid_Model_Grid
+     */
+    protected function _handleSessionPreviousProfileChange($sessionProfileId, $currentProfileId)
+    {
+        if (is_int($sessionProfileId) && ($sessionProfileId !== $currentProfileId)) {
+            $this->getBlcgSession()
+                ->addNotice($this->getHelper()->__('The previous profile is not available anymore'));
+        }
+        return $this;
+    }
+    
+    /**
      * Return the current profile ID
      *
      * @return int
@@ -922,9 +952,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     public function getProfileId()
     {
         if (!$this->hasData('profile_id')) {
-            if (!$this->getId()) {
-                return null;
-            } else {
+            if ($this->getId()) {
                 $profiles  = $this->getProfiles(true);
                 $profileId = key($profiles);
                 $sessionProfileId = $this->getSessionProfileId();
@@ -947,11 +975,8 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
                 if (is_null($profileId)) {
                     Mage::throwException($this->getHelper()->__('There is not any available profile'));
                 }
-                if (is_int($sessionProfileId) && ($sessionProfileId !== $profileId)) {
-                    $this->getBlcgSession()
-                        ->addNotice($this->getHelper()->__('The previous profile is not available anymore'));
-                }
                 
+                $this->_handleSessionPreviousProfileChange($sessionProfileId, $profileId);
                 $this->setProfileId($profileId, false, false);
             }
         }
@@ -979,7 +1004,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether profiles created by users who do not have the permission to assign profiles
+     * Return whether the profiles created by users who do not have the permission to assign profiles
      * should be restricted by default
      * 
      * @return bool
@@ -1018,7 +1043,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Update profiles default values corresponding to assignation values
+     * Update the profiles default values corresponding to assignation values
      * 
      * @param array $defaults New profiles default values
      * @return BL_CustomGrid_Model_Grid
@@ -1043,7 +1068,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Update profiles default values corresponding to base values
+     * Update the profiles default values corresponding to base values
      * 
      * @param array $defaults New profiles default values
      * @return BL_CustomGrid_Model_Grid
@@ -1075,7 +1100,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Update profiles default values
+     * Update the profiles default values
      * 
      * @param array $defaults New profiles default values
      * @return BL_CustomGrid_Model_Grid
@@ -1118,7 +1143,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return default interval between two columns order values
+     * Return the default interval between two columns order values
      *
      * @return int
      */
@@ -1138,7 +1163,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Recompute columns maximum order
+     * Recompute the columns maximum order
      *
      * @var int $newOrder If set, the new maximum order will only be computed from the current value and the given one
      * @return BL_CustomGrid_Model_Grid
@@ -1160,7 +1185,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Increase maximum order by the order pitch and return the new value
+     * Increase the maximum order by the order pitch and return the new value
      *
      * @return int
      */
@@ -1251,7 +1276,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Set columns
+     * Set the grid columns
      *
      * @param array $columns Grid columns
      * @return BL_CustomGrid_Model_Grid
@@ -1271,7 +1296,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return all columns
+     * Return all the columns
      *
      * @return BL_CustomGrid_Model_Grid_Column[]
      */
@@ -1290,31 +1315,31 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return all columns, possibly with some additional informations
+     * Return all the columns, possibly with some additional values
      * 
-     * @param bool $withEditConfigs Whether edit configs should be added to the corresponding columns
+     * @param bool $withEditorConfigs Whether editor configs should be added to the corresponding columns
      * @param bool $withCustomColumns Whether custom columns models should be added to the corresponding columns
      * @return BL_CustomGrid_Model_Grid_Column[]
      */
-    public function getColumns($withEditConfigs = false, $withCustomColumns = false)
+    public function getColumns($withEditorConfigs = false, $withCustomColumns = false)
     {
         $columns = $this->_getColumns();
         
-        if (($withEditConfigs || $withCustomColumns)
-            && ($typeModel = $this->getTypeModel())) {
-            if ($withEditConfigs) {
-                $columns = $typeModel->applyEditConfigsToColumns($this->getBlockType(), $columns);
-            }
-            if ($withCustomColumns) {
-                $columnBlockIds = $this->getColumnBlockIdsByOrigin(BL_CustomGrid_Model_Grid_Column::ORIGIN_CUSTOM);
-                $customColumns  = $this->getAvailableCustomColumns(false, true);
-                
-                foreach ($columnBlockIds as $blockId) {
-                    if (isset($customColumns[$columns[$blockId]->getIndex()])) {
-                        $columns[$blockId]->setCustomColumnModel($customColumns[$columns[$blockId]->getIndex()]);
-                    }
+        if ($withEditorConfigs || $withCustomColumns) {
+            // Custom columns are now required to build the editor configs
+            $columnBlockIds = $this->getColumnBlockIdsByOrigin(BL_CustomGrid_Model_Grid_Column::ORIGIN_CUSTOM);
+            $customColumns  = $this->getAvailableCustomColumns(false, true);
+            
+            foreach ($columnBlockIds as $blockId) {
+                if (isset($customColumns[$columns[$blockId]->getIndex()])) {
+                    $columns[$blockId]->setCustomColumnModel($customColumns[$columns[$blockId]->getIndex()]);
                 }
             }
+        }
+        if ($withEditorConfigs) {
+            $this->getTypeModel()
+                ->getEditor()
+                ->applyConfigsToColumns($this->getBlockType(), $columns);
         }
         
         return $columns;
@@ -1335,14 +1360,14 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return sorted columns, possibly filtered and with some additional informations
+     * Return the sorted columns, possibly filtered and with some additional values
      *
      * @param bool $includeValid Whether valid columns should be returned (ie not missing ones)
      * @param bool $includeMissing Whether missing columns should be returned
      * @param bool $includeAttribute Whether attribute columns should be returned
      * @param bool $includeCustom Whether custom columns should be returned
      * @param bool $onlyVisible Whether only visible columns should be returned
-     * @param bool $withEditConfigs Whether edit configs should be added to the corresponding columns
+     * @param bool $withEditorConfigs Whether editor configs should be added to the corresponding columns
      * @param bool $withCustomColumn Whether custom columns models should be added to the corresponding columns
      * @return BL_CustomGrid_Model_Grid_Column[]
      */
@@ -1352,12 +1377,12 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
         $includeAttribute = true,
         $includeCustom = true,
         $onlyVisible = false,
-        $withEditConfigs = false,
+        $withEditorConfigs = false,
         $withCustomColumn = false
     ) {
         $columns = array();
         
-        foreach ($this->getColumns($withEditConfigs, $withCustomColumn) as $columnBlockId => $column) {
+        foreach ($this->getColumns($withEditorConfigs, $withCustomColumn) as $columnBlockId => $column) {
             if (($onlyVisible && !$column->isVisible())
                 || (!$includeMissing && $column->isMissing())
                 || (!$includeValid && !$column->isMissing())
@@ -1469,36 +1494,32 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      */
     public function canHaveAttributeColumns()
     {
-        return (($typeModel = $this->getTypeModel()) && $typeModel->canHaveAttributeColumns($this->getBlockType()));
+        return $this->getTypeModel()->canHaveAttributeColumns($this->getBlockType());
     }
     
     /**
-     * Return available attributes
+     * Return the available attributes
      *
-     * @param bool $withRendererCodes Whether renderers codes should be added to the attributes
-     * @param bool $withEditableFlags Whether editable flags should be added to the attributes
+     * @param bool $withRendererCodes Whether the renderers codes should be added to the attributes
+     * @param bool $withEditableFlag Whether the editable flag should be set on the attributes models
      * @return Mage_Eav_Model_Entity_Attribute[]
      */
-    public function getAvailableAttributes($withRendererCodes = false, $withEditableFlags = false)
+    public function getAvailableAttributes($withRendererCodes = false, $withEditableFlag = false)
     {
-        $attributes = array();
+        $attributes = $this->getTypeModel()->getAvailableAttributes($this->getBlockType(), $withEditableFlag);
         
-        if ($typeModel = $this->getTypeModel()) {
-            $attributes = $typeModel->getAvailableAttributes($this->getBlockType(), $withEditableFlags);
+        if ($withRendererCodes) {
+            /** @var $rendererConfig BL_CustomGrid_Model_Column_Renderer_Config_Attribute */
+            $rendererConfig = Mage::getSingleton('customgrid/column_renderer_config_attribute');
+            $renderers = $rendererConfig->getRenderersModels();
             
-            if ($withRendererCodes) {
-                /** @var $rendererConfig BL_CustomGrid_Model_Column_Renderer_Config_Attribute */
-                $rendererConfig = Mage::getSingleton('customgrid/column_renderer_config_attribute');
-                $renderers = $rendererConfig->getRenderersModels();
+            foreach ($attributes as $attribute) {
+                $attribute->setRendererCode(null);
                 
-                foreach ($attributes as $attribute) {
-                    $attribute->setRendererCode(null);
-                    
-                    foreach ($renderers as $code => $renderer) {
-                        if ($renderer->isAppliableToAttribute($attribute, $this)) {
-                            $attribute->setRendererCode($code);
-                            break;
-                        }
+                foreach ($renderers as $code => $renderer) {
+                    if ($renderer->isAppliableToAttribute($attribute, $this)) {
+                        $attribute->setRendererCode($code);
+                        break;
                     }
                 }
             }
@@ -1508,7 +1529,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return available attributes codes
+     * Return the available attributes codes
      *
      * @return string[]
      */
@@ -1518,7 +1539,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return renderer types codes from available attributes
+     * Return the renderer types codes from available attributes
      *
      * @return string[]
      */
@@ -1535,7 +1556,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return next attribute column block ID (auto-generated ones)
+     * Return the next attribute column block ID (auto-generated ones)
      *
      * @return string
      */
@@ -1557,8 +1578,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      */
     public function canHaveCustomColumns()
     {
-        return ($typeModel = $this->getTypeModel())
-            && $typeModel->canHaveCustomColumns($this->getBlockType(), $this->getRewritingClassName());
+        return $this->getTypeModel()->canHaveCustomColumns($this->getBlockType(), $this->getRewritingClassName());
     }
     
     /**
@@ -1572,11 +1592,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     {
         if (strpos($code, '/') === false) {
             if (is_null($typeCode)) {
-                if ($typeModel = $this->getTypeModel()) {
-                    $typeCode = $typeModel->getCode();
-                } else {
-                    return $this;
-                }
+                $typeCode = $this->getTypeModel()->getCode();
             }
             $code = $typeCode . '/' . $code;
         }
@@ -1584,21 +1600,16 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return currently used custom columns codes
+     * Return currently the used custom columns codes
      *
      * @param bool $includeTypeCode Whether column codes should include the grid type code
      * @return string[]
      */
     public function getUsedCustomColumnsCodes($includeTypeCode = false)
     {
-        if ($typeModel = $this->getTypeModel()) {
-            $typeCode = $typeModel->getCode();
-        } else {
-            return array();
-        }
-        
-        $codes = array();
-        $columns = $this->getColumns();
+        $typeCode = $this->getTypeModel()->getCode();
+        $codes    = array();
+        $columns  = $this->getColumns();
         $columnBlockIds = $this->getColumnBlockIdsByOrigin(BL_CustomGrid_Model_Grid_Column::ORIGIN_CUSTOM);
         
         foreach ($columnBlockIds as $blockId) {
@@ -1616,44 +1627,56 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return available custom columns
+     * Return the given custom columns, arranged by group
+     * 
+     * @param array $customColumns Custom columns to group
+     * @param bool $includeTypeCode Whether column codes should include the grid type code
+     * @return array
+     */
+    protected function _getGroupedCustomColumns(array $customColumns, $includeTypeCode)
+    {
+        $typeCode = $this->getTypeModel()->getCode();
+        $groupedColumns = array();
+        
+        foreach ($customColumns as $code => $customColumn) {
+            if (!isset($groupedColumns[$customColumn->getGroupId()])) {
+                $groupedColumns[$customColumn->getGroupId()] = array();
+            }
+            if ($includeTypeCode) {
+                $this->_addTypeToCustomColumnCode($code, $typeCode);
+                $groupedColumns[$code] = $customColumn;
+            }
+            
+            $groupedColumns[$customColumn->getGroupId()][$code] = $customColumn;
+        }
+        
+        return $groupedColumns;
+    }
+    
+    /**
+     * Return the available custom columns
      *
      * @param bool $grouped Whether columns should be arranged by group
      * @param bool $includeTypeCode Whether column codes should include the grid type code
-     * @return BL_CustomGrid_Model_Custom_Column_Abstract[]
+     * @return array
      */
     public function getAvailableCustomColumns($grouped = false, $includeTypeCode = false)
     {
+        $typeModel = $this->getTypeModel();
+        $typeCode  = $typeModel->getCode();
+        $customColumns = $typeModel->getCustomColumns($this->getBlockType(), $this->getRewritingClassName());
         $availableColumns = array();
         
-        if ($typeModel = $this->getTypeModel()) {
-            $customColumns = $typeModel->getCustomColumns($this->getBlockType(), $this->getRewritingClassName());
-            $usedCodes = $this->getUsedCustomColumnsCodes();
-            $typeCode  = $typeModel->getCode();
-            
-            if (is_array($customColumns)) {
-                if ($grouped) {
-                    foreach ($customColumns as $code => $customColumn) {
-                        if (!isset($availableColumns[$customColumn->getGroupId()])) {
-                            $availableColumns[$customColumn->getGroupId()] = array();
-                        }
-                        if (in_array($code, $usedCodes)) {
-                            $customColumn->setSelected(true);
-                        }
-                        if ($includeTypeCode) {
-                            $this->_addTypeToCustomColumnCode($code, $typeCode);
-                        }
-                        
-                        $availableColumns[$customColumn->getGroupId()][$code] = $customColumn;
-                    }
-                } elseif ($includeTypeCode) {
-                    foreach ($customColumns as $code => $customColumn) {
-                        $this->_addTypeToCustomColumnCode($code, $typeCode);
-                        $availableColumns[$code] = $customColumn;
-                    }
-                } else {
-                    $availableColumns = $customColumns;
+        if (is_array($customColumns)) {
+            if ($grouped) {
+                $availableColumns = $this->_getGroupedCustomColumns($customColumns, $includeTypeCode);
+            } elseif ($includeTypeCode) {
+                foreach ($customColumns as $code => $customColumn) {
+                    $this->_addTypeToCustomColumnCode($code, $typeCode);
+                    $availableColumns[$code] = $customColumn;
                 }
+            } else {
+                $availableColumns = $customColumns;
             }
         }
         
@@ -1661,7 +1684,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return available custom columns codes
+     * Return the available custom columns codes
      * 
      * @param bool $includeTypeCode Whether column codes should include the grid type code
      * @return string[]
@@ -1672,35 +1695,31 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return custom column groups
+     * Return the custom column groups
      *
      * @param bool $onlyUsed Whether only groups which contain available custom columns should be returned
      * @return string[]
      */
     public function getCustomColumnsGroups($onlyUsed = true)
     {
-        $groups = array();
+        $groups = $this->getTypeModel()->getCustomColumnsGroups();
         
-        if ($typeModel = $this->getTypeModel()) {
-            $groups = $typeModel->getCustomColumnsGroups();
+        if ($onlyUsed) {
+            $groupsIds = array();
             
-            if ($onlyUsed) {
-                $groupsIds = array();
-                
-                foreach ($this->getAvailableCustomColumns() as $column) {
-                    $groupsIds[] = $column->getGroupId();
-                }
-                
-                $groupsIds = array_unique($groupsIds);
-                $groups = array_intersect_key($groups, array_flip($groupsIds));
+            foreach ($this->getAvailableCustomColumns() as $column) {
+                $groupsIds[] = $column->getGroupId();
             }
+            
+            $groupsIds = array_unique($groupsIds);
+            $groups = array_intersect_key($groups, array_flip($groupsIds));
         }
         
         return $groups;
     }
     
     /**
-     * Return next custom column block ID (auto-generated ones)
+     * Return the next custom column block ID (auto-generated ones)
      *
      * @return string
      */
@@ -1716,7 +1735,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return column header
+     * Return the column header for the given column block ID
      *
      * @param string $columnBlockId Column block ID
      * @return string|null
@@ -1729,7 +1748,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return column locked values (ie that should not be user-defined)
+     * Return the column locked values (ie that should not be user-defined) for the given column block ID
      *
      * @param string $columnBlockId Column block ID
      * @return array
@@ -1738,16 +1757,15 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     {
         $values = array();
         
-        if (($typeModel = $this->getTypeModel())
-            && (($column = $this->getColumnByBlockId($columnBlockId)) && $column->isCollection())) {
-            $values = $typeModel->getColumnLockedValues($this->getBlockType(), $columnBlockId);
+        if (($column = $this->getColumnByBlockId($columnBlockId)) && $column->isCollection()) {
+            $values = $this->getTypeModel()->getColumnLockedValues($this->getBlockType(), $columnBlockId);
         }
         
         return (is_array($values) ? $values : array());
     }
     
     /**
-     * Return whether given block type and block ID correspond to this grid
+     * Return whether the given block type and block ID correspond to this grid model
      *
      * @param string $blockType Block type
      * @param string $blockId Block ID in layout
@@ -1755,7 +1773,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
      */
     public function matchGridBlock($blockType, $blockId)
     {
-        return (($typeModel = $this->getTypeModel()) && $typeModel->matchGridBlock($blockType, $blockId, $this));
+        return $this->getTypeModel()->matchGridBlock($blockType, $blockId, $this);
     }
     
     /**
@@ -1766,22 +1784,20 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     public function hasEditableColumns()
     {
         $hasEditableColumns = false;
+        $editableAttributes = $this->getTypeModel()
+            ->getEditor()
+            ->getEditableValuesConfigs(
+                $this->getBlockType(),
+                BL_CustomGrid_Model_Grid_Editor_Abstract::EDITABLE_TYPE_ATTRIBUTE
+            );
         
-        if ($typeModel = $this->getTypeModel()) {
-            $editableValues = $typeModel->getEditableAttributes($this->getBlockType());
-            
-            if (!empty($editableValues)) {
-                $hasEditableColumns = true;
-            } else {
-                $editableValues = array_merge(
-                    $typeModel->getEditableFields($this->getBlockType()),
-                    $typeModel->getEditableAttributeFields($this->getBlockType())
-                );
-                
-                if (!empty($editableValues)) {
-                    $columns = $this->getSortedColumns(true, true, false, false);
-                    $editableValues = array_intersect_key($columns, $editableValues);
-                    $hasEditableColumns = !empty($editableValues);
+        if (!empty($editableAttributes)) {
+            $hasEditableColumns = true;
+        } else {
+            foreach ($this->getSortedColumns(true, true, false, true, false, true, true) as $column) {
+                if ($column->isEditable()) {
+                    $hasEditableColumns = true;
+                    break;
                 }
             }
         }
@@ -1790,88 +1806,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether the current user has edit permissions over the grid columns
-     *
-     * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Grid block
-     * @return bool
-     */
-    public function hasUserEditPermissions(Mage_Adminhtml_Block_Widget_Grid $gridBlock)
-    {
-        return ($typeModel = $this->getTypeModel())
-            ? $typeModel->checkUserEditPermissions($this->getBlockType(), $this, $gridBlock)
-            : $this->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_EDIT_COLUMNS_VALUES);
-    }
-    
-    /**
-     * Return additional parameters needed for edit, corresponding to given grid block
-     *
-     * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Grid block
-     * @return array
-     */
-    public function getAdditionalEditParams(Mage_Adminhtml_Block_Widget_Grid $gridBlock)
-    {
-        return ($typeModel = $this->getTypeModel())
-            ? $typeModel->getAdditionalEditParams($this->getBlockType(), $gridBlock)
-            : array();
-    }
-    
-    /**
-     * Return grid collection row identifiers
-     *
-     * @param Varien_Object $row Grid row
-     * @return array
-     */
-    public function getCollectionRowIdentifiers(Varien_Object $row)
-    {
-        return ($typeModel = $this->getTypeModel())
-            ? $typeModel->getEntityRowIdentifiers($this->getBlockType(), $row)
-            : array();
-    }
-    
-    /**
-     * Update default parameters behaviours
-     *
-     * @param array $behaviours New behaviours
-     * @return BL_CustomGrid_Model_Grid
-     */
-    public function updateDefaultParametersBehaviours(array $behaviours)
-    {
-        $this->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_EDIT_DEFAULT_PARAMS_BEHAVIOURS, false);
-        
-        $keys = array_fill_keys($this->getGridParamsKeys(), false);
-        $keys[self::GRID_PARAM_FILTER] = true;
-        
-        $scalarValues = array(
-            self::DEFAULT_PARAM_DEFAULT,
-            self::DEFAULT_PARAM_FORCE_CUSTOM,
-            self::DEFAULT_PARAM_FORCE_ORIGINAL,
-        );
-        
-        $arrayValues = array(
-            self::DEFAULT_PARAM_MERGE_DEFAULT,
-            self::DEFAULT_PARAM_MERGE_BASE_CUSTOM,
-            self::DEFAULT_PARAM_MERGE_BASE_ORIGINAL,
-        );
-        
-        foreach ($keys as $key => $isArray) {
-            if (isset($behaviours[$key])) {
-                $value = null;
-                
-                if (in_array($behaviours[$key], $scalarValues)
-                    || ($isArray && in_array($behaviours[$key], $arrayValues))) {
-                    $value = $behaviours[$key];
-                }
-                
-                $this->setData('default_' . $key . '_behaviour', $value);
-            }
-        }
-        
-        $this->setDataChanges(true);
-        return $this;
-    }
-    
-    /**
-     * Set users config
+     * Set the users config
      *
      * @param array $usersConfig Users config
      * @return BL_CustomGrid_Model_Grid
@@ -1898,7 +1833,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return users config
+     * Return the users config
      *
      * @return BL_CustomGrid_Object[]
      */
@@ -1914,6 +1849,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     /**
      * Return the config corresponding to the given user ID, or null if none exists
      *
+     * @param int $userId User ID
      * @return BL_CustomGrid_Object|null
      */
     public function getUserConfig($userId)
@@ -1923,7 +1859,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Set roles config
+     * Set the roles config
      *
      * @param array $rolesConfig Roles config
      * @return BL_CustomGrid_Model_Grid
@@ -1964,7 +1900,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return roles config
+     * Return the roles config
      *
      * @return BL_CustomGrid_Object[]
      */
@@ -1979,7 +1915,8 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     
     /**
      * Return the config corresponding to the given role ID, or null if none exists
-     *
+     * 
+     * @param int $roleId Role ID
      * @return BL_CustomGrid_Object|null
      */
     public function getRoleConfig($roleId)
@@ -2043,7 +1980,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether custom headers should be ignored for columns coming from grid block
+     * Return whether the custom headers should be ignored for columns coming from grid block
      *
      * @return bool
      */
@@ -2055,7 +1992,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether custom widths should be ignored for columns coming from grid block
+     * Return whether the custom widths should be ignored for columns coming from grid block
      *
      * @return bool
      */
@@ -2067,7 +2004,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Return whether custom alignments should be ignored for columns coming from grid block
+     * Return whether the custom alignments should be ignored for columns coming from grid block
      *
      * @return bool
      */
@@ -2076,64 +2013,6 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
         return is_null($value = $this->_getData('ignore_custom_alignments'))
             ? $this->getConfigHelper()->getIgnoreCustomAlignments()
             : (bool) $value;
-    }
-    
-    /**
-     * Return whether custom pagination values should be merged with the base ones
-     *
-     * @return bool
-     */
-    public function getMergeBasePagination()
-    {
-        return is_null($value = $this->_getData('merge_base_pagination'))
-            ? $this->getConfigHelper()->getMergeBasePagination()
-            : (bool) $value;
-    }
-    
-    /**
-     * Return custom pagination values
-     *
-     * @return int[]
-     */
-    public function getPaginationValues()
-    {
-        return is_null($value = $this->_getData('pagination_values'))
-            ? $this->getConfigHelper()->getPaginationValues()
-            : $this->getHelper()->parseCsvIntArray($value, true, true, 1);
-    }
-    
-    /**
-     * Return default pagination value
-     *
-     * @return int
-     */
-    public function getDefaultPaginationValue()
-    {
-        return is_null($value = $this->_getData('default_pagination_value'))
-            ? $this->getConfigHelper()->getDefaultPaginationValue()
-            : (int) $value;
-    }
-    
-    /**
-     * Return appliable pagination values
-     *
-     * @return int[]
-     */
-    public function getAppliablePaginationValues()
-    {
-        if (!$this->hasData('appliable_pagination_values')) {
-            $values = $this->getPaginationValues();
-            
-            if (!is_array($values) || empty($values)) {
-                $values = self::$_defaultPaginationValues;
-            } elseif ($this->getMergeBasePagination()) {
-                $values = array_unique(array_merge($values, self::$_defaultPaginationValues));
-                sort($values, SORT_NUMERIC);
-            }
-            
-            $this->setData('appliable_pagination_values', $values);
-        }
-        return $this->_getData('appliable_pagination_values');
     }
     
     /**
@@ -2185,7 +2064,7 @@ class BL_CustomGrid_Model_Grid extends Mage_Core_Model_Abstract
     }
     
     /**
-     * Update customization parameters
+     * Update the customization parameters
      * 
      * @param array $params Customization parameters
      * @return BL_CustomGrid_Model_Grid

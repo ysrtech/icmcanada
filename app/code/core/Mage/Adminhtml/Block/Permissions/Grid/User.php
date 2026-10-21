@@ -1,38 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Users grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Permissions_Grid_User extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_permissions_grid_user';
 
     public function __construct()
     {
@@ -40,52 +22,59 @@ class Mage_Adminhtml_Block_Permissions_Grid_User extends Mage_Adminhtml_Block_Wi
         $this->setId('customerGrid');
         $this->setSaveParametersInSession(true);
         $this->setDefaultSort('username');
-        $this->setDefaultDir('asc');
+        $this->setDefaultDir('ASC');
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        $collection =  Mage::getModel("permissions/users")->getCollection();
+        $collection = Mage::getModel('permissions/users')->getCollection();
         $this->setCollection($collection);
 
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('user_id', array(
-            'header'    =>Mage::helper('adminhtml')->__('ID'),
-            'width'     =>5,
-            'align'     =>'right',
-            'sortable'  =>true,
-            'index'     =>'user_id'
-        ));
-        $this->addColumn('username', array(
-            'header'    =>Mage::helper('adminhtml')->__('User Name'),
-            'index'     =>'username'
-        ));
-        $this->addColumn('firstname', array(
-            'header'    =>Mage::helper('adminhtml')->__('First Name'),
-            'index'     =>'firstname'
-        ));
-        $this->addColumn('lastname', array(
-            'header'    =>Mage::helper('adminhtml')->__('Last Name'),
-            'index'     =>'lastname'
-        ));
-        $this->addColumn('email', array(
-            'header'    =>Mage::helper('adminhtml')->__('Email'),
-            'width'     =>40,
-            'align'     =>'left',
-            'index'     =>'email'
-        ));
+        $this->addColumn('user_id', [
+            'header'    => Mage::helper('adminhtml')->__('ID'),
+            'width'     => 5,
+            'align'     => 'right',
+            'index'     => 'user_id',
+        ]);
+        $this->addColumn('username', [
+            'header'    => Mage::helper('adminhtml')->__('User Name'),
+            'index'     => 'username',
+        ]);
+        $this->addColumn('firstname', [
+            'header'    => Mage::helper('adminhtml')->__('First Name'),
+            'index'     => 'firstname',
+        ]);
+        $this->addColumn('lastname', [
+            'header'    => Mage::helper('adminhtml')->__('Last Name'),
+            'index'     => 'lastname',
+        ]);
+        $this->addColumn('email', [
+            'header'    => Mage::helper('adminhtml')->__('Email'),
+            'width'     => 40,
+            'align'     => 'left',
+            'index'     => 'email',
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/*/edituser', array('id' => $row->getUserId()));
+        return $this->getUrl('*/*/edituser', ['id' => $row->getUserId()]);
     }
-
 }
-

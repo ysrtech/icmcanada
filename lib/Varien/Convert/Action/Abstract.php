@@ -1,38 +1,18 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Convert
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Convert
+ */
 
 /**
  * Convert action abstract
  *
  * Instances of this class are used as actions in profile
  *
- * @category   Varien
  * @package    Varien_Convert
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_Interface
 {
@@ -62,32 +42,34 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
     /**
      * Get action parameter
      *
-     * @param string $key
-     * @param mixed $default
+     * @param  string $key
+     * @param  mixed  $default
      * @return mixed
      */
-    public function getParam($key, $default=null)
+    public function getParam($key, $default = null)
     {
         if (!isset($this->_params[$key])) {
             return $default;
         }
+
         return $this->_params[$key];
     }
 
     /**
      * Set action parameter
      *
-     * @param string $key
-     * @param mixed $value
-     * @return Varien_Convert_Action_Abstract
+     * @param  string $key
+     * @param  mixed  $value
+     * @return $this
      */
-    public function setParam($key, $value=null)
+    public function setParam($key, $value = null)
     {
         if (is_array($key) && is_null($value)) {
             $this->_params = $key;
         } else {
             $this->_params[$key] = $value;
         }
+
         return $this;
     }
 
@@ -104,8 +86,8 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
     /**
      * Set all action parameters
      *
-     * @param array $params
-     * @return Varien_Convert_Action_Abstract
+     * @param  array $params
+     * @return $this
      */
     public function setParams($params)
     {
@@ -126,8 +108,7 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
     /**
      * Set profile instance the action belongs to
      *
-     * @param Varien_Convert_Profile_Abstract $profile
-     * @return Varien_Convert_Action_Abstract
+     * @return $this
      */
     public function setProfile(Varien_Convert_Profile_Abstract $profile)
     {
@@ -138,8 +119,8 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
     /**
      * Set action's container
      *
-     * @param Varien_Convert_Container_Abstract $container
-     * @return Varien_Convert_Action_Abstract
+     * @param  Varien_Convert_Container_Abstract $container
+     * @return $this
      */
     public function setContainer(Varien_Convert_Container_Interface $container)
     {
@@ -151,10 +132,10 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
     /**
      * Get action's container
      *
-     * @param string $name
+     * @param  string                            $name
      * @return Varien_Convert_Container_Abstract
      */
-    public function getContainer($name=null)
+    public function getContainer($name = null)
     {
         if (!is_null($name)) {
             return $this->getProfile()->getContainer($name);
@@ -164,22 +145,23 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
             $class = $this->getParam('class');
             $this->setContainer(new $class());
         }
+
         return $this->_container;
     }
 
     /**
      * Run current action
      *
-     * @return Varien_Convert_Action_Abstract
+     * @return $this
      */
     public function run()
     {
         if ($method = $this->getParam('method')) {
             if (!method_exists($this->getContainer(), $method)) {
-                $this->addException('Unable to run action method: '.$method, Varien_Convert_Exception::FATAL);
+                $this->addException('Unable to run action method: ' . $method, Varien_Convert_Exception::FATAL);
             }
 
-            $this->getContainer()->addException('Starting '.get_class($this->getContainer()).' :: '.$method);
+            $this->getContainer()->addException('Starting ' . $this->getContainer()::class . ' :: ' . $method);
 
             if ($this->getParam('from')) {
                 $this->getContainer()->setData($this->getContainer($this->getParam('from'))->getData());
@@ -193,7 +175,7 @@ abstract class Varien_Convert_Action_Abstract implements Varien_Convert_Action_I
         } else {
             $this->addException('No method specified', Varien_Convert_Exception::FATAL);
         }
+
         return $this;
     }
-
 }

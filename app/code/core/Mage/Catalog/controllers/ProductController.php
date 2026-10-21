@@ -1,33 +1,15 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Product controller
  *
- * @category   Mage
  * @package    Mage_Catalog
  */
 class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
@@ -38,7 +20,7 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
      * @deprecated after 1.4.2.0-beta1
      * @var array
      */
-    protected $_designProductSettingsApplied = array();
+    protected $_designProductSettingsApplied = [];
 
     /**
      * Initialize requested product object
@@ -59,8 +41,8 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
     /**
      * Initialize product view layout
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  Mage_Catalog_ProductController
+     * @param  Mage_Catalog_Model_Product $product
+     * @return $this
      */
     protected function _initProductLayout($product)
     {
@@ -70,12 +52,12 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
 
     /**
      * Recursively apply custom design settings to product if it's container
-     * category custom_use_for_products option is setted to 1.
-     * If not or product shows not in category - applyes product's internal settings
+     * category custom_use_for_products option is set to 1.
+     * If not or product shows not in category - applies product's internal settings
      *
-     * @deprecated after 1.4.2.0-beta1, functionality moved to Mage_Catalog_Model_Design
      * @param Mage_Catalog_Model_Category|Mage_Catalog_Model_Product $object
-     * @param Mage_Core_Model_Layout_Update $update
+     * @param Mage_Core_Model_Layout_Update                          $update
+     * @deprecated after 1.4.2.0-beta1, functionality moved to Mage_Catalog_Model_Design
      */
     protected function _applyCustomDesignSettings($object, $update)
     {
@@ -86,6 +68,7 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
                 if ($parentCategory && $parentCategory->getId() && $parentCategory->getLevel() > 1) {
                     $this->_applyCustomDesignSettings($parentCategory, $update);
                 }
+
                 return;
             }
 
@@ -106,12 +89,16 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
             if ($object->getPageLayout()) {
                 $this->_designProductSettingsApplied['layout'] = $object->getPageLayout();
             }
+
             $this->_designProductSettingsApplied['update'] = $object->getCustomLayoutUpdate();
         }
     }
 
     /**
      * Product view action
+     *
+     * @SuppressWarnings("PHPMD.Superglobals")
+     * @return void
      */
     public function viewAction()
     {
@@ -130,15 +117,17 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
         // Render page
         try {
             $viewHelper->prepareAndRender($productId, $this, $params);
-        } catch (Exception $e) {
-            if ($e->getCode() == $viewHelper->ERR_NO_PRODUCT_LOADED) {
+        } catch (Exception $exception) {
+            if ($exception->getCode() == $viewHelper->ERR_NO_PRODUCT_LOADED) {
                 if (isset($_GET['store'])  && !$this->getResponse()->isRedirect()) {
                     $this->_redirect('');
                 } elseif (!$this->getResponse()->isRedirect()) {
                     $this->_forward('noRoute');
                 }
+            } elseif (Mage::getIsDeveloperMode()) {
+                Mage::printException($exception);
             } else {
-                Mage::logException($e);
+                Mage::logException($exception);
                 $this->_forward('noRoute');
             }
         }
@@ -146,6 +135,9 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
 
     /**
      * View product gallery action
+     *
+     * @SuppressWarnings("PHPMD.Superglobals")
+     * @return void
      */
     public function galleryAction()
     {
@@ -155,8 +147,10 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
             } elseif (!$this->getResponse()->isRedirect()) {
                 $this->_forward('noRoute');
             }
+
             return;
         }
+
         $this->loadLayout();
         $this->renderLayout();
     }
@@ -164,6 +158,7 @@ class Mage_Catalog_ProductController extends Mage_Core_Controller_Front_Action
     /**
      * Display product image action
      *
+     * @return void
      * @deprecated
      */
     public function imageAction()

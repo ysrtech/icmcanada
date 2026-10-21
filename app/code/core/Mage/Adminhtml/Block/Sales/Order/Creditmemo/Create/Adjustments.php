@@ -1,44 +1,37 @@
 <?php
+
 /**
- * Magento
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
+ */
+
+/**
+ * @package    Mage_Adminhtml
  *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @method Mage_Sales_Block_Order_Totals getParentBlock()
  */
 class Mage_Adminhtml_Block_Sales_Order_Creditmemo_Create_Adjustments extends Mage_Adminhtml_Block_Template
 {
-    protected $_source;
     /**
-     * Initialize creditmemo agjustment totals
+     * @var Mage_Sales_Model_Abstract|Mage_Sales_Model_Order_Creditmemo
+     */
+    protected $_source;
+
+    /**
+     * Initialize creditmemo adjustment totals
      *
-     * @return Mage_Tax_Block_Sales_Order_Tax
+     * @return $this
      */
     public function initTotals()
     {
         $parent = $this->getParentBlock();
         $this->_source  = $parent->getSource();
-        $total = new Varien_Object(array(
+        $total = new Varien_Object([
             'code'      => 'agjustments',
-            'block_name'=> $this->getNameInLayout()
-        ));
+            'block_name' => $this->getNameInLayout(),
+        ]);
         $parent->removeTotal('shipping');
         $parent->removeTotal('adjustment_positive');
         $parent->removeTotal('adjustment_negative');
@@ -46,6 +39,9 @@ class Mage_Adminhtml_Block_Sales_Order_Creditmemo_Create_Adjustments extends Mag
         return $this;
     }
 
+    /**
+     * @return Mage_Sales_Model_Abstract
+     */
     public function getSource()
     {
         return $this->_source;
@@ -53,7 +49,9 @@ class Mage_Adminhtml_Block_Sales_Order_Creditmemo_Create_Adjustments extends Mag
 
     /**
      * Get credit memo shipping amount depend on configuration settings
+     *
      * @return float
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getShippingAmount()
     {
@@ -64,7 +62,8 @@ class Mage_Adminhtml_Block_Sales_Order_Creditmemo_Create_Adjustments extends Mag
         } else {
             $shipping = $source->getBaseShippingAmount();
         }
-        return Mage::app()->getStore()->roundPrice($shipping) * 1;
+
+        return Mage::app()->getStore()->roundPrice($shipping);
     }
 
     /**
@@ -82,6 +81,7 @@ class Mage_Adminhtml_Block_Sales_Order_Creditmemo_Create_Adjustments extends Mag
         } else {
             $label = $this->helper('sales')->__('Refund Shipping');
         }
+
         return $label;
     }
 }

@@ -1,45 +1,27 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Payment
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Payment
+ */
 
 /**
  * Free payment method
  *
- * @category   Mage
  * @package    Mage_Payment
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Payment_Model_Method_Free extends Mage_Payment_Model_Method_Abstract
 {
     /**
      * XML Paths for configuration constants
      */
-    const XML_PATH_PAYMENT_FREE_ACTIVE = 'payment/free/active';
-    const XML_PATH_PAYMENT_FREE_ORDER_STATUS = 'payment/free/order_status';
-    const XML_PATH_PAYMENT_FREE_PAYMENT_ACTION = 'payment/free/payment_action';
+    public const XML_PATH_PAYMENT_FREE_ACTIVE = 'payment/free/active';
+
+    public const XML_PATH_PAYMENT_FREE_ORDER_STATUS = 'payment/free/order_status';
+
+    public const XML_PATH_PAYMENT_FREE_PAYMENT_ACTION = 'payment/free/payment_action';
 
     /**
      * Payment Method features
@@ -57,9 +39,10 @@ class Mage_Payment_Model_Method_Free extends Mage_Payment_Model_Method_Abstract
     /**
      * Check whether method is available
      *
-     * @param Mage_Sales_Model_Quote|null $quote
+     * @param  null|Mage_Sales_Model_Quote $quote
      * @return bool
      */
+    #[Override]
     public function isAvailable($quote = null)
     {
         return parent::isAvailable($quote) && !empty($quote)
@@ -69,8 +52,9 @@ class Mage_Payment_Model_Method_Free extends Mage_Payment_Model_Method_Abstract
     /**
      * Get config payment action, do nothing if status is pending
      *
-     * @return string|null
+     * @return null|string
      */
+    #[Override]
     public function getConfigPaymentAction()
     {
         return $this->getConfigData('order_status') == 'pending' ? null : parent::getConfigPaymentAction();

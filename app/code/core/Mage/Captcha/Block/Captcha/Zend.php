@@ -1,35 +1,19 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Captcha
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Captcha
  */
 
 /**
  * Captcha block
  *
- * @category   Core
  * @package    Mage_Captcha
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method string getFormId()
+ * @method bool   getIsAjax()
  */
 class Mage_Captcha_Block_Captcha_Zend extends Mage_Core_Block_Template
 {
@@ -45,6 +29,7 @@ class Mage_Captcha_Block_Captcha_Zend extends Mage_Core_Block_Template
      *
      * @return string
      */
+    #[Override]
     public function getTemplate()
     {
         return $this->getIsAjax() ? '' : $this->_template;
@@ -59,7 +44,7 @@ class Mage_Captcha_Block_Captcha_Zend extends Mage_Core_Block_Template
     {
         return Mage::getUrl(
             Mage::app()->getStore()->isAdmin() ? 'adminhtml/refresh/refresh' : 'captcha/refresh',
-            array('_secure' => Mage::app()->getStore()->isCurrentlySecure())
+            ['_secure' => Mage::app()->getStore()->isCurrentlySecure()],
         );
     }
 
@@ -68,19 +53,33 @@ class Mage_Captcha_Block_Captcha_Zend extends Mage_Core_Block_Template
      *
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
-        if ($this->getCaptchaModel()->isRequired()) {
+        if (Mage::helper('captcha')->isEnabled() && $this->getCaptchaModel()->isRequired()) {
+            if ($this->hasData('img_width')) {
+                $this->getCaptchaModel()->setWidth($this->getDataByKey('img_width'));
+            }
+
+            if ($this->hasData('img_height')) {
+                $this->getCaptchaModel()->setHeight($this->getDataByKey('img_height'));
+            }
+
+            if ($this->hasData('font_size')) {
+                $this->getCaptchaModel()->setFontSize($this->getDataByKey('font_size'));
+            }
+
             $this->getCaptchaModel()->generate();
             return parent::_toHtml();
         }
+
         return '';
     }
 
     /**
      * Returns captcha model
      *
-     * @return Mage_Captcha_Model_Abstract
+     * @return Mage_Captcha_Model_Zend
      */
     public function getCaptchaModel()
     {

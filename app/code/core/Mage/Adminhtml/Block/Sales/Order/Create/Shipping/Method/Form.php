@@ -1,38 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml sales order create shipping method form block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Sales_Order_Create_Shipping_Method_Form
-    extends Mage_Adminhtml_Block_Sales_Order_Create_Abstract
+class Mage_Adminhtml_Block_Sales_Order_Create_Shipping_Method_Form extends Mage_Adminhtml_Block_Sales_Order_Create_Abstract
 {
     protected $_rates;
 
@@ -74,20 +54,22 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Shipping_Method_Form
             */
             return $this->_rates = $groups;
         }
+
         return $this->_rates;
     }
 
     /**
      * Rertrieve carrier name from store configuration
      *
-     * @param   string $carrierCode
-     * @return  string
+     * @param  string $carrierCode
+     * @return string
      */
     public function getCarrierName($carrierCode)
     {
-        if ($name = Mage::getStoreConfig('carriers/'.$carrierCode.'/title', $this->getStore()->getId())) {
+        if ($name = Mage::getStoreConfig('carriers/' . $carrierCode . '/title', $this->getStore()->getId())) {
             return $name;
         }
+
         return $carrierCode;
     }
 
@@ -104,31 +86,32 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Shipping_Method_Form
     /**
      * Check activity of method by code
      *
-     * @param   string $code
-     * @return  bool
+     * @param  string $code
+     * @return bool
      */
     public function isMethodActive($code)
     {
-        return $code===$this->getShippingMethod();
+        return $code === $this->getShippingMethod();
     }
 
     /**
      * Retrieve rate of active shipping method
      *
-     * @return Mage_Sales_Model_Quote_Address_Rate || false
+     * @return false|Mage_Sales_Model_Quote_Address_Rate
      */
     public function getActiveMethodRate()
     {
         $rates = $this->getShippingRates();
         if (is_array($rates)) {
             foreach ($rates as $group) {
-                foreach ($group as $code => $rate) {
+                foreach ($group as $rate) {
                     if ($rate->getCode() == $this->getShippingMethod()) {
                         return $rate;
                     }
                 }
             }
         }
+
         return false;
     }
 
@@ -146,9 +129,9 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Shipping_Method_Form
                 $this->getAddress(),
                 null,
                 //We should send exact quote store to prevent fetching default config for admin store.
-                $this->getAddress()->getQuote()->getStore()
+                $this->getAddress()->getQuote()->getStore(),
             ),
-            true
+            true,
         );
     }
 }

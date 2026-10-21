@@ -1,40 +1,22 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Hosted Pro Checkout Controller
  *
- * @category   Mage
  * @package    Mage_Paypal
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Paypal_HostedproController extends Mage_Core_Controller_Front_Action
 {
     /**
      * When a customer return to website from gateway.
+     * @return void
      */
     public function returnAction()
     {
@@ -47,6 +29,7 @@ class Mage_Paypal_HostedproController extends Mage_Core_Controller_Front_Action
 
     /**
      * When a customer cancel payment from gateway.
+     * @return void
      */
     public function cancelAction()
     {
@@ -61,18 +44,19 @@ class Mage_Paypal_HostedproController extends Mage_Core_Controller_Front_Action
     /**
      * Cancel order, return quote to customer
      *
-     * @param string $errorMsg
-     * @return mixed
+     * @param  string       $errorMsg
+     * @return false|string
      */
     protected function _cancelPayment($errorMsg = '')
     {
         $gotoSection = false;
-        /* @var $helper Mage_Paypal_Helper_Checkout */
+        /** @var Mage_Paypal_Helper_Checkout $helper */
         $helper = Mage::helper('paypal/checkout');
         $helper->cancelCurrentOrder($errorMsg);
         if ($helper->restoreQuote()) {
-            $gotoSection = 'payment';
+            return 'payment';
         }
+
         return $gotoSection;
     }
 
@@ -94,7 +78,8 @@ class Mage_Paypal_HostedproController extends Mage_Core_Controller_Front_Action
     protected function _getIframeBlock()
     {
         $this->loadLayout('paypal_hosted_pro_iframe');
-        return $this->getLayout()
-            ->getBlock('hosted.pro.iframe');
+        /** @var Mage_Paypal_Block_Hosted_Pro_Iframe $block */
+        $block = $this->getLayout()->getBlock('hosted.pro.iframe');
+        return $block;
     }
 }

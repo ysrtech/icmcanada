@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ImportExport
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ImportExport
  */
 
 /**
  * CSV import adapter
  *
- * @category    Mage
- * @package     Mage_ImportExport
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_ImportExport
  */
 class Mage_ImportExport_Model_Import_Adapter_Csv extends Mage_ImportExport_Model_Import_Adapter_Abstract
 {
@@ -46,6 +27,13 @@ class Mage_ImportExport_Model_Import_Adapter_Csv extends Mage_ImportExport_Model
      * @var string
      */
     protected $_enclosure = '"';
+
+    /**
+     * Field escape character.
+     *
+     * @var string
+     */
+    protected $_escape = '\\';
 
     /**
      * Source file handler.
@@ -65,10 +53,11 @@ class Mage_ImportExport_Model_Import_Adapter_Csv extends Mage_ImportExport_Model
     }
 
     /**
-     * Method called as last step of object instance creation. Can be overrided in child classes.
+     * Method called as last step of object instance creation. Can be overridden in child classes.
      *
-     * @return Mage_ImportExport_Model_Import_Adapter_Abstract
+     * @return $this
      */
+    #[Override]
     protected function _init()
     {
         $this->_fileHandler = fopen($this->_source, 'r');
@@ -79,25 +68,27 @@ class Mage_ImportExport_Model_Import_Adapter_Csv extends Mage_ImportExport_Model
     /**
      * Move forward to next element
      *
-     * @return void Any returned value is ignored.
+     * @return void any returned value is ignored
      */
+    #[ReturnTypeWillChange]
     public function next()
     {
-        $this->_currentRow = fgetcsv($this->_fileHandler, null, $this->_delimiter, $this->_enclosure);
+        $this->_currentRow = fgetcsv($this->_fileHandler, 0, $this->_delimiter, $this->_enclosure, $this->_escape);
         $this->_currentKey = $this->_currentRow ? $this->_currentKey + 1 : null;
     }
 
     /**
      * Rewind the Iterator to the first element.
      *
-     * @return void Any returned value is ignored.
+     * @return void any returned value is ignored
      */
+    #[ReturnTypeWillChange]
     public function rewind()
     {
         // rewind resource, reset column names, read first row as current
         rewind($this->_fileHandler);
-        $this->_colNames = fgetcsv($this->_fileHandler, null, $this->_delimiter, $this->_enclosure);
-        $this->_currentRow = fgetcsv($this->_fileHandler, null, $this->_delimiter, $this->_enclosure);
+        $this->_colNames = fgetcsv($this->_fileHandler, 0, $this->_delimiter, $this->_enclosure, $this->_escape);
+        $this->_currentRow = fgetcsv($this->_fileHandler, 0, $this->_delimiter, $this->_enclosure, $this->_escape);
 
         if ($this->_currentRow) {
             $this->_currentKey = 0;
@@ -107,25 +98,32 @@ class Mage_ImportExport_Model_Import_Adapter_Csv extends Mage_ImportExport_Model
     /**
      * Seeks to a position.
      *
-     * @param int $position The position to seek to.
-     * @throws OutOfBoundsException
+     * @param  int                  $position the position to seek to
      * @return void
+     * @throws OutOfBoundsException
      */
+    #[ReturnTypeWillChange]
+    #[Override]
     public function seek($position)
     {
         if ($position != $this->_currentKey) {
-            if (0 == $position) {
-                return $this->rewind();
-            } elseif ($position > 0) {
+            if ($position == 0) {
+                $this->rewind();
+                return;
+            }
+
+            if ($position > 0) {
                 if ($position < $this->_currentKey) {
                     $this->rewind();
                 }
-                while ($this->_currentRow = fgetcsv($this->_fileHandler, null, $this->_delimiter, $this->_enclosure)) {
-                    if (++ $this->_currentKey == $position) {
+
+                while ($this->_currentRow = fgetcsv($this->_fileHandler, 0, $this->_delimiter, $this->_enclosure, $this->_escape)) {
+                    if (++$this->_currentKey == $position) {
                         return;
                     }
                 }
             }
+
             throw new OutOfBoundsException(Mage::helper('importexport')->__('Invalid seek position'));
         }
     }

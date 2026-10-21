@@ -1,43 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Multishipping checkout state model
  *
- * @category   Mage
  * @package    Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Checkout_Model_Type_Multishipping_State extends Varien_Object
 {
-    const STEP_SELECT_ADDRESSES = 'multishipping_addresses';
-    const STEP_SHIPPING         = 'multishipping_shipping';
-    const STEP_BILLING          = 'multishipping_billing';
-    const STEP_OVERVIEW         = 'multishipping_overview';
-    const STEP_SUCCESS          = 'multishipping_success';
+    public const STEP_SELECT_ADDRESSES = 'multishipping_addresses';
+
+    public const STEP_SHIPPING         = 'multishipping_shipping';
+
+    public const STEP_BILLING          = 'multishipping_billing';
+
+    public const STEP_OVERVIEW         = 'multishipping_overview';
+
+    public const STEP_SUCCESS          = 'multishipping_success';
 
     /**
      * Allow steps array
@@ -55,28 +40,27 @@ class Mage_Checkout_Model_Type_Multishipping_State extends Varien_Object
 
     /**
      * Init model, steps
-     *
      */
     public function __construct()
     {
         parent::__construct();
-        $this->_steps = array(
-            self::STEP_SELECT_ADDRESSES => new Varien_Object(array(
-                'label' => Mage::helper('checkout')->__('Select Addresses')
-            )),
-            self::STEP_SHIPPING => new Varien_Object(array(
-                'label' => Mage::helper('checkout')->__('Shipping Information')
-            )),
-            self::STEP_BILLING => new Varien_Object(array(
-                'label' => Mage::helper('checkout')->__('Billing Information')
-            )),
-            self::STEP_OVERVIEW => new Varien_Object(array(
-                'label' => Mage::helper('checkout')->__('Place Order')
-            )),
-            self::STEP_SUCCESS => new Varien_Object(array(
-                'label' => Mage::helper('checkout')->__('Order Success')
-            )),
-        );
+        $this->_steps = [
+            self::STEP_SELECT_ADDRESSES => new Varien_Object([
+                'label' => Mage::helper('checkout')->__('Select Addresses'),
+            ]),
+            self::STEP_SHIPPING => new Varien_Object([
+                'label' => Mage::helper('checkout')->__('Shipping Information'),
+            ]),
+            self::STEP_BILLING => new Varien_Object([
+                'label' => Mage::helper('checkout')->__('Billing Information'),
+            ]),
+            self::STEP_OVERVIEW => new Varien_Object([
+                'label' => Mage::helper('checkout')->__('Place Order'),
+            ]),
+            self::STEP_SUCCESS => new Varien_Object([
+                'label' => Mage::helper('checkout')->__('Order Success'),
+            ]),
+        ];
 
         foreach ($this->_steps as $step) {
             $step->setIsComplete(false);
@@ -117,46 +101,53 @@ class Mage_Checkout_Model_Type_Multishipping_State extends Varien_Object
         if (isset($this->_steps[$step])) {
             return $step;
         }
+
         return self::STEP_SELECT_ADDRESSES;
     }
 
+    /**
+     * @param  string $step
+     * @return $this
+     */
     public function setActiveStep($step)
     {
         if (isset($this->_steps[$step])) {
             $this->getCheckoutSession()->setCheckoutState($step);
-        }
-        else {
+        } else {
             $this->getCheckoutSession()->setCheckoutState(self::STEP_SELECT_ADDRESSES);
         }
 
         // Fix active step changing
-        if(!$this->_steps[$step]->getIsActive()) {
-            foreach($this->getSteps() as $stepObject) {
+        if (!$this->_steps[$step]->getIsActive()) {
+            foreach ($this->getSteps() as $stepObject) {
                 $stepObject->unsIsActive();
             }
+
             $this->_steps[$step]->setIsActive(true);
         }
+
         return $this;
     }
 
     /**
      * Mark step as completed
      *
-     * @param string $step
-     * @return Mage_Checkout_Model_Type_Multishipping_State
+     * @param  string $step
+     * @return $this
      */
     public function setCompleteStep($step)
     {
         if (isset($this->_steps[$step])) {
             $this->getCheckoutSession()->setStepData($step, 'is_complete', true);
         }
+
         return $this;
     }
 
     /**
      * Retrieve step complete status
      *
-     * @param string $step
+     * @param  string $step
      * @return bool
      */
     public function getCompleteStep($step)
@@ -164,42 +155,32 @@ class Mage_Checkout_Model_Type_Multishipping_State extends Varien_Object
         if (isset($this->_steps[$step])) {
             return $this->getCheckoutSession()->getStepData($step, 'is_complete');
         }
+
         return false;
     }
 
     /**
      * Unset complete status from step
      *
-     * @param string $step
-     * @return Mage_Checkout_Model_Type_Multishipping_State
+     * @param  string $step
+     * @return $this
      */
     public function unsCompleteStep($step)
     {
         if (isset($this->_steps[$step])) {
             $this->getCheckoutSession()->setStepData($step, 'is_complete', false);
         }
+
         return $this;
     }
 
-    public function canSelectAddresses()
-    {
+    public function canSelectAddresses() {}
 
-    }
+    public function canInputShipping() {}
 
-    public function canInputShipping()
-    {
+    public function canSeeOverview() {}
 
-    }
-
-    public function canSeeOverview()
-    {
-
-    }
-
-    public function canSuccess()
-    {
-
-    }
+    public function canSuccess() {}
 
     /**
      * Retrieve checkout session

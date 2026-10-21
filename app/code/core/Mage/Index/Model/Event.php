@@ -1,57 +1,42 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Index
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Index
  */
 
 /**
- * Enter description here ...
+ * @package    Mage_Index
  *
- * @method Mage_Index_Model_Resource_Event _getResource()
- * @method Mage_Index_Model_Resource_Event getResource()
- * @method Mage_Index_Model_Event setType(string $value)
- * @method Mage_Index_Model_Event setEntity(string $value)
- * @method int getEntityPk()
- * @method Mage_Index_Model_Event setEntityPk(int $value)
- * @method string getCreatedAt()
- * @method Mage_Index_Model_Event setCreatedAt(string $value)
- * @method Mage_Index_Model_Event setOldData(string $value)
- * @method Mage_Index_Model_Event setNewData(string $value)
- * @method Varien_Object getDataObject()
- *
- * @category    Mage
- * @package     Mage_Index
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Index_Model_Resource_Event            _getResource()
+ * @method Mage_Index_Model_Resource_Event_Collection getCollection()
+ * @method Varien_Object                              getDataObject()
+ * @method int                                        getEntityPk()
+ * @method Mage_Index_Model_Resource_Event            getResource()
+ * @method Mage_Index_Model_Resource_Event_Collection getResourceCollection()
+ * @method bool                                       hasCreatedAt()
+ * @method bool                                       hasEntityPk()
+ * @method $this                                      setDataObject(Varien_Object $value)
+ * @method $this                                      setEntity(string $value)
+ * @method $this                                      setEntityPk(int $value)
+ * @method $this                                      setNewData(array|string $value)
+ * @method $this                                      setOldData(array|string $value)
+ * @method $this                                      setType(string $value)
  */
 class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
 {
     /**
      * Predefined event types
      */
-    const TYPE_SAVE        = 'save';
-    const TYPE_DELETE      = 'delete';
-    const TYPE_MASS_ACTION = 'mass_action';
-    const TYPE_REINDEX     = 'reindex';
+    public const TYPE_SAVE        = 'save';
+
+    public const TYPE_DELETE      = 'delete';
+
+    public const TYPE_MASS_ACTION = 'mass_action';
+
+    public const TYPE_REINDEX     = 'reindex';
 
     /**
      * Array of related processes ids
@@ -72,7 +57,7 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     protected $_process = null;
 
     /**
-     * Initialize resource
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -82,7 +67,8 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Specify process object
      *
-     * @param null|Mage_Index_Model_Process $process
+     * @param  null|Mage_Index_Model_Process $process
+     * @return $this
      */
     public function setProcess($process)
     {
@@ -93,7 +79,7 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Get related process object
      *
-     * @return Mage_Index_Model_Process | null
+     * @return null|Mage_Index_Model_Process
      */
     public function getProcess()
     {
@@ -102,6 +88,8 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
 
     /**
      * Specify namespace for old and new data
+     * @param  null|string $namespace
+     * @return $this
      */
     public function setDataNamespace($namespace)
     {
@@ -112,7 +100,7 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Reset old and new data arrays
      *
-     * @return Mage_Index_Model_Event
+     * @return $this
      */
     public function resetData()
     {
@@ -121,18 +109,20 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
             $data[$this->_dataNamespace] = null;
             $this->setNewData($data);
         } else {
-            $this->setNewData(array());
+            $this->setNewData([]);
         }
+
         return $this;
     }
 
     /**
      * Add process id to event object
      *
-     * @param   $processId
-     * @return  Mage_Index_Model_Event
+     * @param  int                                      $processId
+     * @param  Mage_Index_Model_Process::EVENT_STATUS_* $status
+     * @return $this
      */
-    public function addProcessId($processId, $status=Mage_Index_Model_Process::EVENT_STATUS_NEW)
+    public function addProcessId($processId, $status = Mage_Index_Model_Process::EVENT_STATUS_NEW)
     {
         $this->_processIds[$processId] = $status;
         return $this;
@@ -151,8 +141,8 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Merge new data
      *
-     * @param array $previous
-     * @param mixed $current
+     * @param  array $previous
+     * @param  mixed $current
      * @return array
      */
     protected function _mergeNewDataRecursive($previous, $current)
@@ -161,10 +151,11 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
             if (!is_null($current)) {
                 $previous[] = $current;
             }
+
             return $previous;
         }
 
-        foreach ($previous as $key => $value) {
+        foreach (array_keys($previous) as $key) {
             if (array_key_exists($key, $current) && !is_null($current[$key]) && is_array($previous[$key])) {
                 if (!is_string($key) || is_array($current[$key])) {
                     $current[$key] = $this->_mergeNewDataRecursive($previous[$key], $current[$key]);
@@ -183,8 +174,8 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
      * Merge previous event data to object.
      * Used for events duplicated protection
      *
-     * @param array $data
-     * @return Mage_Index_Model_Event
+     * @param  array $data
+     * @return $this
      */
     public function mergePreviousData($data)
     {
@@ -194,23 +185,24 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
         }
 
         if (!empty($data['new_data'])) {
-            $previousNewData = unserialize($data['new_data']);
+            $previousNewData = unserialize($data['new_data'], ['allowed_classes' => false]);
             $currentNewData  = $this->getNewData(false);
             $currentNewData = $this->_mergeNewDataRecursive($previousNewData, $currentNewData);
             $this->setNewData(serialize($currentNewData));
         }
+
         return $this;
     }
 
     /**
      * Clean new data, unset data for done processes
      *
-     * @return Mage_Index_Model_Event
+     * @return $this
      */
     public function cleanNewData()
     {
         $processIds = $this->getProcessIds();
-        if (!is_array($processIds) || empty($processIds)) {
+        if (!is_array($processIds) || $processIds === []) {
             return $this;
         }
 
@@ -219,13 +211,14 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
             if ($processStatus == Mage_Index_Model_Process::EVENT_STATUS_DONE) {
                 $process = Mage::getSingleton('index/indexer')->getProcessById($processId);
                 if ($process) {
-                    $namespace = get_class($process->getIndexer());
+                    $namespace = $process->getIndexer()::class;
                     if (array_key_exists($namespace, $newData)) {
                         unset($newData[$namespace]);
                     }
                 }
             }
         }
+
         $this->setNewData(serialize($newData));
 
         return $this;
@@ -234,44 +227,46 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Get event old data array
      *
+     * @param  bool        $useNamespace
+     * @return array<void>
      * @deprecated since 1.6.2.0
-     * @param bool $useNamespace
-     * @return array
      */
     public function getOldData($useNamespace = true)
     {
-        return array();
+        return [];
     }
 
     /**
      * Get event new data array
      *
-     * @param bool $useNamespace
+     * @param  bool  $useNamespace
      * @return array
      */
     public function getNewData($useNamespace = true)
     {
         $data = $this->_getData('new_data');
         if (is_string($data)) {
-            $data = unserialize($data);
+            $data = unserialize($data, ['allowed_classes' => false]);
         } elseif (empty($data) || !is_array($data)) {
-            $data = array();
+            $data = [];
         }
+
         if ($useNamespace && $this->_dataNamespace) {
-            return isset($data[$this->_dataNamespace]) ? $data[$this->_dataNamespace] : array();
+            return $data[$this->_dataNamespace] ?? [];
         }
+
         return $data;
     }
 
     /**
      * Add new values to old data array (overwrite if value with same key exist)
      *
+     * @param  array|string $key
+     * @param  null|mixed   $value
+     * @return $this
      * @deprecated since 1.6.2.0
-     * @param array | string $data
-     * @param null | mixed $value
-     * @return Mage_Index_Model_Event
      */
-    public function addOldData($key, $value=null)
+    public function addOldData($key, $value = null)
     {
         return $this;
     }
@@ -279,24 +274,27 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Add new values to new data array (overwrite if value with same key exist)
      *
-     * @param array | string $data
-     * @param null | mixed $value
-     * @return Mage_Index_Model_Event
+     * @param  array|string $key
+     * @param  null|mixed   $value
+     * @return $this
      */
-    public function addNewData($key, $value=null)
+    public function addNewData($key, $value = null)
     {
         $newData = $this->getNewData(false);
         if (!is_array($key)) {
-            $key = array($key => $value);
+            $key = [$key => $value];
         }
+
         if ($this->_dataNamespace) {
             if (!isset($newData[$this->_dataNamespace])) {
-                $newData[$this->_dataNamespace] = array();
+                $newData[$this->_dataNamespace] = [];
             }
+
             $newData[$this->_dataNamespace] = array_merge($newData[$this->_dataNamespace], $key);
         } else {
             $newData = array_merge($newData, $key);
         }
+
         $this->setNewData($newData);
         return $this;
     }
@@ -326,15 +324,17 @@ class Mage_Index_Model_Event extends Mage_Core_Model_Abstract
     /**
      * Serelaize old and new data arrays before saving
      *
-     * @return Mage_Index_Model_Event
+     * @inheritDoc
      */
+    #[Override]
     protected function _beforeSave()
     {
         $newData = $this->getNewData(false);
         $this->setNewData(serialize($newData));
         if (!$this->hasCreatedAt()) {
-            $this->setCreatedAt($this->_getResource()->formatDate(time(), true));
+            $this->setCreatedAt($this->_getResource()->formatDate($this->getClockHelper()->getTimestamp(), true));
         }
+
         return parent::_beforeSave();
     }
 }

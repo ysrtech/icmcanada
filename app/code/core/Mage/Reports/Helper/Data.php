@@ -1,44 +1,49 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
 /**
- * Reports data helper
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
+
+use Carbon\Carbon;
+
+/**
+ * @package    Mage_Reports
  */
 class Mage_Reports_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const REPORT_PERIOD_TYPE_DAY    = 'day';
-    const REPORT_PERIOD_TYPE_MONTH  = 'month';
-    const REPORT_PERIOD_TYPE_YEAR   = 'year';
+    public const REPORT_PERIOD_TYPE_DAY    = 'day';
 
-    const XML_PATH_REPORTS_ENABLED  = 'reports/general/enabled';
+    public const REPORT_PERIOD_TYPE_MONTH  = 'month';
+
+    public const REPORT_PERIOD_TYPE_YEAR   = 'year';
+
+    public const PERIOD_CUSTOM      = 'custom';
+
+    public const PERIOD_24_HOURS    = '24h';
+
+    public const PERIOD_7_DAYS      = '7d';
+
+    public const PERIOD_1_MONTH     = '1m';
+
+    public const PERIOD_3_MONTHS    = '3m';
+
+    public const PERIOD_6_MONTHS    = '6m';
+
+    public const PERIOD_1_YEAR      = '1y';
+
+    public const PERIOD_2_YEARS     = '2y';
+
+    public const XML_PATH_REPORTS_ENABLED  = 'reports/general/enabled';
+
+    protected $_moduleName = 'Mage_Reports';
 
     /**
      * Return reports flag enabled.
      *
-     * @return boolean
+     * @return bool
      */
 
     public function isReportsEnabled()
@@ -49,57 +54,73 @@ class Mage_Reports_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Retrieve array of intervals
      *
-     * @param string $from
-     * @param string $to
-     * @param string $period
+     * @param  null|string                $dateFrom
+     * @param  null|string                $dateTo
+     * @param  self::REPORT_PERIOD_TYPE_* $period
      * @return array
+     * @throws Zend_Date_Exception
      */
-    public function getIntervals($from, $to, $period = self::REPORT_PERIOD_TYPE_DAY)
+    public function getIntervals($dateFrom, $dateTo, $period = self::REPORT_PERIOD_TYPE_DAY)
     {
-        $intervals = array();
-        if (!$from && !$to){
+        $intervals = [];
+        $dateStart = null;
+
+        if (!$dateFrom && !$dateTo) {
             return $intervals;
         }
 
-        $start = new Zend_Date($from, Varien_Date::DATE_INTERNAL_FORMAT);
+        $start = new Zend_Date($dateFrom, Varien_Date::DATE_INTERNAL_FORMAT);
 
         if ($period == self::REPORT_PERIOD_TYPE_DAY) {
             $dateStart = $start;
         }
 
         if ($period == self::REPORT_PERIOD_TYPE_MONTH) {
-            $dateStart = new Zend_Date(date("Y-m", $start->getTimestamp()), Varien_Date::DATE_INTERNAL_FORMAT);
+            $dateStart = new Zend_Date(Carbon::createFromTimestamp($start->getTimestamp())->format('Y-m'), Varien_Date::DATE_INTERNAL_FORMAT);
         }
 
         if ($period == self::REPORT_PERIOD_TYPE_YEAR) {
-            $dateStart = new Zend_Date(date("Y", $start->getTimestamp()), Varien_Date::DATE_INTERNAL_FORMAT);
+            $dateStart = new Zend_Date(Carbon::createFromTimestamp($start->getTimestamp())->format('Y'), Varien_Date::DATE_INTERNAL_FORMAT);
         }
 
-        $dateEnd = new Zend_Date($to, Varien_Date::DATE_INTERNAL_FORMAT);
+        if (!$period || !$dateStart) {
+            return $intervals;
+        }
+
+        $dateEnd = new Zend_Date($dateTo, Varien_Date::DATE_INTERNAL_FORMAT);
 
         while ($dateStart->compare($dateEnd) <= 0) {
+            $time = '';
             switch ($period) {
-                case self::REPORT_PERIOD_TYPE_DAY :
-                    $t = $dateStart->toString('yyyy-MM-dd');
+                case self::REPORT_PERIOD_TYPE_DAY:
+                    $time = $dateStart->toString('yyyy-MM-dd');
                     $dateStart->addDay(1);
                     break;
                 case self::REPORT_PERIOD_TYPE_MONTH:
-                    $t = $dateStart->toString('yyyy-MM');
+                    $time = $dateStart->toString('yyyy-MM');
                     $dateStart->addMonth(1);
                     break;
                 case self::REPORT_PERIOD_TYPE_YEAR:
-                    $t = $dateStart->toString('yyyy');
+                    $time = $dateStart->toString('yyyy');
                     $dateStart->addYear(1);
                     break;
             }
-            $intervals[] = $t;
+
+            $intervals[] = $time;
         }
+
         return  $intervals;
     }
 
-    public function prepareIntervalsCollection($collection, $from, $to, $periodType = self::REPORT_PERIOD_TYPE_DAY)
+    /**
+     * @param Varien_Data_Collection     $collection
+     * @param null|string                $dateFrom
+     * @param null|string                $dateTo
+     * @param self::REPORT_PERIOD_TYPE_* $periodType
+     */
+    public function prepareIntervalsCollection($collection, $dateFrom, $dateTo, $periodType = self::REPORT_PERIOD_TYPE_DAY)
     {
-        $intervals = $this->getIntervals($from, $to, $periodType);
+        $intervals = $this->getIntervals($dateFrom, $dateTo, $periodType);
 
         foreach ($intervals as $interval) {
             $item = Mage::getModel('adminhtml/report_item');
@@ -109,4 +130,3 @@ class Mage_Reports_Helper_Data extends Mage_Core_Helper_Abstract
         }
     }
 }
-

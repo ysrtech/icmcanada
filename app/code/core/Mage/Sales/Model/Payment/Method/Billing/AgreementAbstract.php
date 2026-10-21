@@ -1,44 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Sales Billing Agreement Payment Method Abstract model
  *
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
  */
 abstract class Mage_Sales_Model_Payment_Method_Billing_AgreementAbstract extends Mage_Payment_Model_Method_Abstract
 {
     /**
      * Transport billing agreement id
-     *
      */
-    const TRANSPORT_BILLING_AGREEMENT_ID = 'ba_agreement_id';
-    const PAYMENT_INFO_REFERENCE_ID      = 'ba_reference_id';
+    public const TRANSPORT_BILLING_AGREEMENT_ID = 'ba_agreement_id';
+
+    public const PAYMENT_INFO_REFERENCE_ID      = 'ba_reference_id';
 
     protected $_infoBlockType = 'sales/payment_info_billing_agreement';
+
     protected $_formBlockType = 'sales/payment_form_billing_agreement';
 
     /**
@@ -51,33 +35,40 @@ abstract class Mage_Sales_Model_Payment_Method_Billing_AgreementAbstract extends
     /**
      * Check whether method is available
      *
-     * @param Mage_Sales_Model_Quote $quote
+     * @param  Mage_Sales_Model_Quote $quote
      * @return bool
      */
+    #[Override]
     public function isAvailable($quote = null)
     {
         if (is_null($this->_isAvailable)) {
             if (is_object($quote) && $quote->getCustomer()) {
                 $availableBA = Mage::getModel('sales/billing_agreement')->getAvailableCustomerBillingAgreements(
-                    $quote->getCustomer()->getId()
+                    $quote->getCustomer()->getId(),
                 );
                 $isAvailableBA = count($availableBA) > 0;
-                $this->_canUseForMultishipping = $this->_canUseCheckout = $this->_canUseInternal = $isAvailableBA;
+                $this->_canUseForMultishipping = $isAvailableBA;
+                $this->_canUseCheckout = $isAvailableBA;
+                $this->_canUseInternal = $isAvailableBA;
             }
+
             $this->_isAvailable = parent::isAvailable($quote) && $this->_isAvailable($quote);
             $this->_canUseCheckout = ($this->_isAvailable && $this->_canUseCheckout);
             $this->_canUseForMultishipping = ($this->_isAvailable && $this->_canUseForMultishipping);
             $this->_canUseInternal = ($this->_isAvailable && $this->_canUseInternal);
         }
+
         return $this->_isAvailable;
     }
 
     /**
      * Assign data to info model instance
      *
-     * @param   mixed $data
-     * @return  Mage_Payment_Model_Info
+     * @param  mixed                              $data
+     * @return Mage_Payment_Model_Method_Abstract
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     public function assignData($data)
     {
         $result = parent::assignData($data);
@@ -89,21 +80,21 @@ abstract class Mage_Sales_Model_Payment_Method_Billing_AgreementAbstract extends
         } elseif ($data instanceof Varien_Object && $data->getData($key)) {
             $id = $data->getData($key);
         }
+
         if ($id) {
             $info = $this->getInfoInstance();
-            $ba = Mage::getModel('sales/billing_agreement')->load($id);
-            if ($ba->getId() && $ba->getCustomerId() == $info->getQuote()->getCustomer()->getId()) {
+            $agreement = Mage::getModel('sales/billing_agreement')->load($id);
+            if ($agreement->getId() && $agreement->getCustomerId() == $info->getQuote()->getCustomer()->getId()) {
                 $info->setAdditionalInformation($key, $id)
-                    ->setAdditionalInformation(self::PAYMENT_INFO_REFERENCE_ID, $ba->getReferenceId());
+                    ->setAdditionalInformation(self::PAYMENT_INFO_REFERENCE_ID, $agreement->getReferenceId());
             }
         }
+
         return $result;
     }
 
     /**
-     *
-     *
-     * @param unknown_type $quote
+     * @param Mage_Sales_Model_Quote $quote
      */
     abstract protected function _isAvailable($quote);
 }

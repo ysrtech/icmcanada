@@ -1,34 +1,15 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Base front controller
  *
- * @category   Mage
  * @package    Mage_Core
  */
 class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Action
@@ -36,12 +17,12 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
     /**
      * Session namespace to refer in other places
      */
-    const SESSION_NAMESPACE = 'frontend';
+    public const SESSION_NAMESPACE = 'om_frontend';
 
     /**
      * Add secret key to url config path
      */
-    const XML_CSRF_USE_FLAG_CONFIG_PATH   = 'system/csrf/use_form_key';
+    public const XML_CSRF_USE_FLAG_CONFIG_PATH   = 'system/csrf/use_form_key';
 
     /**
      * Currently used area
@@ -60,8 +41,9 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
     /**
      * Predispatch: should set layout area
      *
-     * @return Mage_Core_Controller_Front_Action
+     * @return $this
      */
+    #[Override]
     public function preDispatch()
     {
         $this->getLayout()->setArea($this->_currentArea);
@@ -73,14 +55,16 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
     /**
      * Postdispatch: should set last visited url
      *
-     * @return Mage_Core_Controller_Front_Action
+     * @return $this
      */
+    #[Override]
     public function postDispatch()
     {
         parent::postDispatch();
-        if (!$this->getFlag('', self::FLAG_NO_START_SESSION )) {
-            Mage::getSingleton('core/session')->setLastUrl(Mage::getUrl('*/*/*', array('_current'=>true)));
+        if (!$this->getFlag('', self::FLAG_NO_START_SESSION)) {
+            Mage::getSingleton('core/session')->setLastUrl(Mage::getUrl('*/*/*', ['_current' => true]));
         }
+
         return $this;
     }
 
@@ -88,6 +72,8 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
      * Translate a phrase
      *
      * @return string
+     * @SuppressWarnings("PHPMD.CamelCaseMethodName")
+     * @SuppressWarnings("PHPMD.ShortMethodName")
      */
     public function __()
     {
@@ -100,14 +86,19 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
     /**
      * Declare headers and content file in response for file download
      *
-     * @param string $fileName
-     * @param string|array $content set to null to avoid starting output, $contentLength should be set explicitly in
-     *                              that case
-     * @param string $contentType
-     * @param int $contentLength    explicit content length, if strlen($content) isn't applicable
-     * @return Mage_Adminhtml_Controller_Action
+     * @param  string       $fileName
+     * @param  array|string $content       set to null to avoid starting output, $contentLength should be set explicitly in
+     *                                     that case
+     * @param  string       $contentType
+     * @param  int          $contentLength explicit content length, if strlen($content) isn't applicable
+     * @return $this
+     * @SuppressWarnings("PHPMD.ExitExpression")
      */
-    protected function _prepareDownloadResponse($fileName, $content, $contentType = 'application/octet-stream',
+    #[Override]
+    protected function _prepareDownloadResponse(
+        $fileName,
+        $content,
+        $contentType = 'application/octet-stream',
         $contentLength = null
     ) {
         $session = Mage::getSingleton('admin/session');
@@ -122,6 +113,7 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
             if (!isset($content['type']) || !isset($content['value'])) {
                 return $this;
             }
+
             if ($content['type'] == 'filename') {
                 $isFile         = true;
                 $file           = $content['value'];
@@ -134,9 +126,9 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
             ->setHeader('Pragma', 'public', true)
             ->setHeader('Cache-Control', 'must-revalidate, post-check=0, pre-check=0', true)
             ->setHeader('Content-type', $contentType, true)
-            ->setHeader('Content-Length', is_null($contentLength) ? strlen($content) : $contentLength)
-            ->setHeader('Content-Disposition', 'attachment; filename="'.$fileName.'"')
-            ->setHeader('Last-Modified', date('r'));
+            ->setHeader('Content-Length', $contentLength ?? strlen($content))
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+            ->setHeader('Last-Modified', Mage::helper('core/clock')->format('r'));
 
         if (!is_null($content)) {
             if ($isFile) {
@@ -147,21 +139,24 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
                 if (!$ioAdapter->fileExists($file)) {
                     Mage::throwException(Mage::helper('core')->__('File not found'));
                 }
-                $ioAdapter->open(array('path' => $ioAdapter->dirname($file)));
+
+                $ioAdapter->open(['path' => $ioAdapter->dirname($file)]);
                 $ioAdapter->streamOpen($file, 'r');
                 while ($buffer = $ioAdapter->streamRead()) {
                     print $buffer;
                 }
+
                 $ioAdapter->streamClose();
                 if (!empty($content['rm'])) {
                     $ioAdapter->rm($file);
                 }
 
                 exit(0);
-            } else {
-                $this->getResponse()->setBody($content);
             }
+
+            $this->getResponse()->setBody($content);
         }
+
         return $this;
     }
 
@@ -170,12 +165,14 @@ class Mage_Core_Controller_Front_Action extends Mage_Core_Controller_Varien_Acti
      *
      * @return bool
      */
+    #[Override]
     protected function _validateFormKey()
     {
         $validated = true;
         if ($this->_isFormKeyEnabled()) {
-            $validated = parent::_validateFormKey();
+            return parent::_validateFormKey();
         }
+
         return $validated;
     }
 

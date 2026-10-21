@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Product Price Indexer Resource Model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model_Resource_Abstract
 {
@@ -44,13 +24,12 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Product Type Price indexer resource models
      *
-     * @var array
+     * @var null|array
      */
     protected $_indexers;
 
     /**
-     * Define main index table
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -61,18 +40,19 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
      * Retrieve parent ids and types by child id
      * Return array with key product_id and value as product type id
      *
-     * @param int $childId
+     * @param  int   $childId
      * @return array
      */
     public function getProductParentsByChild($childId)
     {
         $write = $this->_getWriteAdapter();
         $select = $write->select()
-            ->from(array('l' => $this->getTable('catalog/product_relation')), array('parent_id'))
+            ->from(['l' => $this->getTable('catalog/product_relation')], ['parent_id'])
             ->join(
-                array('e' => $this->getTable('catalog/product')),
+                ['e' => $this->getTable('catalog/product')],
                 'l.parent_id = e.entity_id',
-                array('e.type_id'))
+                ['e.type_id'],
+            )
             ->where('l.child_id = ?', $childId);
 
         return $write->fetchPairs($select);
@@ -82,8 +62,9 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
      * Process produce delete
      * If the deleted product was found in a composite product(s) update it
      *
-     * @param Mage_Index_Model_Event $event
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @return $this
+     * @throws Exception
+     * @throws Mage_Core_Exception
      */
     public function catalogProductDelete(Mage_Index_Model_Event $event)
     {
@@ -95,7 +76,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
         $this->clearTemporaryIndexTable();
 
         $processIds = array_keys($data['reindex_price_parent_ids']);
-        $parentIds  = array();
+        $parentIds  = [];
         foreach ($data['reindex_price_parent_ids'] as $parentId => $parentType) {
             $parentIds[$parentType][$parentId] = $parentId;
         }
@@ -113,8 +94,8 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Copy data from temporary index table to main table by defined ids
      *
-     * @param array $processIds
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @param  array     $processIds
+     * @return $this
      * @throws Exception
      */
     protected function _copyIndexDataToMainTable($processIds)
@@ -131,14 +112,12 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
             $write->delete($this->getIdxTable(), $where);
 
             // insert new index
-            $this->useDisableKeys(false);
             $this->insertFromTable($this->getIdxTable(), $this->getMainTable());
-            $this->useDisableKeys(true);
 
             $this->commit();
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->rollBack();
-            throw $e;
+            throw $exception;
         }
 
         return $this;
@@ -149,8 +128,10 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
      * Method is responsible for index support
      * when product was saved and changed attribute(s) has an effect on price.
      *
-     * @param Mage_Index_Model_Event $event
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @return $this
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     * @throws Zend_Db_Exception
      */
     public function catalogProductSave(Mage_Index_Model_Event $event)
     {
@@ -168,7 +149,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
         $this->_prepareWebsiteDateTable();
 
         $indexer = $this->_getIndexer($data['product_type_id']);
-        $processIds = array($productId);
+        $processIds = [$productId];
         if ($indexer->getIsComposite()) {
             $this->_copyRelationIndexData($productId);
             $this->_prepareTierPriceIndex($productId);
@@ -184,7 +165,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
                 $this->_prepareGroupPriceIndex($processIds);
                 $indexer->reindexEntity($productId);
 
-                $parentByType = array();
+                $parentByType = [];
                 foreach ($parentIds as $parentId => $parentType) {
                     $parentByType[$parentType][$parentId] = $parentId;
                 }
@@ -207,8 +188,8 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Process product mass update action
      *
-     * @param Mage_Index_Model_Event $event
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @return $this
+     * @throws Exception
      */
     public function catalogProductMassAction(Mage_Index_Model_Event $event)
     {
@@ -243,6 +224,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
         if ($pCount * 0.3 < count($processIds) + $aCount + $bCount) {
             return $this->reindexAll();
         }
+
         $this->reindexProductIds($processIds);
         return $this;
     }
@@ -250,31 +232,35 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Reindex product prices for specified product ids
      *
-     * @param array | int $ids
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @param  array|int           $ids
+     * @return $this
+     * @throws Exception
+     * @throws Mage_Core_Exception
      */
     public function reindexProductIds($ids)
     {
         if (empty($ids)) {
             return $this;
         }
+
         if (!is_array($ids)) {
-            $ids = array($ids);
+            $ids = [$ids];
         }
+
         $this->clearTemporaryIndexTable();
         $write  = $this->_getWriteAdapter();
         // retrieve products types
         $select = $write->select()
-            ->from($this->getTable('catalog/product'), array('entity_id', 'type_id'))
+            ->from($this->getTable('catalog/product'), ['entity_id', 'type_id'])
             ->where('entity_id IN(?)', $ids);
         $pairs  = $write->fetchPairs($select);
-        $byType = array();
+        $byType = [];
         foreach ($pairs as $productId => $productType) {
             $byType[$productType][$productId] = $productId;
         }
 
-        $compositeIds    = array();
-        $notCompositeIds = array();
+        $compositeIds    = [];
+        $notCompositeIds = [];
 
         foreach ($byType as $productType => $entityIds) {
             $indexer = $this->_getIndexer($productType);
@@ -285,15 +271,17 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
             }
         }
 
-        if (!empty($notCompositeIds)) {
+        if ($notCompositeIds !== []) {
             $select = $write->select()
                 ->from(
-                    array('l' => $this->getTable('catalog/product_relation')),
-                    'parent_id')
+                    ['l' => $this->getTable('catalog/product_relation')],
+                    'parent_id',
+                )
                 ->join(
-                    array('e' => $this->getTable('catalog/product')),
+                    ['e' => $this->getTable('catalog/product')],
                     'e.entity_id = l.parent_id',
-                    array('type_id'))
+                    ['type_id'],
+                )
                 ->where('l.child_id IN(?)', $notCompositeIds);
             $pairs  = $write->fetchPairs($select);
             foreach ($pairs as $productId => $productType) {
@@ -305,7 +293,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
             }
         }
 
-        if (!empty($compositeIds)) {
+        if ($compositeIds !== []) {
             $this->_copyRelationIndexData($compositeIds, $notCompositeIds);
         }
 
@@ -323,16 +311,21 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Retrieve Price indexer by Product Type
      *
-     * @param string $productTypeId
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price_Interface
+     * @param  string                                                    $productTypeId
+     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price_Default
      * @throws Mage_Core_Exception
      */
     protected function _getIndexer($productTypeId)
     {
+        if ($productTypeId === null) {
+            $productTypeId = '';
+        }
+
         $types = $this->getTypeIndexers();
         if (!isset($types[$productTypeId])) {
             Mage::throwException(Mage::helper('catalog')->__('Unsupported product type "%s".', $productTypeId));
         }
+
         return $types[$productTypeId];
     }
 
@@ -344,16 +337,14 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     public function getTypeIndexers()
     {
         if (is_null($this->_indexers)) {
-            $this->_indexers = array();
-            $types = Mage::getSingleton('catalog/product_type')->getTypesByPriority();
+            $this->_indexers = [];
+            $types = Mage::getSingleton('catalog/product_type')::getTypesByPriority();
             foreach ($types as $typeId => $typeInfo) {
-                if (isset($typeInfo['price_indexer'])) {
-                    $modelName = $typeInfo['price_indexer'];
-                } else {
-                    $modelName = $this->_defaultPriceIndexer;
-                }
+                $modelName = $typeInfo['price_indexer'] ?? $this->_defaultPriceIndexer;
                 $isComposite = !empty($typeInfo['composite']);
-                $indexer = Mage::getResourceModel($modelName)
+                /** @var Mage_Catalog_Model_Resource_Product_Indexer_Price_Default $indexer */
+                $indexer = Mage::getResourceModel($modelName);
+                $indexer
                     ->setTypeId($typeId)
                     ->setIsComposite($isComposite);
 
@@ -367,8 +358,11 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Rebuild all index data
      *
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Zend_Db_Exception
      */
+    #[Override]
     public function reindexAll()
     {
         $this->useIdxTable(true);
@@ -381,16 +375,17 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
 
             $indexers = $this->getTypeIndexers();
             foreach ($indexers as $indexer) {
-                /** @var $indexer Mage_Catalog_Model_Resource_Product_Indexer_Price_Interface */
+                /** @var Mage_Catalog_Model_Resource_Product_Indexer_Price_Interface $indexer */
                 $indexer->reindexAll();
             }
 
             $this->syncData();
             $this->commit();
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->rollBack();
-            throw $e;
+            throw $exception;
         }
+
         return $this;
     }
 
@@ -417,8 +412,9 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Prepare tier price index table
      *
-     * @param int|array $entityIds the entity ids limitation
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @param  array|int                 $entityIds the entity ids limitation
+     * @return $this
+     * @throws Zend_Db_Adapter_Exception
      */
     protected function _prepareTierPriceIndex($entityIds = null)
     {
@@ -429,23 +425,27 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
         $websiteExpression = $write->getCheckSql('tp.website_id = 0', 'ROUND(tp.value * cwd.rate, 4)', 'tp.value');
         $select = $write->select()
             ->from(
-                array('tp' => $this->getValueTable('catalog/product', 'tier_price')),
-                array('entity_id'))
+                ['tp' => $this->getValueTable('catalog/product', 'tier_price')],
+                ['entity_id'],
+            )
             ->join(
-                array('cg' => $this->getTable('customer/customer_group')),
+                ['cg' => $this->getTable('customer/customer_group')],
                 'tp.all_groups = 1 OR (tp.all_groups = 0 AND tp.customer_group_id = cg.customer_group_id)',
-                array('customer_group_id'))
+                ['customer_group_id'],
+            )
             ->join(
-                array('cw' => $this->getTable('core/website')),
+                ['cw' => $this->getTable('core/website')],
                 'tp.website_id = 0 OR tp.website_id = cw.website_id',
-                array('website_id'))
+                ['website_id'],
+            )
             ->join(
-                array('cwd' => $this->_getWebsiteDateTable()),
+                ['cwd' => $this->_getWebsiteDateTable()],
                 'cw.website_id = cwd.website_id',
-                array())
+                [],
+            )
             ->where('cw.website_id != 0')
             ->columns(new Zend_Db_Expr("MIN({$websiteExpression})"))
-            ->group(array('tp.entity_id', 'cg.customer_group_id', 'cw.website_id'));
+            ->group(['tp.entity_id', 'cg.customer_group_id', 'cw.website_id']);
 
         if (!empty($entityIds)) {
             $select->where('tp.entity_id IN(?)', $entityIds);
@@ -460,8 +460,9 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Prepare group price index table
      *
-     * @param int|array $entityIds the entity ids limitation
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @param  array|int                 $entityIds the entity ids limitation
+     * @return $this
+     * @throws Zend_Db_Adapter_Exception
      */
     protected function _prepareGroupPriceIndex($entityIds = null)
     {
@@ -472,23 +473,27 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
         $websiteExpression = $write->getCheckSql('gp.website_id = 0', 'ROUND(gp.value * cwd.rate, 4)', 'gp.value');
         $select = $write->select()
             ->from(
-                array('gp' => $this->getValueTable('catalog/product', 'group_price')),
-                array('entity_id'))
+                ['gp' => $this->getValueTable('catalog/product', 'group_price')],
+                ['entity_id'],
+            )
             ->join(
-                array('cg' => $this->getTable('customer/customer_group')),
+                ['cg' => $this->getTable('customer/customer_group')],
                 'gp.all_groups = 1 OR (gp.all_groups = 0 AND gp.customer_group_id = cg.customer_group_id)',
-                array('customer_group_id'))
+                ['customer_group_id'],
+            )
             ->join(
-                array('cw' => $this->getTable('core/website')),
+                ['cw' => $this->getTable('core/website')],
                 'gp.website_id = 0 OR gp.website_id = cw.website_id',
-                array('website_id'))
+                ['website_id'],
+            )
             ->join(
-                array('cwd' => $this->_getWebsiteDateTable()),
+                ['cwd' => $this->_getWebsiteDateTable()],
                 'cw.website_id = cwd.website_id',
-                array())
+                [],
+            )
             ->where('cw.website_id != 0')
             ->columns(new Zend_Db_Expr("MIN({$websiteExpression})"))
-            ->group(array('gp.entity_id', 'cg.customer_group_id', 'cw.website_id'));
+            ->group(['gp.entity_id', 'cg.customer_group_id', 'cw.website_id']);
 
         if (!empty($entityIds)) {
             $select->where('gp.entity_id IN(?)', $entityIds);
@@ -503,17 +508,17 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Copy relations product index from primary index to temporary index table by parent entity
      *
-     * @package array|int $excludeIds
-     *
-     * @param array|int $parentIds
-     * @param unknown_type $excludeIds
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @param  array|int                 $parentIds
+     * @param  array                     $excludeIds
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Zend_Db_Adapter_Exception
      */
     protected function _copyRelationIndexData($parentIds, $excludeIds = null)
     {
         $write  = $this->_getWriteAdapter();
         $select = $write->select()
-            ->from($this->getTable('catalog/product_relation'), array('child_id'))
+            ->from($this->getTable('catalog/product_relation'), ['child_id'])
             ->where('parent_id IN(?)', $parentIds);
         if (!empty($excludeIds)) {
             $select->where('child_id NOT IN(?)', $excludeIds);
@@ -525,7 +530,7 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
             $select = $write->select()
                 ->from($this->getMainTable())
                 ->where('entity_id IN(?)', $children);
-            $query  = $select->insertFromSelect($this->getIdxTable(), array(), false);
+            $query  = $select->insertFromSelect($this->getIdxTable(), [], false);
             $write->query($query);
         }
 
@@ -545,7 +550,10 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Prepare website current dates table
      *
-     * @return Mage_Catalog_Model_Resource_Product_Indexer_Price
+     * @return $this
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     * @throws Zend_Db_Exception
      */
     protected function _prepareWebsiteDateTable()
     {
@@ -554,22 +562,23 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
 
         $select = $write->select()
             ->from(
-                array('cw' => $this->getTable('core/website')),
-                array('website_id'))
+                ['cw' => $this->getTable('core/website')],
+                ['website_id'],
+            )
             ->join(
-                array('csg' => $this->getTable('core/store_group')),
+                ['csg' => $this->getTable('core/store_group')],
                 'cw.default_group_id = csg.group_id',
-                array('store_id' => 'default_store_id'))
+                ['store_id' => 'default_store_id'],
+            )
             ->where('cw.website_id != 0');
 
-
-        $data = array();
+        $data = [];
         foreach ($write->fetchAll($select) as $item) {
-            /** @var $website Mage_Core_Model_Website */
             $website = Mage::app()->getWebsite($item['website_id']);
 
             if ($website->getBaseCurrencyCode() != $baseCurrency) {
                 $rate = Mage::getModel('directory/currency')
+                    // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                     ->load($baseCurrency)
                     ->getRate($website->getBaseCurrencyCode());
                 if (!$rate) {
@@ -579,26 +588,31 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
                 $rate = 1;
             }
 
-            /** @var $store Mage_Core_Model_Store */
             $store = Mage::app()->getStore($item['store_id']);
             if ($store) {
                 $timestamp = Mage::app()->getLocale()->storeTimeStamp($store);
-                $data[] = array(
+                $data[] = [
                     'website_id' => $website->getId(),
                     'website_date'       => $this->formatDate($timestamp, false),
-                    'rate'       => $rate
-                );
+                    'rate'       => $rate,
+                ];
             }
         }
 
         $write->beginTransaction();
-        $table = $this->_getWebsiteDateTable();
-        $write->delete($table);
+        try {
+            $table = $this->_getWebsiteDateTable();
+            $write->delete($table);
 
-        if ($data) {
-            $write->insertMultiple($table, $data);
+            if ($data) {
+                $write->insertMultiple($table, $data);
+            }
+
+            $write->commit();
+        } catch (Exception $exception) {
+            $write->rollBack();
+            throw $exception;
         }
-        $write->commit();
 
         return $this;
     }
@@ -606,14 +620,16 @@ class Mage_Catalog_Model_Resource_Product_Indexer_Price extends Mage_Index_Model
     /**
      * Retrieve temporary index table name
      *
-     * @param unknown_type $table
+     * @param  string $table
      * @return string
      */
+    #[Override]
     public function getIdxTable($table = null)
     {
         if ($this->useIdxTable()) {
             return $this->getTable('catalog/product_price_indexer_idx');
         }
+
         return $this->getTable('catalog/product_price_indexer_tmp');
     }
 }

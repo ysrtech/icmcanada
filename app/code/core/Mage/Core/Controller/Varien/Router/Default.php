@@ -1,29 +1,15 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
+/**
+ * @package    Mage_Core
+ */
 class Mage_Core_Controller_Varien_Router_Default extends Mage_Core_Controller_Varien_Router_Abstract
 {
     /**
@@ -31,8 +17,7 @@ class Mage_Core_Controller_Varien_Router_Default extends Mage_Core_Controller_Va
      * If store is admin and specified different admin front name,
      * change store to default (Possible when enabled Store Code in URL)
      *
-     * @param Zend_Controller_Request_Http $request
-     * @return boolean
+     * @return bool
      */
     public function match(Zend_Controller_Request_Http $request)
     {
@@ -42,7 +27,7 @@ class Mage_Core_Controller_Varien_Router_Default extends Mage_Core_Controller_Va
         $actionName     = isset($noRoute[2]) && $noRoute[2] ? $noRoute[2] : 'index';
 
         if ($this->_isAdmin()) {
-            $adminFrontName = (string)Mage::getConfig()->getNode('admin/routers/adminhtml/args/frontName');
+            $adminFrontName = (string) Mage::getConfig()->getNode('admin/routers/adminhtml/args/frontName');
             if ($adminFrontName != $moduleName) {
                 $moduleName     = 'core';
                 $controllerName = 'index';
@@ -71,7 +56,7 @@ class Mage_Core_Controller_Varien_Router_Default extends Mage_Core_Controller_Va
     /**
      * Check if store is admin store
      *
-     * @return boolean
+     * @return bool
      */
     protected function _isAdmin()
     {

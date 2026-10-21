@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
+ */
 
 /**
  * Catalog product form gallery content
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends Mage_Adminhtml_Block_Widget
 {
@@ -47,42 +27,49 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
         $this->setTemplate('catalog/product/helper/gallery.phtml');
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareLayout()
     {
-        $this->setChild('uploader',
-            $this->getLayout()->createBlock($this->_uploaderType)
+        $this->setChild(
+            'uploader',
+            $this->getLayout()->createBlock($this->_uploaderType),
         );
 
         $this->getUploader()->getUploaderConfig()
             ->setFileParameterName('image')
             ->setTarget(Mage::getModel('adminhtml/url')->addSessionParam()->getUrl(
                 '*/catalog_product_gallery/upload',
-                array('_query' => false)
+                ['_query' => false],
             ));
 
         $browseConfig = $this->getUploader()->getButtonConfig();
         $browseConfig
-            ->setAttributes(array(
-                'accept' => $browseConfig->getMimeTypesByExtensions('gif, png, jpeg, jpg')
-            ));
+            ->setAttributes([
+                'accept' => $browseConfig->getMimeTypesByExtensions(Varien_Io_File::ALLOWED_IMAGES_EXTENSIONS),
+            ]);
 
-        Mage::dispatchEvent('catalog_product_gallery_prepare_layout', array('block' => $this));
+        Mage::dispatchEvent('catalog_product_gallery_prepare_layout', ['block' => $this]);
 
         return parent::_prepareLayout();
     }
 
     /**
-     * Retrive uploader block
+     * Retrieve uploader block
      *
      * @return Mage_Uploader_Block_Multiple
      */
     public function getUploader()
     {
-        return $this->getChild('uploader');
+        /** @var Mage_Uploader_Block_Multiple $child */
+        $child = $this->getChild('uploader');
+        return $child;
     }
 
     /**
-     * Retrive uploader block html
+     * Retrieve uploader block html
      *
      * @return string
      */
@@ -91,71 +78,87 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
         return $this->getChildHtml('uploader');
     }
 
+    /**
+     * @return string
+     */
     public function getJsObjectName()
     {
         return $this->getHtmlId() . 'JsObject';
     }
 
+    /**
+     * @return string
+     */
     public function getAddImagesButton()
     {
         return $this->getButtonHtml(
             Mage::helper('catalog')->__('Add New Images'),
             $this->getJsObjectName() . '.showUploader()',
             'add',
-            $this->getHtmlId() . '_add_images_button'
+            $this->getHtmlId() . '_add_images_button',
         );
     }
 
+    /**
+     * @return string
+     */
     public function getImagesJson()
     {
-        if(is_array($this->getElement()->getValue())) {
+        if (is_array($this->getElement()->getValue())) {
             $value = $this->getElement()->getValue();
-            if(count($value['images'])>0) {
+            if (count($value['images']) > 0) {
                 foreach ($value['images'] as &$image) {
                     $image['url'] = Mage::getSingleton('catalog/product_media_config')
                                         ->getMediaUrl($image['file']);
                 }
+
                 return Mage::helper('core')->jsonEncode($value['images']);
             }
         }
+
         return '[]';
     }
 
+    /**
+     * @return string
+     */
     public function getImagesValuesJson()
     {
-        $values = array();
+        $values = [];
         foreach ($this->getMediaAttributes() as $attribute) {
-            /* @var $attribute Mage_Eav_Model_Entity_Attribute */
-            $values[$attribute->getAttributeCode()] = $this->getElement()->getDataObject()->getData(
-                $attribute->getAttributeCode()
-            );
+            /** @var Mage_Eav_Model_Entity_Attribute $attribute */
+            $attributeCode = $attribute->getAttributeCode();
+            $values[$attributeCode] = $this->getElement()->getDataObject()->getData($attributeCode);
         }
+
         return Mage::helper('core')->jsonEncode($values);
     }
 
     /**
-     * Enter description here...
-     *
      * @return array
      */
     public function getImageTypes()
     {
-        $imageTypes = array();
+        $imageTypes = [];
         foreach ($this->getMediaAttributes() as $attribute) {
-            /* @var $attribute Mage_Eav_Model_Entity_Attribute */
-            $imageTypes[$attribute->getAttributeCode()] = array(
+            /** @var Mage_Eav_Model_Entity_Attribute $attribute */
+            $imageTypes[$attribute->getAttributeCode()] = [
                 'label' => $attribute->getFrontend()->getLabel() . ' '
                          . Mage::helper('catalog')->__($this->getElement()->getScopeLabel($attribute)),
-                'field' => $this->getElement()->getAttributeFieldName($attribute)
-            );
+                'field' => $this->getElement()->getAttributeFieldName($attribute),
+            ];
         }
+
         return $imageTypes;
     }
 
+    /**
+     * @return bool
+     */
     public function hasUseDefault()
     {
         foreach ($this->getMediaAttributes() as $attribute) {
-            if($this->getElement()->canDisplayUseDefault($attribute))  {
+            if ($this->getElement()->canDisplayUseDefault($attribute)) {
                 return true;
             }
         }
@@ -164,8 +167,6 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
     }
 
     /**
-     * Enter description here...
-     *
      * @return array
      */
     public function getMediaAttributes()
@@ -173,9 +174,11 @@ class Mage_Adminhtml_Block_Catalog_Product_Helper_Form_Gallery_Content extends M
         return $this->getElement()->getDataObject()->getMediaAttributes();
     }
 
+    /**
+     * @return string
+     */
     public function getImageTypesJson()
     {
         return Mage::helper('core')->jsonEncode($this->getImageTypes());
     }
-
 }

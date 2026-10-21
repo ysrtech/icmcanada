@@ -1,40 +1,29 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Shopping cart price rule chooser
+ *
+ * @package    Mage_Adminhtml
+ *
+ * @method array                     getConfig()
+ * @method int                       getFieldsetId()
+ * @method Mage_Core_Helper_Abstract getTranslationHelper()
+ * @method $this                     setConfig(array $value)
+ * @method $this                     setFieldsetId(int $value)
+ * @method $this                     setTranslationHelper(Mage_Core_Helper_Abstract $value)
  */
 class Mage_Adminhtml_Block_Promo_Widget_Chooser extends Mage_Adminhtml_Block_Widget_Grid
 {
-    /**
-     * Block constructor, prepare grid params
-     *
-     * @param array $arguments
-     */
-    public function __construct($arguments=array())
+    protected string $_eventPrefix = 'adminhtml_promo_widget_chooser';
+
+    public function __construct($arguments = [])
     {
         parent::__construct($arguments);
         $this->setDefaultSort('rule_id');
@@ -45,13 +34,14 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser extends Mage_Adminhtml_Block_Wid
     /**
      * Prepare chooser element HTML
      *
-     * @param Varien_Data_Form_Element_Abstract $element Form Element
+     * @param  Varien_Data_Form_Element_Abstract $element Form Element
      * @return Varien_Data_Form_Element_Abstract
+     * @throws Mage_Core_Exception
      */
     public function prepareElementHtml(Varien_Data_Form_Element_Abstract $element)
     {
         $uniqId = Mage::helper('core')->uniqHash($element->getId());
-        $sourceUrl = $this->getUrl('*/promo_quote/chooser', array('uniq_id' => $uniqId));
+        $sourceUrl = $this->getUrl('*/promo_quote/chooser', ['uniq_id' => $uniqId]);
 
         $chooser = $this->getLayout()->createBlock('widget/adminhtml_widget_chooser')
             ->setElement($element)
@@ -62,7 +52,7 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser extends Mage_Adminhtml_Block_Wid
             ->setUniqId($uniqId);
 
         if ($element->getValue()) {
-            $rule = Mage::getModel('salesrule/rule')->load((int)$element->getValue());
+            $rule = Mage::getModel('salesrule/rule')->load((int) $element->getValue());
             if ($rule->getId()) {
                 $chooser->setLabel($rule->getName());
             }
@@ -75,107 +65,102 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser extends Mage_Adminhtml_Block_Wid
     /**
      * Grid Row JS Callback
      *
-     * @return string
+     * @inheritDoc
      */
     public function getRowClickCallback()
     {
         $chooserJsObject = $this->getId();
-        $js = '
+        return '
             function (grid, event) {
                 var trElement = Event.findElement(event, "tr");
                 var ruleName = trElement.down("td").next().innerHTML;
                 var ruleId = trElement.down("td").innerHTML.replace(/^\s+|\s+$/g,"");
-                '.$chooserJsObject.'.setElementValue(ruleId);
-                '.$chooserJsObject.'.setElementLabel(ruleName);
-                '.$chooserJsObject.'.close();
+                ' . $chooserJsObject . '.setElementValue(ruleId);
+                ' . $chooserJsObject . '.setElementLabel(ruleName);
+                ' . $chooserJsObject . '.close();
             }
         ';
-        return $js;
     }
 
     /**
-     * Prepare rules collection
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getModel('salesrule/rule')->getResourceCollection();
         $this->setCollection($collection);
 
-        Mage::dispatchEvent('adminhtml_block_promo_widget_chooser_prepare_collection', array(
-            'collection' => $collection
-        ));
+        Mage::dispatchEvent('adminhtml_block_promo_widget_chooser_prepare_collection', [
+            'collection' => $collection,
+        ]);
 
         return parent::_prepareCollection();
     }
 
     /**
-     * Prepare columns for rules grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-       $this->addColumn('rule_id', array(
+        $this->addColumn('rule_id', [
             'header'    => Mage::helper('salesrule')->__('ID'),
             'align'     => 'right',
             'width'     => '50px',
             'index'     => 'rule_id',
-        ));
+        ]);
 
-        $this->addColumn('name', array(
+        $this->addColumn('name', [
             'header'    => Mage::helper('salesrule')->__('Rule Name'),
             'align'     => 'left',
             'index'     => 'name',
-        ));
+        ]);
 
-        $this->addColumn('coupon_code', array(
+        $this->addColumn('coupon_code', [
             'header'    => Mage::helper('salesrule')->__('Coupon Code'),
             'align'     => 'left',
             'width'     => '150px',
             'index'     => 'code',
-        ));
+        ]);
 
-        $this->addColumn('from_date', array(
+        $this->addColumn('from_date', [
             'header'    => Mage::helper('salesrule')->__('Date Start'),
             'align'     => 'left',
-            'width'     => '120px',
             'type'      => 'date',
             'index'     => 'from_date',
-        ));
+        ]);
 
-        $this->addColumn('to_date', array(
+        $this->addColumn('to_date', [
             'header'    => Mage::helper('salesrule')->__('Date Expire'),
             'align'     => 'left',
-            'width'     => '120px',
             'type'      => 'date',
             'default'   => '--',
             'index'     => 'to_date',
-        ));
+        ]);
 
-        $this->addColumn('is_active', array(
+        $this->addColumn('is_active', [
             'header'    => Mage::helper('salesrule')->__('Status'),
             'align'     => 'left',
             'width'     => '80px',
             'index'     => 'is_active',
             'type'      => 'options',
-            'options'   => array(
-                1 => 'Active',
-                0 => 'Inactive',
-            ),
-        ));
+            'options'   => [
+                1 => Mage::helper('salesrule')->__('Active'),
+                0 => Mage::helper('salesrule')->__('Inactive'),
+            ],
+        ]);
 
         return parent::_prepareColumns();
     }
 
     /**
-     * Prepare grid URL
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/promo_quote/chooser', array('_current' => true));
+        return $this->getUrl('*/promo_quote/chooser', ['_current' => true]);
     }
 }

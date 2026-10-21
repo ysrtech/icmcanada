@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Directory
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Directory
+ */
 
 /**
  * Directory Currency Resource Model
  *
- * @category    Mage
- * @package     Mage_Directory
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Directory
  */
 class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -49,8 +29,7 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
     protected static $_rateCache;
 
     /**
-     * Define main and currency rate tables
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -61,9 +40,9 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
     /**
      * Retrieve currency rate (only base=>allowed)
      *
-     * @param Mage_Directory_Model_Currency|string $currencyFrom
-     * @param Mage_Directory_Model_Currency|string $currencyTo
-     * @return float
+     * @param  Mage_Directory_Model_Currency|string $currencyFrom
+     * @param  Mage_Directory_Model_Currency|string $currencyTo
+     * @return float|int
      */
     public function getRate($currencyFrom, $currencyTo)
     {
@@ -81,10 +60,10 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
 
         if (!isset(self::$_rateCache[$currencyFrom][$currencyTo])) {
             $read = $this->_getReadAdapter();
-            $bind = array(
+            $bind = [
                 ':currency_from' => strtoupper($currencyFrom),
-                ':currency_to'   => strtoupper($currencyTo)
-            );
+                ':currency_to'   => strtoupper($currencyTo),
+            ];
             $select = $read->select()
                 ->from($this->_currencyRateTable, 'rate')
                 ->where('currency_from = :currency_from')
@@ -99,8 +78,8 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
     /**
      * Retrieve currency rate (base=>allowed or allowed=>base)
      *
-     * @param Mage_Directory_Model_Currency|string $currencyFrom
-     * @param Mage_Directory_Model_Currency|string $currencyTo
+     * @param  Mage_Directory_Model_Currency|string $currencyFrom
+     * @param  Mage_Directory_Model_Currency|string $currencyTo
      * @return float
      */
     public function getAnyRate($currencyFrom, $currencyTo)
@@ -119,10 +98,10 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
 
         if (!isset(self::$_rateCache[$currencyFrom][$currencyTo])) {
             $adapter = $this->_getReadAdapter();
-            $bind    = array(
+            $bind    = [
                 ':currency_from' => strtoupper($currencyFrom),
-                ':currency_to'   => strtoupper($currencyTo)
-            );
+                ':currency_to'   => strtoupper($currencyTo),
+            ];
             $select  = $adapter->select()
                 ->from($this->_currencyRateTable, 'rate')
                 ->where('currency_from = :currency_from')
@@ -136,6 +115,7 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
                     ->where('currency_from = :currency_to');
                 $rate = $adapter->fetchOne($select, $bind);
             }
+
             self::$_rateCache[$currencyFrom][$currencyTo] = $rate;
         }
 
@@ -149,24 +129,26 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
      */
     public function saveRates($rates)
     {
-        if (is_array($rates) && sizeof($rates) > 0) {
+        if (is_array($rates) && count($rates)) {
             $adapter = $this->_getWriteAdapter();
-            $data    = array();
+            $data    = [];
             foreach ($rates as $currencyCode => $rate) {
                 foreach ($rate as $currencyTo => $value) {
                     $value = abs($value);
                     if ($value == 0) {
                         continue;
                     }
-                    $data[] = array(
+
+                    $data[] = [
                         'currency_from' => $currencyCode,
                         'currency_to'   => $currencyTo,
                         'rate'          => $value,
-                    );
+                    ];
                 }
             }
+
             if ($data) {
-                $adapter->insertOnDuplicate($this->_currencyRateTable, $data, array('rate'));
+                $adapter->insertOnDuplicate($this->_currencyRateTable, $data, ['rate']);
             }
         } else {
             Mage::throwException(Mage::helper('directory')->__('Invalid rates received'));
@@ -177,22 +159,28 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
      * Retrieve config currency data by config path
      *
      * @param Mage_Directory_Model_Currency $model
-     * @param string $path
+     * @param string                        $path
      *
      * @return array
      */
     public function getConfigCurrencies($model, $path)
     {
-        $adapter = $this->_getReadAdapter();
-        $bind    = array(':config_path' => $path);
-        $select  = $adapter->select()
-                ->from($this->getTable('core/config_data'))
-                ->where('path = :config_path');
-        $result  = array();
-        $rowSet  = $adapter->fetchAll($select, $bind);
-        foreach ($rowSet as $row) {
-            $result = array_merge($result, explode(',', $row['value']));
+        $result  = [];
+        $config = Mage::app()->getConfig();
+
+        // default
+        $result = array_merge($result, explode(',', trim($config->getNode($path, 'default'))));
+
+        // stores
+        foreach (Mage::app()->getStores(true) as $store) {
+            $result = array_merge($result, explode(',', trim($config->getNode($path, 'stores', $store->getCode()))));
         }
+
+        // websites
+        foreach (Mage::app()->getWebsites(true) as $website) {
+            $result = array_merge($result, explode(',', trim($config->getNode($path, 'websites', $website->getCode()))));
+        }
+
         sort($result);
 
         return array_unique($result);
@@ -201,14 +189,14 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
     /**
      * Return currency rates
      *
-     * @param string|array $currency
-     * @param array $toCurrencies
+     * @param array|string $currency
+     * @param array        $toCurrencies
      *
      * @return array
      */
     public function getCurrencyRates($currency, $toCurrencies = null)
     {
-        $rates = array();
+        $rates = [];
         if (is_array($currency)) {
             foreach ($currency as $code) {
                 $rates[$code] = $this->_getRatesByCode($code, $toCurrencies);
@@ -223,22 +211,22 @@ class Mage_Directory_Model_Resource_Currency extends Mage_Core_Model_Resource_Db
     /**
      * Protected method used by getCurrencyRates() method
      *
-     * @param string $code
-     * @param array $toCurrencies
+     * @param  string $code
+     * @param  array  $toCurrencies
      * @return array
      */
     protected function _getRatesByCode($code, $toCurrencies = null)
     {
         $adapter = $this->_getReadAdapter();
-        $bind    = array(
-            ':currency_from' => $code
-        );
+        $bind    = [
+            ':currency_from' => $code,
+        ];
         $select  = $adapter->select()
-            ->from($this->getTable('directory/currency_rate'), array('currency_to', 'rate'))
+            ->from($this->getTable('directory/currency_rate'), ['currency_to', 'rate'])
             ->where('currency_from = :currency_from')
             ->where('currency_to IN(?)', $toCurrencies);
         $rowSet  = $adapter->fetchAll($select, $bind);
-        $result  = array();
+        $result  = [];
 
         foreach ($rowSet as $row) {
             $result[$row['currency_to']] = $row['rate'];

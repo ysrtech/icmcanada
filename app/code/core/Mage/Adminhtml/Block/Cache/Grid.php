@@ -1,35 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
+use Mage_Adminhtml_Block_Widget_Grid_Massaction_Abstract as MassAction;
+
+/**
+ * @package    Mage_Adminhtml
+ */
 class Mage_Adminhtml_Block_Cache_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
-    protected $_invalidatedTypes = array();
-    /**
-     * Class constructor
-     */
+    protected string $_eventPrefix = 'adminhtml_cache_grid';
+
+    protected $_invalidatedTypes = [];
+
     public function __construct()
     {
         parent::__construct();
@@ -40,84 +28,60 @@ class Mage_Adminhtml_Block_Cache_Grid extends Mage_Adminhtml_Block_Widget_Grid
     }
 
     /**
-     * Prepare grid collection
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = new Varien_Data_Collection();
         foreach (Mage::app()->getCacheInstance()->getTypes() as $type) {
             $collection->addItem($type);
         }
+
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
 
     /**
-     * Add name and description to collection elements
+     * @inheritDoc
+     * @throws Exception
      */
-    protected function _afterLoadCollection()
-    {
-        foreach ($this->_collection as $item) {
-        }
-        return $this;
-    }
-
-    /**
-     * Prepare grid columns
-     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $baseUrl = $this->getUrl();
-        $this->addColumn('cache_type', array(
+        $this->addColumn('cache_type', [
             'header'    => $this->__('Cache Type'),
             'width'     => '180',
             'align'     => 'left',
             'index'     => 'cache_type',
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('description', array(
+        $this->addColumn('description', [
             'header'    => $this->__('Description'),
             'align'     => 'left',
             'index'     => 'description',
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('tags', array(
+        $this->addColumn('tags', [
             'header'    => $this->__('Associated Tags'),
             'align'     => 'left',
             'index'     => 'tags',
             'width'     => '180',
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('status', array(
+        $this->addColumn('status', [
             'header'    => $this->__('Status'),
             'width'     => '120',
             'align'     => 'left',
             'index'     => 'status',
             'type'      => 'options',
-            'options'   => array(0 => $this->__('Disabled'), 1 => $this->__('Enabled')),
-            'frame_callback' => array($this, 'decorateStatus')
-        ));
-
-//        $this->addColumn('action',
-//            array(
-//                'header'    =>  $this->__('Action'),
-//                'width'     => '100',
-//                'type'      => 'action',
-//                'getter'    => 'getId',
-//                'actions'   => array(
-//                    array(
-//                        'caption'   => $this->__('Refresh'),
-//                        'url'       => array('base'=> '*/*/refresh'),
-//                        'field'     => 'type'
-//                    ),
-//                ),
-//                'filter'    => false,
-//                'sortable'  => false,
-//                'is_system' => true,
-//        ));
+            'options'   => [0 => $this->__('Disabled'), 1 => $this->__('Enabled')],
+            'frame_callback' => $this->decorateStatus(...),
+            'sortable'  => false,
+        ]);
 
         return parent::_prepareColumns();
     }
@@ -126,57 +90,54 @@ class Mage_Adminhtml_Block_Cache_Grid extends Mage_Adminhtml_Block_Widget_Grid
      * Decorate status column values
      *
      * @return string
+     * @SuppressWarnings("PHPMD.UnusedFormalParameter")
      */
     public function decorateStatus($value, $row, $column, $isExport)
     {
-        $class = '';
         if (isset($this->_invalidatedTypes[$row->getId()])) {
-            $cell = '<span class="grid-severity-minor"><span>'.$this->__('Invalidated').'</span></span>';
+            $class = self::CSS_SEVERITY_MINOR;
+            $value = $this->__('Invalidated');
+        } elseif ($row->getStatus()) {
+            $class = self::CSS_SEVERITY_NOTICE;
         } else {
-            if ($row->getStatus()) {
-                $cell = '<span class="grid-severity-notice"><span>'.$value.'</span></span>';
-            } else {
-                $cell = '<span class="grid-severity-critical"><span>'.$value.'</span></span>';
-            }
+            $class = self::CSS_SEVERITY_CRITICAL;
         }
-        return $cell;
+
+        return sprintf(self::PATTERN_SEVERITY, $class, $value);
     }
 
     /**
-     * Get row edit url
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getRowUrl($row)
     {
-        return false;
-        //return $this->getUrl('*/*/edit', array('type'=>$row->getId()));
+        return '';
     }
 
     /**
-     * Add mass-actions to grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareMassaction()
     {
         $this->setMassactionIdField('id');
         $this->getMassactionBlock()->setFormFieldName('types');
 
-        $modeOptions = Mage::getModel('index/process')->getModesOptions();
-
-        $this->getMassactionBlock()->addItem('enable', array(
-            'label'         => Mage::helper('index')->__('Enable'),
-            'url'           => $this->getUrl('*/*/massEnable'),
-        ));
-        $this->getMassactionBlock()->addItem('disable', array(
+        $this->getMassactionBlock()->addItem(MassAction::ENABLE, [
+            'label'    => Mage::helper('index')->__('Enable'),
+            'url'      => $this->getUrl('*/*/massEnable'),
+        ]);
+        $this->getMassactionBlock()->addItem(MassAction::DISABLE, [
             'label'    => Mage::helper('index')->__('Disable'),
             'url'      => $this->getUrl('*/*/massDisable'),
-        ));
-        $this->getMassactionBlock()->addItem('refresh', array(
+        ]);
+        $this->getMassactionBlock()->addItem(MassAction::REFRESH, [
             'label'    => Mage::helper('index')->__('Refresh'),
             'url'      => $this->getUrl('*/*/massRefresh'),
             'selected' => true,
-        ));
+        ]);
 
-        return $this;
+        return parent::_prepareMassaction();
     }
 }

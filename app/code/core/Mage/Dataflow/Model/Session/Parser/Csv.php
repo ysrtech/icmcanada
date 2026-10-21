@@ -1,75 +1,56 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Dataflow
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Dataflow
+ */
 
 /**
  * Convert csv parser
  *
- * @category    Mage
- * @package     Mage_Dataflow
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Dataflow
  */
 class Mage_Dataflow_Model_Session_Parser_Csv extends Mage_Dataflow_Model_Convert_Parser_Abstract
 {
-
     public function parse()
     {
         $fDel = $this->getVar('delimiter', ',');
         $fEnc = $this->getVar('enclose', '"');
+        $fEsc = $this->getVar('escape', '\\');
 
-        if ($fDel=='\\t') {
+        if ($fDel == '\\t') {
             $fDel = "\t";
         }
 
         // fixed for multibyte characters
-        setlocale(LC_ALL, Mage::app()->getLocale()->getLocaleCode().'.UTF-8');
+        setlocale(LC_ALL, Mage::app()->getLocale()->getLocaleCode() . '.UTF-8');
 
-        $fp = tmpfile();
-        fputs($fp, $this->getData());
-        fseek($fp, 0);
+        $resource = tmpfile();
+        fwrite($resource, $this->getData());
+        fseek($resource, 0);
 
-        $data = array();
         $sessionId = Mage::registry('current_dataflow_session_id');
         $import = Mage::getModel('dataflow/import');
         $map = new Varien_Convert_Mapper_Column();
-        for ($i=0; $line = fgetcsv($fp, 4096, $fDel, $fEnc); $i++) {
-            if (0==$i) {
+        for ($i = 0; $line = fgetcsv($resource, 4096, $fDel, $fEnc, $fEsc); $i++) {
+            if ($i == 0) {
                 if ($this->getVar('fieldnames')) {
                     $fields = $line;
                     continue;
-                } else {
-                    foreach ($line as $j=>$f) {
-                        $fields[$j] = 'column'.($j+1);
-                    }
+                }
+
+                foreach (array_keys($line) as $j) {
+                    $fields[$j] = 'column' . ($j + 1);
                 }
             }
-            $row = array();
-            foreach ($fields as $j=>$f) {
+
+            $row = [];
+            foreach ($fields as $j => $f) {
                 $row[$f] = $line[$j];
             }
+
             /*
             if ($i <= 100)
             {
@@ -77,7 +58,7 @@ class Mage_Dataflow_Model_Session_Parser_Csv extends Mage_Dataflow_Model_Convert
             }
             */
             //$map = new Varien_Convert_Mapper_Column();
-            $map->setData(array($row));
+            $map->setData([$row]);
             $map->map();
             $row = $map->getData();
             //$import = Mage::getModel('dataflow/import');
@@ -88,55 +69,56 @@ class Mage_Dataflow_Model_Session_Parser_Csv extends Mage_Dataflow_Model_Convert
             $import->save();
             //unset($import);
         }
-        fclose($fp);
+
+        fclose($resource);
         unset($sessionId);
         //$this->setData($data);
         return $this;
-    } // end
+    }
 
     public function unparse()
     {
-        $csv = '';
-
         $fDel = $this->getVar('delimiter', ',');
         $fEnc = $this->getVar('enclose', '"');
         $fEsc = $this->getVar('escape', '\\');
         $lDel = "\r\n";
 
-        if ($fDel=='\\t') {
+        if ($fDel == '\\t') {
             $fDel = "\t";
         }
 
         $data = $this->getData();
         $fields = $this->getGridFields($data);
-        $lines = array();
+        $lines = [];
 
         if ($this->getVar('fieldnames')) {
-            $line = array();
-            foreach ($fields as $f) {
-                $line[] = $fEnc.str_replace(array('"', '\\'), array($fEsc.'"', $fEsc.'\\'), $f).$fEnc;
+            $line = [];
+            foreach ($fields as $field) {
+                $line[] = $fEnc . str_replace(['"', '\\'], [$fEsc . '"', $fEsc . '\\'], $field) . $fEnc;
             }
-            $lines[] = join($fDel, $line);
+
+            $lines[] = implode($fDel, $line);
         }
-        foreach ($data as $i=>$row) {
-            $line = array();
-            foreach ($fields as $f) {
+
+        foreach ($data as $row) {
+            $line = [];
+            foreach ($fields as $field) {
                 /*
-                if (isset($row[$f]) && (preg_match('\"', $row[$f]) || preg_match('\\', $row[$f]))) {
-                    $tmp = str_replace('\\', '\\\\',$row[$f]);
+                if (isset($row[$field]) && (preg_match('\"', $row[$field]) || preg_match('\\', $row[$field]))) {
+                    $tmp = str_replace('\\', '\\\\',$row[$field]);
                     echo str_replace('"', '\"',$tmp).'<br>';
                 }
                 */
-                $v = isset($row[$f]) ? str_replace(array('"', '\\'), array($fEsc.'"', $fEsc.'\\'), $row[$f]) : '';
-
-                $line[] = $fEnc.$v.$fEnc;
+                $str = isset($row[$field]) ? str_replace(['"', '\\'], [$fEsc . '"', $fEsc . '\\'], $row[$field]) : '';
+                $line[] = $fEnc . $str . $fEnc;
             }
-            $lines[] = join($fDel, $line);
+
+            $lines[] = implode($fDel, $line);
         }
-        $result = join($lDel, $lines);
+
+        $result = implode($lDel, $lines);
         $this->setData($result);
 
         return $this;
     }
-
 }

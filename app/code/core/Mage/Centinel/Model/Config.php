@@ -1,38 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Centinel
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Centinel
  */
 
 /**
- * Config centinel model
+ * @package    Mage_Centinel
  */
 class Mage_Centinel_Model_Config
 {
     /**
      * Store id or store model
      *
-     * @var int|Mage_Core_Model_Store
+     * @var false|int|Mage_Core_Model_Store
      */
     protected $_store = false;
 
@@ -51,10 +34,10 @@ class Mage_Centinel_Model_Config
     protected $_cardTypesConfigPath = 'global/payment/cc/types';
 
     /**
-     * Set store to congif model
+     * Set store to config model
      *
-     * @param int|Mage_Core_Model_Store $store
-     * @return Mage_Centinel_Model_Config
+     * @param  int|Mage_Core_Model_Store $store
+     * @return $this
      */
     public function setStore($store)
     {
@@ -75,8 +58,8 @@ class Mage_Centinel_Model_Config
     /**
      * Return validation state class for card with type $cardType
      *
-     * @param string $cardType
-     * @return string
+     * @param  string             $cardType
+     * @return array|false|string
      */
     public function getStateModelClass($cardType)
     {
@@ -84,6 +67,7 @@ class Mage_Centinel_Model_Config
         if (!$node) {
             return false;
         }
+
         return $node->asArray();
     }
 
@@ -124,13 +108,13 @@ class Mage_Centinel_Model_Config
      */
     public function getIsTestMode()
     {
-        return (bool)(int)$this->_getServiceConfigValue('test_mode');
+        return (bool) (int) $this->_getServiceConfigValue('test_mode');
     }
 
     /**
      * Return value of node of centinel config section
      *
-     * @param string $key
+     * @param  string $key
      * @return string
      */
     private function _getServiceConfigValue($key)
@@ -141,7 +125,7 @@ class Mage_Centinel_Model_Config
     /**
      * Define if debugging is enabled
      *
-     * @return bool
+     * @return string
      */
     public function getDebugFlag()
     {

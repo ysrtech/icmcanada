@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
  */
 
 /**
  * EAV attribute resource model (Using Forms)
  *
- * @category   Mage
  * @package    Mage_Eav
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
 {
@@ -49,15 +30,15 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
     /**
      * Active Website instance
      *
-     * @var Mage_Core_Model_Website
+     * @var null|Mage_Core_Model_Website
      */
     protected $_website;
 
     /**
      * Set active website instance
      *
-     * @param Mage_Core_Model_Website|int $website
-     * @return Mage_Eav_Model_Attribute
+     * @param  int|Mage_Core_Model_Website $website
+     * @return $this
      */
     public function setWebsite($website)
     {
@@ -82,8 +63,9 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
     /**
      * Processing object after save data
      *
-     * @return Mage_Eav_Model_Attribute
+     * @inheritDoc
      */
+    #[Override]
     protected function _afterSave()
     {
         Mage::getSingleton('eav/config')->clear();
@@ -97,11 +79,12 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
      */
     public function getUsedInForms()
     {
-        $forms = $this->getData('used_in_forms');
+        $forms = $this->getDataByKey('used_in_forms');
         if (is_null($forms)) {
             $forms = $this->_getResource()->getUsedInForms($this);
             $this->setData('used_in_forms', $forms);
         }
+
         return $forms;
     }
 
@@ -112,28 +95,32 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
      */
     public function getValidateRules()
     {
-        $rules = $this->getData('validate_rules');
+        $rules = $this->getDataByKey('validate_rules');
         if (is_array($rules)) {
             return $rules;
-        } else if (!empty($rules)) {
-            return unserialize($rules);
         }
-        return array();
+
+        if (is_string($rules) && $rules !== '') {
+            return Mage::helper('core/unserializeArray')->unserialize($rules);
+        }
+
+        return [];
     }
 
     /**
      * Set validate rules
      *
-     * @param array|string $rules
-     * @return Mage_Eav_Model_Attribute
+     * @param  array|string $rules
+     * @return $this
      */
     public function setValidateRules($rules)
     {
         if (empty($rules)) {
             $rules = null;
-        } else if (is_array($rules)) {
+        } elseif (is_array($rules)) {
             $rules = serialize($rules);
         }
+
         $this->setData('validate_rules', $rules);
 
         return $this;
@@ -142,16 +129,13 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
     /**
      * Return scope value by key
      *
-     * @param string $key
+     * @param  string $key
      * @return mixed
      */
     protected function _getScopeValue($key)
     {
         $scopeKey = sprintf('scope_%s', $key);
-        if ($this->getData($scopeKey) !== null) {
-            return $this->getData($scopeKey);
-        }
-        return $this->getData($key);
+        return $this->getData($scopeKey) ?? $this->getData($key);
     }
 
     /**
@@ -179,6 +163,7 @@ abstract class Mage_Eav_Model_Attribute extends Mage_Eav_Model_Entity_Attribute
      *
      * @return mixed
      */
+    #[Override]
     public function getDefaultValue()
     {
         return $this->_getScopeValue('default_value');

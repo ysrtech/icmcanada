@@ -138,7 +138,7 @@ class BL_CustomGrid_Block_Messages extends Mage_Adminhtml_Block_Messages
      */
     protected function _getMessageText(Mage_Core_Model_Message_Abstract $message)
     {
-        return ($this->_escapeMessageFlag ? $this->htmlEscape($message->getText()) : $message->getText());
+        return ($this->_escapeMessageFlag ? $this->escapeHtml($message->getText()) : $message->getText());
     }
     
     /**

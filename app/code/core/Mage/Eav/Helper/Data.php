@@ -1,86 +1,73 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
  */
 
 /**
  * Eav data helper
+ *
+ * @package    Mage_Eav
  */
 class Mage_Eav_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
      * XML path to input types validator data in config
      */
-    const XML_PATH_VALIDATOR_DATA_INPUT_TYPES = 'general/validator_data/input_types';
+    public const XML_PATH_VALIDATOR_DATA_INPUT_TYPES = 'general/validator_data/input_types';
 
-    protected $_attributesLockedFields = array();
+    protected $_moduleName = 'Mage_Eav';
 
-    protected $_entityTypeFrontendClasses = array();
+    protected $_attributesLockedFields = [];
+
+    protected $_entityTypeFrontendClasses = [];
 
     /**
-     * Return default frontend classes value labal array
+     * Return default frontend classes value label array
      *
-     * @return array
+     * @return array<int, array<string, string>>
      */
     protected function _getDefaultFrontendClasses()
     {
-        return array(
-            array(
+        return [
+            [
                 'value' => '',
-                'label' => Mage::helper('eav')->__('None')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('None'),
+            ],
+            [
                 'value' => 'validate-number',
-                'label' => Mage::helper('eav')->__('Decimal Number')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('Decimal Number'),
+            ],
+            [
                 'value' => 'validate-digits',
-                'label' => Mage::helper('eav')->__('Integer Number')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('Integer Number'),
+            ],
+            [
                 'value' => 'validate-email',
-                'label' => Mage::helper('eav')->__('Email')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('Email'),
+            ],
+            [
                 'value' => 'validate-url',
-                'label' => Mage::helper('eav')->__('URL')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('URL'),
+            ],
+            [
                 'value' => 'validate-alpha',
-                'label' => Mage::helper('eav')->__('Letters')
-            ),
-            array(
+                'label' => Mage::helper('eav')->__('Letters'),
+            ],
+            [
                 'value' => 'validate-alphanum',
-                'label' => Mage::helper('eav')->__('Letters (a-z, A-Z) or Numbers (0-9)')
-            )
-        );
+                'label' => Mage::helper('eav')->__('Letters (a-z, A-Z) or Numbers (0-9)'),
+            ],
+        ];
     }
 
     /**
      * Return merged default and entity type frontend classes value label array
      *
-     * @param string $entityTypeCode
+     * @param  string $entityTypeCode
      * @return array
      */
     public function getFrontendClasses($entityTypeCode)
@@ -89,49 +76,56 @@ class Mage_Eav_Helper_Data extends Mage_Core_Helper_Abstract
         if (isset($this->_entityTypeFrontendClasses[$entityTypeCode])) {
             return array_merge(
                 $_defaultClasses,
-                $this->_entityTypeFrontendClasses[$entityTypeCode]
+                $this->_entityTypeFrontendClasses[$entityTypeCode],
             );
         }
+
         $_entityTypeClasses = Mage::app()->getConfig()
             ->getNode('global/eav_frontendclasses/' . $entityTypeCode);
         if ($_entityTypeClasses) {
             foreach ($_entityTypeClasses->children() as $item) {
-                $this->_entityTypeFrontendClasses[$entityTypeCode][] = array(
-                    'value' => (string)$item->value,
-                    'label' => (string)$item->label
-                );
+                $this->_entityTypeFrontendClasses[$entityTypeCode][] = [
+                    'value' => (string) $item->value,
+                    'label' => (string) $item->label,
+                ];
             }
+
             return array_merge(
                 $_defaultClasses,
-                $this->_entityTypeFrontendClasses[$entityTypeCode]
+                $this->_entityTypeFrontendClasses[$entityTypeCode],
             );
         }
+
         return $_defaultClasses;
     }
 
     /**
      * Retrieve attributes locked fields to edit
      *
-     * @param string $entityTypeCode
+     * @param  string $entityTypeCode
      * @return array
      */
     public function getAttributeLockedFields($entityTypeCode)
     {
         if (!$entityTypeCode) {
-            return array();
+            return [];
         }
+
         if (isset($this->_attributesLockedFields[$entityTypeCode])) {
             return $this->_attributesLockedFields[$entityTypeCode];
         }
+
         $_data = Mage::app()->getConfig()->getNode('global/eav_attributes/' . $entityTypeCode);
         if ($_data) {
             foreach ($_data->children() as $attribute) {
-                $this->_attributesLockedFields[$entityTypeCode][(string)$attribute->code] =
-                    array_keys($attribute->locked_fields->asArray());
+                $this->_attributesLockedFields[$entityTypeCode][(string) $attribute->code]
+                    = array_keys($attribute->locked_fields->asArray());
             }
+
             return $this->_attributesLockedFields[$entityTypeCode];
         }
-        return array();
+
+        return [];
     }
 
     /**

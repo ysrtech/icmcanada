@@ -18,7 +18,7 @@
     <label for="blcg_profile_switcher"><?php echo $this->__('Choose Profile:') ?></label>
     <select name="blcg_profile_switcher" id="blcg_profile_switcher" onchange="return blcgSwitchProfile(this);">
     <?php foreach ($this->getProfiles() as $_profile): ?>
-        <option<?php if ($_profile->isCurrent()): ?> selected="selected"<?php endif ?> value="<?php echo $_profile->getId() ?>"><?php echo $this->htmlEscape($_profile->getName()) ?></option>
+        <option<?php if ($_profile->isCurrent()): ?> selected="selected"<?php endif ?> value="<?php echo $_profile->getId() ?>"><?php echo $this->escapeHtml($_profile->getName()) ?></option>
     <?php endforeach ?>
     </select>
 </p>
@@ -34,7 +34,7 @@ function blcgSwitchProfile(select)
         return true;
     }
     
-    select.value = '<?php echo $this->getCurrentGridProfile()->getId() ?>';
+    select.value = '<?php echo $this->getGridProfile()->getId() ?>';
     return false;
 }
 //]]>

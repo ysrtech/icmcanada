@@ -1,49 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Downloadable
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Downloadable
  */
 
 /**
  * Adminhtml catalog product downloadable items tab links section
  *
- * @category    Mage
- * @package     Mage_Downloadable
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Downloadable
+ *
+ * @method bool  getCanReadPrice()
+ * @method $this setCanEditPrice(bool $value)
+ * @method $this setCanReadPrice(bool $value)
  */
-class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Links
-    extends Mage_Uploader_Block_Single
+class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Links extends Mage_Uploader_Block_Single
 {
     /**
      * Purchased Separately Attribute cache
      *
-     * @var Mage_Catalog_Model_Resource_Eav_Attribute
+     * @var null|Mage_Catalog_Model_Resource_Eav_Attribute
      */
     protected $_purchasedSeparatelyAttribute = null;
 
     /**
      * Class constructor
-     *
      */
     public function __construct()
     {
@@ -70,11 +53,16 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
      */
     public function getPurchasedSeparatelyAttribute()
     {
-        if (is_null($this->_purchasedSeparatelyAttribute)) {
-            $_attributeCode = 'links_purchased_separately';
+        if ($this->_purchasedSeparatelyAttribute === null) {
+            $attributeCode = 'links_purchased_separately';
 
-            $this->_purchasedSeparatelyAttribute = Mage::getModel('eav/entity_attribute')
-                ->loadByCode(Mage_Catalog_Model_Product::ENTITY, $_attributeCode);
+            $attribute = Mage::getSingleton('eav/config')
+                ->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attributeCode);
+            if (!($attribute instanceof Mage_Catalog_Model_Resource_Eav_Attribute)) {
+                Mage::throwException('Attribute links_purchased_separately must be of type Mage_Catalog_Model_Resource_Eav_Attribute');
+            }
+
+            $this->_purchasedSeparatelyAttribute = $attribute;
         }
 
         return $this->_purchasedSeparatelyAttribute;
@@ -104,11 +92,11 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     public function getAddButtonHtml()
     {
         $addButton = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
+            ->setData([
                 'label' => Mage::helper('downloadable')->__('Add New Row'),
                 'id'    => 'add_link_item',
-                'class' => 'add'
-            ));
+                'class' => 'add',
+            ]);
         return $addButton->toHtml();
     }
 
@@ -135,8 +123,8 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     /**
      * Return true if price in website scope
      *
-     * @deprecated since 1.14.2.0
      * @return bool
+     * @deprecated since 1.14.2.0
      */
     public function getIsPriceWebsiteScope()
     {
@@ -146,15 +134,17 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     /**
      * Return array of links
      *
-     * @return array
+     * @return Varien_Object[]
      */
     public function getLinkData()
     {
-        $linkArr = array();
-        $links = $this->getProduct()->getTypeInstance(true)->getLinks($this->getProduct());
+        $linkArr = [];
+        /** @var Mage_Downloadable_Model_Product_Type $productType */
+        $productType = $this->getProduct()->getTypeInstance(true);
+        $links = $productType->getLinks($this->getProduct());
         $priceWebsiteScope = Mage::helper('downloadable')->getIsPriceWebsiteScope();
         foreach ($links as $item) {
-            $tmpLinkItem = array(
+            $tmpLinkItem = [
                 'link_id' => $item->getId(),
                 'title' => $this->escapeHtml($item->getTitle()),
                 'price' => $this->getCanReadPrice() ? $this->getPriceValue($item->getPrice()) : '',
@@ -166,64 +156,78 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
                 'sample_url' => $item->getSampleUrl(),
                 'sample_type' => $item->getSampleType(),
                 'sort_order' => $item->getSortOrder(),
-            );
-            $file = Mage::helper('downloadable/file')->getFilePath(
-                Mage_Downloadable_Model_Link::getBasePath(), $item->getLinkFile()
-            );
+            ];
 
-            if ($item->getLinkFile() && !is_file($file)) {
-                Mage::helper('core/file_storage_database')->saveFileToFilesystem($file);
+            if ($item->getLinkFile()) {
+                $file = Mage::helper('downloadable/file')->getFilePath(
+                    Mage_Downloadable_Model_Link::getBasePath(),
+                    $item->getLinkFile(),
+                );
+                if (!is_file($file)) {
+                    Mage::helper('core/file_storage_database')->saveFileToFilesystem($file);
+                }
+
+                if (is_file($file)) {
+                    $name = '<a href="'
+                        . $this->getUrl('*/downloadable_product_edit/link', [
+                            'id' => $item->getId(),
+                            '_secure' => true,
+                        ]) . '">' . Mage::helper('downloadable/file')->getFileFromPathFile($item->getLinkFile()) . '</a>';
+                    $tmpLinkItem['file_save'] = [
+                        [
+                            'file' => $item->getLinkFile(),
+                            'name' => $name,
+                            'size' => filesize($file),
+                            'status' => 'old',
+                        ],
+                    ];
+                }
             }
 
-            if ($item->getLinkFile() && is_file($file)) {
-                $name = '<a href="'
-                    . $this->getUrl('*/downloadable_product_edit/link', array(
-                        'id' => $item->getId(),
-                        '_secure' => true
-                    )) . '">' . Mage::helper('downloadable/file')->getFileFromPathFile($item->getLinkFile()) . '</a>';
-                $tmpLinkItem['file_save'] = array(
-                    array(
-                        'file' => $item->getLinkFile(),
-                        'name' => $name,
-                        'size' => filesize($file),
-                        'status' => 'old'
-                    ));
+            if ($item->getSampleFile()) {
+                $sampleFile = Mage::helper('downloadable/file')->getFilePath(
+                    Mage_Downloadable_Model_Link::getBaseSamplePath(),
+                    $item->getSampleFile(),
+                );
+                if (is_file($sampleFile)) {
+                    $tmpLinkItem['sample_file_save'] = [
+                        [
+                            'file' => $item->getSampleFile(),
+                            'name' => Mage::helper('downloadable/file')->getFileFromPathFile($item->getSampleFile()),
+                            'size' => filesize($sampleFile),
+                            'status' => 'old',
+                        ],
+                    ];
+                }
             }
-            $sampleFile = Mage::helper('downloadable/file')->getFilePath(
-                Mage_Downloadable_Model_Link::getBaseSamplePath(), $item->getSampleFile()
-            );
-            if ($item->getSampleFile() && is_file($sampleFile)) {
-                $tmpLinkItem['sample_file_save'] = array(
-                    array(
-                        'file' => $item->getSampleFile(),
-                        'name' => Mage::helper('downloadable/file')->getFileFromPathFile($item->getSampleFile()),
-                        'size' => filesize($sampleFile),
-                        'status' => 'old'
-                    ));
-            }
+
             if ($item->getNumberOfDownloads() == '0') {
                 $tmpLinkItem['is_unlimited'] = ' checked="checked"';
             }
+
             if ($this->getProduct()->getStoreId() && $item->getStoreTitle()) {
                 $tmpLinkItem['store_title'] = $item->getStoreTitle();
             }
+
             if ($this->getProduct()->getStoreId() && $priceWebsiteScope) {
                 $tmpLinkItem['website_price'] = $item->getWebsitePrice();
             }
+
             $linkArr[] = new Varien_Object($tmpLinkItem);
         }
+
         return $linkArr;
     }
 
     /**
-     * Return formated price with two digits after decimal point
+     * Return formatted price with two digits after decimal point
      *
-     * @param decimal $value
-     * @return decimal
+     * @param  float  $value
+     * @return string
      */
     public function getPriceValue($value)
     {
-        return number_format($value, 2, null, '');
+        return number_format($value ?? 0, 2, null, '');
     }
 
     /**
@@ -238,24 +242,25 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
 
     /**
      * Prepare block Layout
-     *
      */
-     protected function _prepareLayout()
+    #[Override]
+    protected function _prepareLayout()
     {
         parent::_prepareLayout();
         $this->setChild(
             'upload_button',
-            $this->getLayout()->createBlock('adminhtml/widget_button')->addData(array(
+            $this->getLayout()->createBlock('adminhtml/widget_button')->addData([
                 'id'      => '',
                 'label'   => Mage::helper('adminhtml')->__('Upload Files'),
                 'type'    => 'button',
-                'onclick' => 'Downloadable.massUploadByType(\'links\');Downloadable.massUploadByType(\'linkssample\')'
-            ))
+                'onclick' => "Downloadable.massUploadByType('links');Downloadable.massUploadByType('linkssample')",
+            ]),
         );
-        $this->_addElementIdsMapping(array(
+        $this->_addElementIdsMapping([
             'container' => $this->getHtmlId() . '-new',
-            'delete'    => $this->getHtmlId() . '-delete'
-        ));
+            'delete'    => $this->getHtmlId() . '-delete',
+        ]);
+        return $this;
     }
 
     /**
@@ -269,19 +274,18 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     }
 
     /**
-     * Retrive config json
+     * Retrieve config json
      *
+     * @param  string $type
      * @return string
      */
-    public function getConfigJson($type='links')
+    public function getConfigJson($type = 'links')
     {
-
         $this->getUploaderConfig()
             ->setFileParameterName($type)
             ->setTarget(
                 Mage::getModel('adminhtml/url')
-                    ->addSessionParam()
-                    ->getUrl('*/downloadable_file/upload', array('type' => $type, '_secure' => true))
+                    ->getUrl('*/downloadable_file/upload', ['type' => $type, '_secure' => true]),
             );
         $this->getMiscConfig()
             ->setReplaceBrowseWithRemove(true)
@@ -290,24 +294,27 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     }
 
     /**
+     * @param  string $type
      * @return string
      */
+    #[Override]
     public function getBrowseButtonHtml($type = '')
     {
         return $this->getChild('browse_button')
             // Workaround for IE9
             ->setBeforeHtml(
-                '<div style="display:inline-block; " id="downloadable_link_{{id}}_' . $type . 'file-browse">'
+                '<div style="display:inline-block; " id="downloadable_link_{{id}}_' . $type . 'file-browse">',
             )
             ->setAfterHtml('</div>')
             ->setId('downloadable_link_{{id}}_' . $type . 'file-browse_button')
             ->toHtml();
     }
 
-
     /**
+     * @param  string $type
      * @return string
      */
+    #[Override]
     public function getDeleteButtonHtml($type = '')
     {
         return $this->getChild('delete_button')
@@ -320,8 +327,8 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Li
     /**
      * Retrieve config object
      *
-     * @deprecated
      * @return $this
+     * @deprecated
      */
     public function getConfig()
     {

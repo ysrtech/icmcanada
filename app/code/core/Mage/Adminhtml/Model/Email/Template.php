@@ -1,47 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml email template model
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
 {
     /**
      * Xml path to email template nodes
-     *
      */
-    const XML_PATH_TEMPLATE_EMAIL = '//sections/*/groups/*/fields/*[source_model="adminhtml/system_config_source_email_template"]';
+    public const XML_PATH_TEMPLATE_EMAIL = '//sections/*/groups/*/fields/*[source_model="adminhtml/system_config_source_email_template"]';
 
     /**
-     * Collect all system config pathes where current template is used as default
+     * Collect all system config paths where current template is used as default
      *
      * @return array
      */
@@ -49,16 +28,16 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
     {
         $templateCode = $this->getOrigTemplateCode();
         if (!$templateCode) {
-            return array();
+            return [];
         }
-        $paths = array();
 
-        $configSections = Mage::getSingleton('adminhtml/config')->getSections();
+        $paths = [];
+        Mage::getSingleton('adminhtml/config')->getSections();
 
         // find nodes which are using $templateCode value
         $defaultCfgNodes = Mage::getConfig()->getXpath('default/*/*[*="' . $templateCode . '"]');
         if (!is_array($defaultCfgNodes)) {
-            return array();
+            return [];
         }
 
         foreach ($defaultCfgNodes as $node) {
@@ -66,13 +45,14 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
             $sectionName = $node->getParent()->getName();
             $groupName = $node->getName();
             $fieldName = substr($templateCode, strlen($sectionName . '_' . $groupName . '_'));
-            $paths[] = array('path' => implode('/', array($sectionName, $groupName, $fieldName)));
+            $paths[] = ['path' => implode('/', [$sectionName, $groupName, $fieldName])];
         }
+
         return $paths;
     }
 
     /**
-     * Collect all system config pathes where current template is currently used
+     * Collect all system config paths where current template is currently used
      *
      * @return array
      */
@@ -80,21 +60,20 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
     {
         $templateId = $this->getId();
         if (!$templateId) {
-            return array();
+            return [];
         }
-        $paths = array();
 
+        $paths = [];
         $configSections = Mage::getSingleton('adminhtml/config')->getSections();
 
         // look for node entries in all system.xml that use source_model=adminhtml/system_config_source_email_template
         // they are will be templates, what we try find
-        $sysCfgNodes    = $configSections->xpath(self::XML_PATH_TEMPLATE_EMAIL);
+        $sysCfgNodes = $configSections->xpath(self::XML_PATH_TEMPLATE_EMAIL);
         if (!is_array($sysCfgNodes)) {
-            return array();
+            return [];
         }
 
         foreach ($sysCfgNodes as $fieldNode) {
-
             $groupNode = $fieldNode->getParent()->getParent();
             $sectionNode = $groupNode->getParent()->getParent();
 
@@ -103,12 +82,12 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
             $groupName = $groupNode->getName();
             $fieldName = $fieldNode->getName();
 
-            $paths[] = implode('/', array($sectionName, $groupName, $fieldName));
+            $paths[] = implode('/', [$sectionName, $groupName, $fieldName]);
         }
 
         $configData = $this->_getResource()->getSystemConfigByPathsAndTemplateId($paths, $templateId);
         if (!$configData) {
-            return array();
+            return [];
         }
 
         return $configData;
@@ -117,9 +96,11 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
     /**
      * Delete current usage
      *
-     * @return Mage_Adminhtml_Model_Email_Template
+     * @return $this
      */
-    protected function _afterDelete() {
+    #[Override]
+    protected function _afterDelete()
+    {
         $paths = $this->getSystemConfigPathsWhereUsedCurrently();
         foreach ($paths as $path) {
             $configDataCollection = Mage::getModel('core/config_data')
@@ -131,6 +112,7 @@ class Mage_Adminhtml_Model_Email_Template extends Mage_Core_Model_Email_Template
                 $configItem->delete();
             }
         }
+
         return parent::_afterDelete();
     }
 }

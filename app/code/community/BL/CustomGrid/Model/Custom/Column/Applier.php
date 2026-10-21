@@ -13,7 +13,7 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
+class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Model_Custom_Column_Worker_Abstract
 {
     // Possible behaviours to use when grid block / collection can not be verified
     const UNVERIFIED_BEHAVIOUR_NONE    = 'none';
@@ -23,39 +23,19 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
     // Key where to store the verification messages flags in session
     const VERIFICATION_MESSAGES_FLAGS_SESSION_KEY = 'blcg_cc_vm_flags';
     
+    public function getType()
+    {
+        return BL_CustomGrid_Model_Custom_Column_Abstract::WORKER_TYPE_APPLIER;
+    }
+    
     /**
-     * Return base helper
+     * Return the base helper
      * 
      * @return BL_CustomGrid_Helper_Data
      */
-    protected function _getBaseHelper()
+    public function getBaseHelper()
     {
         return Mage::helper('customgrid');
-    }
-    
-    /**
-     * Set the current custom column
-     * 
-     * @param BL_CustomGrid_Model_Custom_Column_Abstract $customColumn Custom column to set as current
-     * @return BL_CustomGrid_Model_Custom_Column_Applier
-     */
-    public function setCustomColumn(BL_CustomGrid_Model_Custom_Column_Abstract $customColumn)
-    {
-        return $this->setData('custom_column', $customColumn);
-    }
-    
-    /**
-     * Return the current custom column
-     * 
-     * @return BL_CustomGrid_Model_Custom_Column_Abstract
-     */
-    public function getCustomColumn()
-    {
-        if ((!$customColumn = $this->_getData('custom_column'))
-            || (!$customColumn instanceof BL_CustomGrid_Model_Custom_Column_Abstract)) {
-            Mage::throwException($this->_getBaseHelper()->__('Invalid custom column'));
-        }
-        return $customColumn;
     }
     
     /**
@@ -180,7 +160,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
                 . 'not be working (partially or fully)';
         }
         
-        return ($message ? $this->_getBaseHelper()->__($message, $blockType) : '');
+        return ($message ? $this->getBaseHelper()->__($message, $blockType) : '');
     }
     
     /**
@@ -203,7 +183,43 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
                 . 'columns will not be applied';
         }
         
-        return ($message ? $this->_getBaseHelper()->__($message, $blockType) : '');
+        return ($message ? $this->getBaseHelper()->__($message, $blockType) : '');
+    }
+    
+    /**
+     * Handle the given result of a verification made on a grid element and a grid block of the given types,
+     * according to the given behaviour, and return whether custom columns can still be applied
+     * 
+     * @param bool $result Verification result
+     * @param string $elementType Grid element type
+     * @param string $blockType Grid block type
+     * @param string $behaviour Usable behaviour
+     * @return bool
+     */
+    protected function _handleElementVerificationResult($result, $elementType, $blockType, $behaviour)
+    {
+        /** @var $session BL_CustomGrid_Model_Session */
+        $session = Mage::getSingleton('customgrid/session');
+        
+        if ($result) {
+            $this->_resetVerificationMessagesFlags($elementType, $blockType);
+        } else {
+            if ($behaviour == self::UNVERIFIED_BEHAVIOUR_WARNING) {
+                $result = true;
+            
+                if ($this->_canDisplayVerificationMessage('warning', $elementType, $blockType)
+                    && ($warningMessage = $this->_getGridElementWarningMessage($elementType, $blockType))) {
+                    $session->addWarning($warningMessage);
+                }
+            } else {
+                if ($this->_canDisplayVerificationMessage('error', $elementType, $blockType)
+                    && ($errorMessage = $this->_getGridElementErrorMessage($elementType, $blockType))) {
+                    $session->addError($errorMessage);
+                }
+            }
+        }
+        
+        return $result;
     }
     
     /**
@@ -230,7 +246,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         BL_CustomGrid_Model_Grid $gridModel
     ) {
         $blockType = $gridModel->getBlockType();
-        $dataKey = $elementType . '_verifications_cache/' . $blockType;
+        $dataKey   = $elementType . '_verifications_cache/' . $blockType;
         
         if (!$this->hasData($dataKey)) {
             $behaviour = $this->_getUnverifiedElementBehaviour($elementType);
@@ -240,25 +256,11 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
             } else {
                 $result = $this->_getGridElementVerificationResult($elementType, $collection, $gridBlock, $gridModel);
             }
-            if ($result) {
-                $this->_resetVerificationMessagesFlags($elementType, $blockType);
-            } else {
-                if ($behaviour == self::UNVERIFIED_BEHAVIOUR_WARNING) {
-                    $result = true;
-                    
-                    if ($this->_canDisplayVerificationMessage('warning', $elementType, $blockType)
-                        && ($warningMessage = $this->_getGridElementWarningMessage($elementType, $blockType))) {
-                        Mage::getSingleton('customgrid/session')->addWarning($warningMessage);
-                    }
-                } else {
-                    if ($this->_canDisplayVerificationMessage('error', $elementType, $blockType)
-                        && ($errorMessage = $this->_getGridElementErrorMessage($elementType, $blockType))) {
-                        Mage::getSingleton('customgrid/session')->addError($errorMessage);
-                    }
-                }
-            }
             
-            $this->setData($dataKey, $result);
+            $this->setData(
+                $dataKey,
+                $this->_handleElementVerificationResult($result, $elementType, $blockType, $behaviour)
+            );
         }
         
         return $this->getData($dataKey);
@@ -282,7 +284,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         $session = Mage::getSingleton('customgrid/session');
         
         $name = $this->getCustomColumn()->getName();
-        $message = $this->_getBaseHelper()->__('The "%s" custom column could not be applied : "%s"', $name, $message);
+        $message = $this->getBaseHelper()->__('The "%s" custom column could not be applied : "%s"', $name, $message);
         $session->addError($message);
         
         return $this;
@@ -295,7 +297,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
      * @param BL_CustomGrid_Model_Grid $gridModel Grid model
      * @param string $columnBlockId Grid column block ID
      * @param string $columnIndex Grid column index
-     * @param array $params Customization params values
+     * @param array $params Customization parameters values
      * @param Mage_Core_Model_Store $store Column store
      * @return BL_CustomGrid_Model_Custom_Column_Applier
      */
@@ -307,7 +309,9 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         array $params,
         Mage_Core_Model_Store $store
     ) {
-        $this->getCustomColumn()
+        $customColumn = $this->getCustomColumn();
+        
+        $customColumn->getCollectionHandler()
             ->prepareGridCollection(
                 $gridBlock->getCollection(),
                 $gridBlock,
@@ -316,16 +320,18 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
                 $columnIndex,
                 $params,
                 $store
-            )
-            ->applyToGridCollection(
-                $gridBlock->getCollection(),
-                $gridBlock,
-                $gridModel,
-                $columnBlockId,
-                $columnIndex,
-                $params,
-                $store
             );
+        
+        $customColumn->applyToGridCollection(
+            $gridBlock->getCollection(),
+            $gridBlock,
+            $gridModel,
+            $columnBlockId,
+            $columnIndex,
+            $params,
+            $store
+        );
+        
         return $this;
     }
     
@@ -336,7 +342,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
      * @param BL_CustomGrid_Model_Grid $gridModel Grid model
      * @param string $columnBlockId Grid column block ID
      * @param string $columnIndex Grid column index
-     * @param array $params Customization params values
+     * @param array $params Customization parameters values
      * @param Mage_Core_Model_Store $store Column store
      * @param BL_CustomGrid_Object|null $renderer Column collection renderer (if any)
      * @return array
@@ -348,7 +354,7 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         $columnIndex,
         array $params,
         Mage_Core_Model_Store $store,
-        BL_CustomGrid_Object $renderer = null
+        ?BL_CustomGrid_Object $renderer = null
     ) {
         $customColumn = $this->getCustomColumn();
         $columnMethodParams   = array($gridBlock, $gridModel, $columnBlockId, $columnIndex, $params, $store);
@@ -373,9 +379,55 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         }
         
         $customColumn->setCurrentBlockValues(array());
+        return $this->_bindFilterConditionCallback($blockValues, $gridBlock);
+    }
+
+    /**
+     * Rebind a custom column's filter condition callback to the given grid block, so that it survives the callback
+     * ownership check introduced by SUPEE-11219
+     *
+     * That patch made Mage_Adminhtml_Block_Widget_Grid::_addColumnFilterToCollection() only honour a
+     * filter_condition_callback whose object is the grid block itself. Custom columns are models, not blocks, so
+     * their callbacks are rejected: the filter then falls through to addFieldToFilter() on a column index that has
+     * no matching field, which is where the "Invalid attribute name" errors come from.
+     *
+     * OpenMage 20 additionally accepts a Closure bound to the grid block, so wrapping the callback restores custom
+     * column filtering without anyone having to patch or override the core grid block. The closure is bound without
+     * a scope, so it gains no access to the block's protected members.
+     *
+     * Cores predating that check (Magento 1.9, OpenMage 19) do not understand Closure callbacks, so there the
+     * callback is deliberately left as it is.
+     *
+     * @param array $blockValues Grid column block values
+     * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Grid block
+     * @return array
+     */
+    protected function _bindFilterConditionCallback(array $blockValues, Mage_Adminhtml_Block_Widget_Grid $gridBlock)
+    {
+        if (!isset($blockValues['filter_condition_callback'])
+            || !method_exists($gridBlock, 'validateColumnFilterCallback')) {
+            return $blockValues;
+        }
+
+        $callback = $blockValues['filter_condition_callback'];
+
+        if (($callback instanceof Closure)
+            || (is_array($callback) && isset($callback[0]) && ($callback[0] instanceof Mage_Adminhtml_Block_Widget_Grid))
+            || !is_callable($callback)) {
+            // Already acceptable to the core check, or not usable at all
+            return $blockValues;
+        }
+
+        $blockValues['filter_condition_callback'] = Closure::bind(
+            function ($collection, $column) use ($callback) {
+                return call_user_func($callback, $collection, $column);
+            },
+            $gridBlock
+        );
+
         return $blockValues;
     }
-    
+
     /**
      * Apply the current custom column to the given grid block, and return the corresponding grid column block values,
      * or false if an error occurred
@@ -396,14 +448,14 @@ class BL_CustomGrid_Model_Custom_Column_Applier extends BL_CustomGrid_Object
         $columnIndex,
         array $params,
         Mage_Core_Model_Store $store,
-        BL_CustomGrid_Object $renderer = null
+        ?BL_CustomGrid_Object $renderer = null
     ) {
         try {
             if (!$this->_verifyGridElement('block', $gridBlock->getCollection(), $gridBlock, $gridModel)) {
-                Mage::throwException($this->_getBaseHelper()->__('The grid block is not valid'));
+                Mage::throwException($this->getBaseHelper()->__('The grid block is not valid'));
             }
             if (!$this->_verifyGridElement('collection', $gridBlock->getCollection(), $gridBlock, $gridModel)) {
-                Mage::throwException($this->_getBaseHelper()->__('The grid collection is not valid'));
+                Mage::throwException($this->getBaseHelper()->__('The grid collection is not valid'));
             }
             
             $this->_applyCustomColumnToGridBlock(

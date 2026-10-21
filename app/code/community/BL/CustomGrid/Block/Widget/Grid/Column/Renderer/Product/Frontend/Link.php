@@ -67,7 +67,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Frontend_Link exte
         $url   = $this->_getRowProductUrl($row);
         $title = $this->getColumn()->getLinkTitle();
         return '<a ' . ($this->getColumn()->getOpenNewWindow() ? 'target="_blank" ' : '') . 'href="' . $url . '">'
-            . $this->htmlEscape($title ? $title : $url) . '</a>';
+            . $this->escapeHtml($title ? $title : $url) . '</a>';
     }
     
     public function renderExport(Varien_Object $row)

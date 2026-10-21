@@ -75,6 +75,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories_Chooser e
      * Return the path IDs of the selected categories
      * 
      * @param mixed $rootId
+     * @return array
      */
     public function getSelectedCategoriesPathIds($rootId = false)
     {
@@ -89,7 +90,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories_Chooser e
             return array();
         }
         
-        /** @var $collection Mage_Catalog_Model_Resource_Eav_Mysql4_Category_Collection */
+        /** @var $collection Mage_Catalog_Model_Resource_Category_Collection */
         $collection = Mage::getResourceModel('catalog/category_collection');
         $collection->addFieldToFilter('entity_id', array('in' => $categoryIds));
         
@@ -127,7 +128,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories_Chooser e
             
             $pathIds = $this->getSelectedCategoriesPathIds($rootId);
             
-            /** @var $tree Mage_Catalog_Model_Resource_Eav_Mysql4_Category_Tree */
+            /** @var $tree Mage_Catalog_Model_Resource_Category_Tree */
             $tree = Mage::getResourceSingleton('catalog/category_tree');
             $tree->loadByIds($pathIds, false, false);
             
@@ -268,7 +269,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories_Chooser e
      */
     public function getLoadTreeUrl($expanded = null)
     {
-        return $this->getUrl('customgrid/grid_column_filter/categoriesJson', array('_current' => true));
+        return $this->getUrl('adminhtml/blcg_grid_column_filter/categoriesJson', array('_current' => true));
     }
     
     /**

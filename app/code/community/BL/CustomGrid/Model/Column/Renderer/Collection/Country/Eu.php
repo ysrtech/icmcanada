@@ -57,7 +57,7 @@ class BL_CustomGrid_Model_Column_Renderer_Collection_Country_Eu extends BL_Custo
         
         $euCountries  = $this->_getEuCountries();
         $allCountries = array();
-        /** @var $countriesCollection Mage_Directory_Model_Mysql4_Country_Collection */
+        /** @var $countriesCollection Mage_Directory_Model_Resource_Country_Collection */
         $countriesCollection = Mage::getResourceModel('directory/country_collection');
         $countries = $countriesCollection->loadData()->toOptionArray(false);
         

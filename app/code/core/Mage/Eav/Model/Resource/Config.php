@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
+ */
 
 /**
  * Eav Resource Config model
  *
- * @category    Mage
- * @package     Mage_Eav
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Eav
  */
 class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -39,17 +19,17 @@ class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstrac
      *
      * @var array
      */
-    protected static $_entityTypes   = array();
+    protected static $_entityTypes   = [];
 
     /**
      * Array of attributes
      *
      * @var array
      */
-    protected static $_attributes    = array();
+    protected static $_attributes    = [];
 
     /**
-     * Resource initialization
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -59,7 +39,7 @@ class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstrac
     /**
      * Load all entity types
      *
-     * @return Mage_Eav_Model_Resource_Config
+     * @return $this
      */
     protected function _loadTypes()
     {
@@ -67,7 +47,8 @@ class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstrac
         if (!$adapter) {
             return $this;
         }
-        if (empty(self::$_entityTypes)) {
+
+        if (self::$_entityTypes === []) {
             $select = $adapter->select()->from($this->getMainTable());
             $data   = $adapter->fetchAll($select);
             foreach ($data as $row) {
@@ -82,14 +63,14 @@ class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstrac
     /**
      * Load attribute types
      *
-     * @param ind $typeId
+     * @param  int   $typeId
      * @return array
      */
     protected function _loadTypeAttributes($typeId)
     {
         if (!isset(self::$_attributes[$typeId])) {
             $adapter = $this->_getReadAdapter();
-            $bind    = array('entity_type_id' => $typeId);
+            $bind    = ['entity_type_id' => $typeId];
             $select  = $adapter->select()
                 ->from($this->getTable('eav/attribute'))
                 ->where('entity_type_id = :entity_type_id');
@@ -103,26 +84,24 @@ class Mage_Eav_Model_Resource_Config extends Mage_Core_Model_Resource_Db_Abstrac
     /**
      * Retrieve entity type data
      *
-     * @param string $entityType
-     * @return array
+     * @param  string               $entityType
+     * @return array<string, mixed>
      */
     public function fetchEntityTypeData($entityType)
     {
         $this->_loadTypes();
 
         if (is_numeric($entityType)) {
-            $info = isset(self::$_entityTypes['by_id'][$entityType])
-                ? self::$_entityTypes['by_id'][$entityType] : null;
+            $info = self::$_entityTypes['by_id'][$entityType] ?? null;
         } else {
-            $info = isset(self::$_entityTypes['by_code'][$entityType])
-                ? self::$_entityTypes['by_code'][$entityType] : null;
+            $info = self::$_entityTypes['by_code'][$entityType] ?? null;
         }
 
-        $data = array();
+        $data = [];
         if ($info) {
             $data['entity']     = $info;
             $attributes         = $this->_loadTypeAttributes($info['entity_type_id']);
-            $data['attributes'] = array();
+            $data['attributes'] = [];
             foreach ($attributes as $attribute) {
                 $data['attributes'][$attribute['attribute_id']] = $attribute;
                 $data['attributes'][$attribute['attribute_code']] = $attribute['attribute_id'];

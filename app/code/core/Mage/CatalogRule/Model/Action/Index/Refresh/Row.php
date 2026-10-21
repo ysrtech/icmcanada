@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogRule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogRule
  */
 
 /**
  * Catalog rule indexer for row
  *
- * @category    Mage
- * @package     Mage_CatalogRule
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_CatalogRule
  */
 class Mage_CatalogRule_Model_Action_Index_Refresh_Row extends Mage_CatalogRule_Model_Action_Index_Refresh
 {
@@ -48,8 +29,6 @@ class Mage_CatalogRule_Model_Action_Index_Refresh_Row extends Mage_CatalogRule_M
      *  - 'resource' Mage_Core_Model_Resource_Db_Abstract
      *  - 'app' Mage_Core_Model_App
      *  - 'value' int|Mage_Catalog_Model_Product
-     *
-     * @param array $args
      */
     public function __construct(array $args)
     {
@@ -61,17 +40,17 @@ class Mage_CatalogRule_Model_Action_Index_Refresh_Row extends Mage_CatalogRule_M
 
     /**
      * Do not recreate rule group website for row refresh
+     * @param string $timestamp
      */
-    protected function _prepareGroupWebsite($timestamp)
-    {
-    }
+    #[Override]
+    protected function _prepareGroupWebsite($timestamp) {}
 
     /**
      * Prepare temporary data
      *
-     * @param Mage_Core_Model_Website $website
      * @return Varien_Db_Select
      */
+    #[Override]
     protected function _prepareTemporarySelect(Mage_Core_Model_Website $website)
     {
         $select = parent::_prepareTemporarySelect($website);
@@ -80,9 +59,8 @@ class Mage_CatalogRule_Model_Action_Index_Refresh_Row extends Mage_CatalogRule_M
 
     /**
      * Remove old index data
-     *
-     * @param Mage_Core_Model_Website $website
      */
+    #[Override]
     protected function _removeOldIndexData(Mage_Core_Model_Website $website)
     {
         $this->_connection->query(
@@ -91,8 +69,8 @@ class Mage_CatalogRule_Model_Action_Index_Refresh_Row extends Mage_CatalogRule_M
                     ->from($this->_resource->getTable('catalogrule/rule_product_price'))
                     ->where('product_id IN (?)', $this->_productId)
                     ->where('website_id = ?', $website->getId()),
-                $this->_resource->getTable('catalogrule/rule_product_price')
-            )
+                $this->_resource->getTable('catalogrule/rule_product_price'),
+            ),
         );
     }
 

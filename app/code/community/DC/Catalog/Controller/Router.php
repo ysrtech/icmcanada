@@ -43,17 +43,45 @@ class DC_Catalog_Controller_Router extends Mage_Core_Controller_Varien_Router_Ab
         $params = trim($request->getPathInfo(), '/');
         $params = explode('/', $params);
 
-        $attribute_code = $params[0];
+        $urlPrefix = $params[0];
         $identifier = null;
         if(isset($params[1])) {
         	$identifier = $params[1];
         }
         $allowedAttributes = explode(',', Mage::getStoreConfig('dc_catalog/attributes/selectedattributes'));
 
+        // Resolve the incoming URL prefix to the real attribute_code.
+        // e.g. 'merk' (NL store) -> 'brand'
+        /** @var DC_Catalog_Helper_Data $urlHelper */
+        $urlHelper      = Mage::helper('dc_catalog');
+        $attribute_code = $urlHelper->getAttributeCodeFromPrefix($urlPrefix);
 
         $attributes = Mage::getModel('dc_catalog/manufacturer');
 	    /* @var $attributes DC_Catalog_Model_Manufacturer */
         if (in_array($attribute_code, $allowedAttributes)) {
+
+            // 301 redirect if the visitor used the wrong URL prefix for this store.
+            // e.g. /brand/3m on NL store (where brand=merk) → redirect to /merk/3m
+            $correctPrefix = $urlHelper->getAttributeUrlPrefix($attribute_code);
+            if ($correctPrefix !== $urlPrefix) {
+                $redirectPath  = $correctPrefix;
+                if ($identifier !== null) {
+                    $redirectPath .= '/' . $identifier;
+                }
+                // Append any remaining path segments
+                for ($i = 2; $i < count($params); $i++) {
+                    $redirectPath .= '/' . $params[$i];
+                }
+                $redirectUrl = Mage::getBaseUrl() . $redirectPath;
+                // Preserve query string
+                if ($qs = $request->getServer('QUERY_STRING')) {
+                    $redirectUrl .= '?' . $qs;
+                }
+                $response = Mage::app()->getResponse();
+                $response->setRedirect($redirectUrl, 301);
+                $response->sendResponse();
+                exit;
+            }
 
         	//we have something here... try to match to one of the existing attributes
         	//first, search in attribute_pages for an existing match
@@ -66,7 +94,7 @@ class DC_Catalog_Controller_Router extends Mage_Core_Controller_Varien_Router_Ab
 
 				$request->setAlias(
 					Mage_Core_Model_Url_Rewrite::REWRITE_REQUEST_PATH_ALIAS,
-					$attribute_code.'/'.$identifier
+					$urlPrefix.'/'.$identifier
 				);
 				return true;
 	        }
@@ -83,7 +111,7 @@ class DC_Catalog_Controller_Router extends Mage_Core_Controller_Varien_Router_Ab
 
 					$request->setAlias(
 						Mage_Core_Model_Url_Rewrite::REWRITE_REQUEST_PATH_ALIAS,
-						$attribute_code.'/'.$identifier
+						$urlPrefix.'/'.$identifier
 					);
 					return true;
 	        	//}
@@ -98,7 +126,7 @@ class DC_Catalog_Controller_Router extends Mage_Core_Controller_Varien_Router_Ab
 
 			$request->setAlias(
 				Mage_Core_Model_Url_Rewrite::REWRITE_REQUEST_PATH_ALIAS,
-				$attribute_code.'/'.$identifier
+				$urlPrefix.'/'.$identifier
 			);
 			return true;
 

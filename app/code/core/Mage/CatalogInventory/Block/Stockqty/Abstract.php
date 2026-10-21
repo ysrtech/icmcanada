@@ -1,40 +1,22 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogInventory
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogInventory
  */
 
-
 /**
- * Product stock qty abstarct block
+ * Product stock qty abstract block
  *
- * @category   Mage
  * @package    Mage_CatalogInventory
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 abstract class Mage_CatalogInventory_Block_Stockqty_Abstract extends Mage_Core_Block_Template
 {
-    const XML_PATH_STOCK_THRESHOLD_QTY = 'cataloginventory/options/stock_threshold_qty';
+    public const XML_PATH_STOCK_THRESHOLD_QTY = 'cataloginventory/options/stock_threshold_qty';
 
     /**
      * Retrieve current product object
@@ -58,9 +40,11 @@ abstract class Mage_CatalogInventory_Block_Stockqty_Abstract extends Mage_Core_B
             if ($stockItem = $this->_getProduct()->getStockItem()) {
                 $qty = (float) $stockItem->getStockQty();
             }
+
             $this->setData('product_stock_qty', $qty);
         }
-        return $this->getData('product_stock_qty');
+
+        return $this->getDataByKey('product_stock_qty');
     }
 
     /**
@@ -71,10 +55,11 @@ abstract class Mage_CatalogInventory_Block_Stockqty_Abstract extends Mage_Core_B
     public function getThresholdQty()
     {
         if (!$this->hasData('threshold_qty')) {
-            $qty = (float) Mage::getStoreConfig(self::XML_PATH_STOCK_THRESHOLD_QTY);
+            $qty = Mage::getStoreConfigAsFloat(self::XML_PATH_STOCK_THRESHOLD_QTY);
             $this->setData('threshold_qty', $qty);
         }
-        return $this->getData('threshold_qty');
+
+        return $this->getDataByKey('threshold_qty');
     }
 
     /**
@@ -96,5 +81,4 @@ abstract class Mage_CatalogInventory_Block_Stockqty_Abstract extends Mage_Core_B
     {
         return ($this->getStockQty() > 0 && $this->getStockQty() <= $this->getThresholdQty());
     }
-
 }

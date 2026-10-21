@@ -1,48 +1,28 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Persistent
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Persistent
+ */
 
 /**
  * Persistent Session Resource Model
  *
- * @category    Mage
- * @package     Mage_Persistent
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Persistent
  */
 class Mage_Persistent_Model_Resource_Session extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
      * Use is object new method for object saving
      *
-     * @var boolean
+     * @var bool
      */
     protected $_useIsObjectNew = true;
 
     /**
-     * Initialize connection and define main table and primary key
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -52,18 +32,20 @@ class Mage_Persistent_Model_Resource_Session extends Mage_Core_Model_Resource_Db
     /**
      * Add expiration date filter to select
      *
-     * @param string $field
-     * @param mixed $value
-     * @param Mage_Persistent_Model_Session $object
+     * @param  string                        $field
+     * @param  mixed                         $value
+     * @param  Mage_Persistent_Model_Session $object
      * @return Zend_Db_Select
      */
+    #[Override]
     protected function _getLoadSelect($field, $value, $object)
     {
         $select = parent::_getLoadSelect($field, $value, $object);
         if (!$object->getLoadExpired()) {
             $tableName = $this->getMainTable();
-            $select->join(array('customer' => $this->getTable('customer/entity')),
-                'customer.entity_id = ' . $tableName . '.customer_id'
+            $select->join(
+                ['customer' => $this->getTable('customer/entity')],
+                'customer.entity_id = ' . $tableName . '.customer_id',
             )->where($tableName . '.updated_at >= ?', $object->getExpiredBefore());
         }
 
@@ -73,19 +55,19 @@ class Mage_Persistent_Model_Resource_Session extends Mage_Core_Model_Resource_Db
     /**
      * Delete customer persistent session by customer id
      *
-     * @param int $customerId
-     * @return Mage_Persistent_Model_Resource_Session
+     * @param  int   $customerId
+     * @return $this
      */
     public function deleteByCustomerId($customerId)
     {
-        $this->_getWriteAdapter()->delete($this->getMainTable(), array('customer_id = ?' => $customerId));
+        $this->_getWriteAdapter()->delete($this->getMainTable(), ['customer_id = ?' => $customerId]);
         return $this;
     }
 
     /**
      * Check if such session key allowed (not exists)
      *
-     * @param string $key
+     * @param  string $key
      * @return bool
      */
     public function isKeyAllowed($key)
@@ -98,18 +80,18 @@ class Mage_Persistent_Model_Resource_Session extends Mage_Core_Model_Resource_Db
     /**
      * Delete expired persistent sessions
      *
-     * @param  $websiteId
-     * @param  $expiredBefore
-     * @return Mage_Persistent_Model_Resource_Session
+     * @param  int    $websiteId
+     * @param  string $expiredBefore
+     * @return $this
      */
     public function deleteExpired($websiteId, $expiredBefore)
     {
         $this->_getWriteAdapter()->delete(
             $this->getMainTable(),
-            array(
+            [
                 'website_id = ?' => $websiteId,
                 'updated_at < ?' => $expiredBefore,
-            )
+            ],
         );
         return $this;
     }

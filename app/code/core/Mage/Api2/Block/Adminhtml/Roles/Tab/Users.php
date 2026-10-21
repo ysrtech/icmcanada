@@ -1,46 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api2
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api2
  */
 
 /**
  * Block for rendering users list tab
  *
- * @category   Mage
  * @package    Mage_Api2
- * @author     Magento Core Team <core@magentocommerce.com>
- * @method Mage_Api2_Model_Acl_Global_Role getRole()
- * @method Mage_Api2_Block_Adminhtml_Roles_Tab_Users setRole(Mage_Api2_Model_Acl_Global_Role $role)
- * @method Mage_Api2_Block_Adminhtml_Roles_Tab_Users setUsers(array $users)
+ *
  * @method Mage_Admin_Model_Resource_User_Collection getCollection()
+ * @method Mage_Api2_Model_Acl_Global_Role           getRole()
+ * @method $this                                     setRole(Mage_Api2_Model_Acl_Global_Role $role)
+ * @method $this                                     setUsers(array $users)
  */
-class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Widget_Grid
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Widget_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
-    /**
-     * Construct grid block
-     */
+    protected string $_eventPrefix = 'api2_adminhtml_roles_tab_users';
+
     public function __construct()
     {
         parent::__construct();
@@ -49,86 +29,82 @@ class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Wid
         $this->setSaveParametersInSession(true);
         $this->setDefaultSort('user_id')
             ->setDefaultDir(Varien_Db_Select::SQL_DESC);
-        $this->setDefaultFilter(array('filter_in_role_users'=>1));
+        $this->setDefaultFilter(['filter_in_role_users' => 1]);
     }
 
     /**
-     * Prepare collection
-     *
-     * @return Mage_Api2_Block_Adminhtml_Roles_Tab_Users
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
-        /** @var $collection Mage_Admin_Model_Resource_User_Collection */
+        /** @var Mage_Admin_Model_Resource_User_Collection $collection */
         $collection = Mage::getModel('admin/user')->getCollection();
         $collection->getSelect()->joinLeft(
-            array('acl' => $collection->getTable('api2/acl_user')),
+            ['acl' => $collection->getTable('api2/acl_user')],
             'acl.admin_id = main_table.user_id',
-            'role_id'
+            'role_id',
         );
         if ($this->getRole() && $this->getRole()->getId()) {
             $collection->addFilter('acl.role_id', $this->getRole()->getId());
         }
 
         $this->setCollection($collection);
-        parent::_prepareCollection();
-        return $this;
+        return parent::_prepareCollection();
     }
 
     /**
-     * Prepare columns
-     *
-     * @return Mage_Api2_Block_Adminhtml_Roles_Tab_Users
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('filter_in_role_users', array(
+        $this->addColumn('filter_in_role_users', [
             'header_css_class' => 'a-center',
             'type'      => 'checkbox',
             'name'      => 'filter_in_role_users',
             'values'    => $this->getUsers(),
             'align'     => 'center',
-            'index'     => 'user_id'
-        ));
+            'index'     => 'user_id',
+        ]);
 
-        $this->addColumn('user_id', array(
+        $this->addColumn('user_id', [
             'header' => Mage::helper('api2')->__('ID'), 'index' => 'user_id', 'align' => 'right', 'width' => '50px',
-        ));
+        ]);
 
-        $this->addColumn('username', array(
-            'header' => Mage::helper('adminhtml')->__('User Name'), 'align' => 'left', 'index' => 'username'
-        ));
+        $this->addColumn('username', [
+            'header' => Mage::helper('adminhtml')->__('User Name'), 'align' => 'left', 'index' => 'username',
+        ]);
 
-        $this->addColumn('firstname', array(
-            'header' => Mage::helper('adminhtml')->__('First Name'), 'align' => 'left', 'index' => 'firstname'
-        ));
+        $this->addColumn('firstname', [
+            'header' => Mage::helper('adminhtml')->__('First Name'), 'align' => 'left', 'index' => 'firstname',
+        ]);
 
-        $this->addColumn('lastname', array(
-            'header' => Mage::helper('adminhtml')->__('Last Name'), 'align' => 'left', 'index' => 'lastname'
-        ));
+        $this->addColumn('lastname', [
+            'header' => Mage::helper('adminhtml')->__('Last Name'), 'align' => 'left', 'index' => 'lastname',
+        ]);
 
         return parent::_prepareColumns();
     }
 
     /**
-     * Get grid URL
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/usersGrid', array('_current' => true));
+        return $this->getUrl('*/*/usersGrid', ['_current' => true]);
     }
 
     /**
-     * Get row URL
-     *
+     * @inheritDoc
      * @param Mage_Api2_Model_Acl_Global_Role $row
-     * @return string|null
      */
+    #[Override]
     public function getRowUrl($row)
     {
-        return null;
+        return '';
     }
 
     /**
@@ -155,6 +131,7 @@ class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Wid
      * Whether tab is available
      *
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function canShowTab()
     {
@@ -162,9 +139,8 @@ class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Wid
     }
 
     /**
-     * Whether tab is hidden
-     *
-     * @return bool
+     * @inheritDoc
+     * @throws Mage_Core_Exception
      */
     public function isHidden()
     {
@@ -174,20 +150,24 @@ class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Wid
     /**
      * Render block only when not hidden
      *
-     * @return string
+     * @inheritDoc
+     * @throws Mage_Core_Exception
      */
-    public function _toHtml()
+    #[Override]
+    protected function _toHtml()
     {
         if (!$this->isHidden()) {
             return parent::_toHtml();
         }
+
         return '';
     }
 
     /**
-     * @param Mage_Adminhtml_Block_Widget_Grid_Column $column
-     * @return Mage_Api2_Block_Adminhtml_Roles_Tab_Users
+     * @param  Mage_Adminhtml_Block_Widget_Grid_Column $column
+     * @return $this
      */
+    #[Override]
     protected function _addColumnFilterToCollection($column)
     {
         if ($column->getId() == 'filter_in_role_users') {
@@ -197,43 +177,42 @@ class Mage_Api2_Block_Adminhtml_Roles_Tab_Users extends Mage_Adminhtml_Block_Wid
             }
 
             if ($column->getFilter()->getValue()) {
-                $this->getCollection()->addFieldToFilter('user_id', array('in' => $inRoleIds));
-            } else {
-                if($inRoleIds) {
-                    $this->getCollection()->addFieldToFilter('user_id', array('nin' => $inRoleIds));
-                }
+                $this->getCollection()->addFieldToFilter('user_id', ['in' => $inRoleIds]);
+            } elseif ($inRoleIds) {
+                $this->getCollection()->addFieldToFilter('user_id', ['nin' => $inRoleIds]);
             }
         } else {
             parent::_addColumnFilterToCollection($column);
         }
+
         return $this;
     }
 
     /**
      * Get users
      *
-     * @param bool $json
+     * @param  bool         $json
      * @return array|string
      */
     public function getUsers($json = false)
     {
-        $users = $this->getData('users');
+        $users = $this->getDataByKey('users');
 
         if ($json) {
-            if ($users === array()) {
+            if ($users === []) {
                 return '{}';
             }
-            $jsonUsers = array();
-            foreach($users as $usrId) {
+
+            $jsonUsers = [];
+            foreach ($users as $usrId) {
                 $jsonUsers[$usrId] = 0;
             }
-            /** @var $helper Mage_Core_Helper_Data */
+
+            /** @var Mage_Core_Helper_Data $helper */
             $helper = Mage::helper('core');
-            $result = $helper->jsonEncode((object) $jsonUsers);
-        } else {
-            $result = array_values($users);
+            return $helper->jsonEncode((object) $jsonUsers);
         }
 
-        return $result;
+        return array_values($users);
     }
 }

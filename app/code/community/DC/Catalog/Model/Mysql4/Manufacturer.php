@@ -17,7 +17,7 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Mysql4_Abstract
+class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
      * Initialize resource model
@@ -120,14 +120,33 @@ class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Mysql4_Abstra
     {
         $read = $this->_getReadAdapter();
         if ($read && !is_null($value)) {
+            // Use two LEFT JOINs on eav_attribute_option_value so that store-specific
+            // option labels are preferred but we fall back to store_id=0 when the
+            // translation store has no custom option label (the common case).
+            // The INNER JOINs on ao/a use main_table.attribute_option_id directly so
+            // they never fail even when the store-specific aov row is absent.
 			$select = $read->select()
 				->from(array('main_table' => $this->getMainTable()))
-				->joinLeft( array('aov' => $this->getTable('eav/attribute_option_value')), 'aov.option_id = main_table.attribute_option_id AND aov.store_id = main_table.attribute_value_store_id', array('value_id', 'value', 'store_id', 'option_id'))
-				->join(     array('ao'  => $this->getTable('eav/attribute_option')),       'ao.option_id = aov.option_id', array())
-				->join(     array('a'   => $this->getTable('eav/attribute')),              'a.attribute_id = ao.attribute_id', array('attribute_code', 'frontend_label'))
+				->joinLeft(
+                    array('aov_s' => $this->getTable('eav/attribute_option_value')),
+                    'aov_s.option_id = main_table.attribute_option_id AND aov_s.store_id = main_table.attribute_value_store_id',
+                    array()
+                )
+				->joinLeft(
+                    array('aov' => $this->getTable('eav/attribute_option_value')),
+                    'aov.option_id = main_table.attribute_option_id AND aov.store_id = 0',
+                    array(
+                        'value_id'  => new Zend_Db_Expr('COALESCE(aov_s.value_id,  aov.value_id)'),
+                        'value'     => new Zend_Db_Expr('COALESCE(aov_s.value,     aov.value)'),
+                        'store_id'  => new Zend_Db_Expr('COALESCE(aov_s.store_id,  aov.store_id)'),
+                        'option_id' => new Zend_Db_Expr('COALESCE(aov_s.option_id, aov.option_id)'),
+                    )
+                )
+				->join(     array('ao'  => $this->getTable('eav/attribute_option')),  'ao.option_id = main_table.attribute_option_id', array())
+				->join(     array('a'   => $this->getTable('eav/attribute')),         'a.attribute_id = ao.attribute_id', array('attribute_code', 'frontend_label'))
 
 				->where('main_table.attribute_page_id = ?', $value)
-            	->where('SUBSTRING(aov.value,1,1) != \'-\'')
+            	->where('SUBSTRING(COALESCE(aov_s.value, aov.value), 1, 1) != \'-\'')
 				;
 
             $data = $read->fetchRow($select);
@@ -138,6 +157,7 @@ class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Mysql4_Abstra
         }
 
         $this->_afterLoad($object);
+        $this->_mergeDefaultValues($object);
 
         return $this;
 
@@ -176,6 +196,7 @@ class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Mysql4_Abstra
         }
 
         $this->_afterLoad($object);
+        $this->_mergeDefaultValues($object);
 
         return $this;
     }
@@ -307,6 +328,64 @@ class DC_Catalog_Model_Mysql4_Manufacturer extends Mage_Core_Model_Mysql4_Abstra
         }
 
         return false;
+    }
+
+    /**
+     * Fields that support per-store "Use Default Value" override.
+     */
+    public static $translatableFields = array('description', 'page_title', 'meta_keywords', 'meta_description', 'description_in_page');
+
+    /**
+     * For store-specific pages, replace any field that has its use_default_* flag set
+     * with the value from the default store (attribute_value_store_id = 0) page.
+     *
+     * @param Mage_Core_Model_Abstract $object
+     * @return $this
+     */
+    protected function _mergeDefaultValues(Mage_Core_Model_Abstract $object)
+    {
+        $storeId = $object->getAttributeValueStoreId();
+        if (!$storeId) {
+            return $this;
+        }
+
+        $needsMerge = false;
+        foreach (self::$translatableFields as $field) {
+            if ($object->getData('use_default_' . $field)) {
+                $needsMerge = true;
+                break;
+            }
+        }
+
+        if (!$needsMerge) {
+            return $this;
+        }
+
+        $attrCode = $object->getAttributeCode();
+        $optionId = $object->getAttributeOptionId();
+
+        if (!$attrCode || !$optionId) {
+            return $this;
+        }
+
+        $read   = $this->_getReadAdapter();
+        $select = $read->select()
+            ->from($this->getMainTable(), self::$translatableFields)
+            ->where('attribute_code = ?', $attrCode)
+            ->where('attribute_option_id = ?', $optionId)
+            ->where('attribute_value_store_id = 0')
+            ->limit(1);
+
+        $defaultData = $read->fetchRow($select);
+        if ($defaultData) {
+            foreach (self::$translatableFields as $field) {
+                if ($object->getData('use_default_' . $field)) {
+                    $object->setData($field, $defaultData[$field]);
+                }
+            }
+        }
+
+        return $this;
     }
 
 }

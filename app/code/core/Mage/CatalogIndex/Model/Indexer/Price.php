@@ -1,71 +1,58 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogIndex
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogIndex
+ */
 
 /**
  * Catalog indexer price processor
  *
- * @method Mage_CatalogIndex_Model_Resource_Indexer_Price _getResource()
- * @method Mage_CatalogIndex_Model_Resource_Indexer_Price getResource()
- * @method Mage_CatalogIndex_Model_Indexer_Price setEntityId(int $value)
- * @method int getCustomerGroupId()
- * @method Mage_CatalogIndex_Model_Indexer_Price setCustomerGroupId(int $value)
- * @method int getWebsiteId()
- * @method Mage_CatalogIndex_Model_Indexer_Price setWebsiteId(int $value)
- * @method int getTaxClassId()
- * @method Mage_CatalogIndex_Model_Indexer_Price setTaxClassId(int $value)
- * @method float getPrice()
- * @method Mage_CatalogIndex_Model_Indexer_Price setPrice(float $value)
- * @method float getFinalPrice()
- * @method Mage_CatalogIndex_Model_Indexer_Price setFinalPrice(float $value)
- * @method float getMinPrice()
- * @method Mage_CatalogIndex_Model_Indexer_Price setMinPrice(float $value)
- * @method float getMaxPrice()
- * @method Mage_CatalogIndex_Model_Indexer_Price setMaxPrice(float $value)
- * @method float getTierPrice()
- * @method Mage_CatalogIndex_Model_Indexer_Price setTierPrice(float $value)
+ * @package    Mage_CatalogIndex
  *
- * @category    Mage
- * @package     Mage_CatalogIndex
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_CatalogIndex_Model_Resource_Indexer_Price _getResource()
+ * @method int                                            getCustomerGroupId()
+ * @method float                                          getFinalPrice()
+ * @method float                                          getMaxPrice()
+ * @method float                                          getMinPrice()
+ * @method float                                          getPrice()
+ * @method Mage_CatalogIndex_Model_Resource_Indexer_Price getResource()
+ * @method int                                            getTaxClassId()
+ * @method float                                          getTierPrice()
+ * @method int                                            getWebsiteId()
+ * @method $this                                          setCustomerGroupId(int $value)
+ * @method $this                                          setEntityId(int $value)
+ * @method $this                                          setFinalPrice(float $value)
+ * @method $this                                          setMaxPrice(float $value)
+ * @method $this                                          setMinPrice(float $value)
+ * @method $this                                          setPrice(float $value)
+ * @method $this                                          setTaxClassId(int $value)
+ * @method $this                                          setTierPrice(float $value)
+ * @method $this                                          setWebsiteId(int $value)
  */
 class Mage_CatalogIndex_Model_Indexer_Price extends Mage_CatalogIndex_Model_Indexer_Abstract
 {
-    protected $_customerGroups = array();
+    protected $_customerGroups = [];
+
     protected $_processChildrenForConfigurable = false;
 
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('catalogindex/indexer_price');
         $this->_customerGroups = Mage::getModel('customer/group')->getCollection();
     }
 
-    public function createIndexData(Mage_Catalog_Model_Product $object, Mage_Eav_Model_Entity_Attribute_Abstract $attribute = null)
+    /**
+     * @return array
+     */
+    public function createIndexData(Mage_Catalog_Model_Product $object, ?Mage_Eav_Model_Entity_Attribute_Abstract $attribute = null)
     {
-        $data = array();
+        $data = [];
 
         $data['store_id'] = $attribute->getStoreId();
         $data['entity_id'] = $object->getId();
@@ -73,7 +60,7 @@ class Mage_CatalogIndex_Model_Indexer_Price extends Mage_CatalogIndex_Model_Inde
         $data['value'] = $object->getData($attribute->getAttributeCode());
 
         if ($attribute->getAttributeCode() == 'price') {
-            $result = array();
+            $result = [];
             foreach ($this->_customerGroups as $group) {
                 $object->setCustomerGroupId($group->getId());
                 $finalPrice = $object->getFinalPrice();
@@ -82,30 +69,36 @@ class Mage_CatalogIndex_Model_Indexer_Price extends Mage_CatalogIndex_Model_Inde
                 $row['value'] = $finalPrice;
                 $result[] = $row;
             }
+
             return $result;
         }
 
         return $data;
     }
 
+    /**
+     * @return bool
+     */
+    #[Override]
     protected function _isAttributeIndexable(Mage_Eav_Model_Entity_Attribute_Abstract $attribute)
     {
         if ($attribute->getFrontendInput() != 'price') {
             return false;
         }
+
         if ($attribute->getAttributeCode() == 'tier_price') {
             return false;
         }
-        if ($attribute->getAttributeCode() == 'minimal_price') {
-            return false;
-        }
 
-        return true;
+        return $attribute->getAttributeCode() != 'minimal_price';
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _getIndexableAttributeConditions()
     {
-        $conditions = "frontend_input = 'price' AND attribute_code <> 'price'";
-        return $conditions;
+        return "frontend_input = 'price' AND attribute_code <> 'price'";
     }
 }

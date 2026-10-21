@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Magento
- * @package     Magento_Profiler
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Magento_Profiler
  */
 
 /**
@@ -42,7 +25,7 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
     /**
      * Start output buffering
      *
-     * @param string|null $filter Pattern to filter timers by their identifiers (SQL LIKE syntax)
+     * @param null|string $filter Pattern to filter timers by their identifiers (SQL LIKE syntax)
      */
     public function __construct($filter = null)
     {
@@ -52,8 +35,6 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
 
     /**
      * Request setter
-     *
-     * @param Zend_Controller_Request_Abstract $request
      */
     public function setRequest(Zend_Controller_Request_Abstract $request)
     {
@@ -62,8 +43,6 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
 
     /**
      * Response setter
-     *
-     * @param Zend_Controller_Response_Abstract $response
      */
     public function setResponse(Zend_Controller_Response_Abstract $response)
     {
@@ -72,6 +51,7 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
 
     /**
      * Display profiling results and flush output buffer
+     * @throws Zend_Wildfire_Exception
      */
     public function display()
     {
@@ -79,14 +59,15 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
         $firebugMessage->setHeader(array_keys($this->_getColumns()));
 
         foreach ($this->_getTimers() as $timerId) {
-            $row = array();
+            $row = [];
             foreach ($this->_getColumns() as $columnId) {
                 $row[] = $this->_renderColumnValue($timerId, $columnId);
             }
+
             $firebugMessage->addRow($row);
         }
 
-        Zend_Wildfire_Plugin_FirePhp::getInstance()->send($firebugMessage);
+        Zend_Wildfire_Plugin_FirePhp::getInstance()::send($firebugMessage);
 
         // setup the wildfire channel
         $firebugChannel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
@@ -105,9 +86,10 @@ class Magento_Profiler_Output_Firebug extends Magento_Profiler_OutputAbstract
     /**
      * Render timer id column value
      *
-     * @param string $timerId
+     * @param  string $timerId
      * @return string
      */
+    #[Override]
     protected function _renderTimerId($timerId)
     {
         $nestingSep = preg_quote(Magento_Profiler::NESTING_SEPARATOR, '/');

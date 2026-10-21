@@ -18,6 +18,11 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
     const GRID_EXCEPTION_HANDLING_MODE_ALLOW = 'allow';
     const GRID_EXCEPTION_HANDLING_MODE_EXCLUDE = 'exclude';
     
+    const DEFAULT_SEARCHABLE_DROPDOWNS_THRESHOLD = 10;
+    
+    const SEARCHABLE_DROPDOWNS_STYLE_COMBO  = 'combo';
+    const SEARCHABLE_DROPDOWNS_STYLE_LEGACY = 'legacy';
+    
     /**
      * Configuration paths
      */
@@ -28,6 +33,11 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
     const CONFIG_PATH_EXCEPTIONS_HANDLING_MODE = 'customgrid/global/exceptions_handling_mode';
     const CONFIG_PATH_STORE_PARAMETER = 'customgrid/global/store_parameter';
     const CONFIG_PATH_SORT_WITH_DND   = 'customgrid/global/sort_with_dnd';
+    const CONFIG_PATH_SEARCHABLE_DROPDOWNS = 'customgrid/global/searchable_dropdowns';
+    const CONFIG_PATH_SEARCHABLE_DROPDOWNS_THRESHOLD = 'customgrid/global/searchable_dropdowns_threshold';
+    const CONFIG_PATH_SEARCHABLE_DROPDOWNS_STYLE = 'customgrid/global/searchable_dropdowns_style';
+    const CONFIG_PATH_SEARCHABLE_DROPDOWNS_FORMS = 'customgrid/global/searchable_dropdowns_forms';
+    const CONFIG_PATH_SEARCHABLE_DROPDOWNS_ADD_OPTIONS = 'customgrid/global/searchable_dropdowns_add_options';
     
     // Customization parameters
     const CONFIG_PATH_DISPLAY_SYSTEM_PART        = 'customgrid/customization_params/display_system_part';
@@ -58,10 +68,18 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
     protected $_configCache = array();
     
     /**
-     * Return base helper
+     * Return the base helper
      *
      * @return BL_CustomGrid_Helper_Data
      */
+    
+    /**
+     * Product attributes that accept new options, kept for the request
+     * 
+     * @var array|null
+     */
+    protected $_addableProductAttributes = null;
+
     protected function _getHelper()
     {
         return Mage::helper('customgrid');
@@ -119,6 +137,8 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
      * Match the given block type and its rewriting class name against the given exception
      *
      * @param array $exception Parsed exception
+     * @param string $blockType Grid block type
+     * @param string $rewritingClassName Rewriting class name
      * @return bool
      */
     protected function _matchGridBlockAgainstException($exception, $blockType, $rewritingClassName)
@@ -207,6 +227,63 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
     public function getSortWithDnd()
     {
         return Mage::getStoreConfigFlag(self::CONFIG_PATH_SORT_WITH_DND);
+    }
+    
+    /**
+     * Getter for the config value "General" > "Add A Search Field To Long Dropdowns"
+     *
+     * @return bool
+     */
+    public function getSearchableDropdowns()
+    {
+        return Mage::getStoreConfigFlag(self::CONFIG_PATH_SEARCHABLE_DROPDOWNS);
+    }
+    
+    /**
+     * Getter for the config value "General" > "Minimum Number Of Options For Searchable Dropdowns"
+     *
+     * @return int
+     */
+    public function getSearchableDropdownsThreshold()
+    {
+        $threshold = (int) Mage::getStoreConfig(self::CONFIG_PATH_SEARCHABLE_DROPDOWNS_THRESHOLD);
+        return ($threshold > 0 ? $threshold : self::DEFAULT_SEARCHABLE_DROPDOWNS_THRESHOLD);
+    }
+    
+    /**
+     * Getter for the config value "General" > "Searchable Dropdowns Style"
+     *
+     * @return string
+     */
+    public function getSearchableDropdownsStyle()
+    {
+        $style = (string) Mage::getStoreConfig(self::CONFIG_PATH_SEARCHABLE_DROPDOWNS_STYLE);
+        
+        return ($style === self::SEARCHABLE_DROPDOWNS_STYLE_LEGACY)
+            ? self::SEARCHABLE_DROPDOWNS_STYLE_LEGACY
+            : self::SEARCHABLE_DROPDOWNS_STYLE_COMBO;
+    }
+    
+    /**
+     * Getter for the config value "General" > "Searchable Dropdowns In Admin Forms"
+     *
+     * @return string[] CSS selectors, one per line in the config field
+     */
+    public function getSearchableDropdownsFormSelectors()
+    {
+        $value = (string) Mage::getStoreConfig(self::CONFIG_PATH_SEARCHABLE_DROPDOWNS_FORMS);
+        $selectors = array();
+        
+        foreach (preg_split('/[\r\n]+/', $value) as $selector) {
+            $selector = trim($selector);
+            
+            // Same convention as the rest of the module's selector fields
+            if (($selector !== '') && (strpos($selector, '//') !== 0)) {
+                $selectors[] = $selector;
+            }
+        }
+        
+        return $selectors;
     }
     
     /**
@@ -329,7 +406,7 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
      * @param string $type Config field key (can be : page, limit, sort, dir, filter)
      * @return string
      */
-    public function geDefaultParameterBehaviour($type)
+    public function geDefaultParamBehaviour($type)
     {
         return Mage::getStoreConfig(sprintf(self::CONFIG_PATH_DEFAULT_PARAMETER_BEHAVIOUR_BASE_KEY, $type));
     }
@@ -401,5 +478,69 @@ class BL_CustomGrid_Helper_Config extends Mage_Core_Helper_Abstract
     public function getCustomColumnsUnverifiedCollectionBehaviour()
     {
         return Mage::getStoreConfig(self::CONFIG_PATH_CC_UNVERIFIED_COLLECTION_BEHAVIOUR);
+    }
+    
+    /**
+     * Getter for the config value "General" > "Allow Adding Values From The Product Form"
+     *
+     * @return bool
+     */
+    public function getSearchableDropdownsAddOptions()
+    {
+        return Mage::getStoreConfigFlag(self::CONFIG_PATH_SEARCHABLE_DROPDOWNS_ADD_OPTIONS);
+    }
+    
+    /**
+     * Return the product attributes whose dropdowns may be given new options
+     * from the product form, as attribute code => attribute ID.
+     *
+     * Only the attributes whose options live in eav_attribute_option qualify.
+     * An attribute backed by a source model - a status, a country list, a tax
+     * class - builds its options in PHP, and there is nothing to add a row to.
+     *
+     * @return array
+     */
+    public function getProductAttributesAcceptingNewOptions()
+    {
+        if (!is_null($this->_addableProductAttributes)) {
+            return $this->_addableProductAttributes;
+        }
+        
+        $cacheKey = 'blcg_addable_product_attributes';
+        
+        if ($cached = Mage::app()->loadCache($cacheKey)) {
+            $attributes = @unserialize($cached);
+            
+            if (is_array($attributes)) {
+                return $this->_addableProductAttributes = $attributes;
+            }
+        }
+        
+        $attributes = array();
+        
+        /** @var $collection Mage_Catalog_Model_Resource_Product_Attribute_Collection */
+        $collection = Mage::getResourceModel('catalog/product_attribute_collection');
+        
+        $collection->addFieldToFilter('frontend_input', array('in' => array('select', 'multiselect')))
+            ->addFieldToFilter(
+                'source_model',
+                array(
+                    array('null' => true),
+                    array('eq' => ''),
+                    array('eq' => 'eav/entity_attribute_source_table'),
+                )
+            );
+        
+        foreach ($collection as $attribute) {
+            $attributes[$attribute->getAttributeCode()] = (int) $attribute->getId();
+        }
+        
+        Mage::app()->saveCache(
+            serialize($attributes),
+            $cacheKey,
+            array(Mage_Eav_Model_Entity_Attribute::CACHE_TAG, 'eav')
+        );
+        
+        return $this->_addableProductAttributes = $attributes;
     }
 }

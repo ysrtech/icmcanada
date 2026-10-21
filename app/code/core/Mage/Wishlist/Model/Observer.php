@@ -1,61 +1,46 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Wishlist
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Wishlist
  */
 
 /**
  * Shopping cart operation observer
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Wishlist
  */
 class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
 {
     /**
      * Get customer wishlist model instance
      *
-     * @param   int $customerId
-     * @return  Mage_Wishlist_Model_Wishlist || false
+     * @param  int                                $customerId
+     * @return false|Mage_Wishlist_Model_Wishlist
      */
     protected function _getWishlist($customerId)
     {
         if (!$customerId) {
             return false;
         }
+
         return Mage::getModel('wishlist/wishlist')->loadByCustomer($customerId, true);
     }
 
     /**
      * Check move quote item to wishlist request
      *
-     * @param   Varien_Event_Observer $observer
-     * @return  Mage_Wishlist_Model_Observer
+     * @param  Varien_Event_Observer $observer
+     * @return $this
+     * @throws Throwable
      */
     public function processCartUpdateBefore($observer)
     {
         $cart = $observer->getEvent()->getCart();
         $data = $observer->getEvent()->getInfo();
-        $productIds = array();
+        $productIds = [];
 
         $wishlist = $this->_getWishlist($cart->getQuote()->getCustomerId());
         if (!$wishlist) {
@@ -66,31 +51,36 @@ class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
          * Collect product ids marked for move to wishlist
          */
         foreach ($data as $itemId => $itemInfo) {
-            if (!empty($itemInfo['wishlist'])) {
-                if ($item = $cart->getQuote()->getItemById($itemId)) {
-                    $productId  = $item->getProductId();
-                    $buyRequest = $item->getBuyRequest();
-
-                    if (isset($itemInfo['qty']) && is_numeric($itemInfo['qty'])) {
-                        $buyRequest->setQty($itemInfo['qty']);
-                    }
-                    $wishlist->addNewItem($productId, $buyRequest);
-
-                    $productIds[] = $productId;
-                    $cart->getQuote()->removeItem($itemId);
+            if (!empty($itemInfo['wishlist']) && $item = $cart->getQuote()->getItemById($itemId)) {
+                $productId  = $item->getProductId();
+                $buyRequest = $item->getBuyRequest();
+                if (isset($itemInfo['qty']) && is_numeric($itemInfo['qty'])) {
+                    $buyRequest->setQty($itemInfo['qty']);
                 }
+
+                $wishlist->addNewItem($productId, $buyRequest);
+                $productIds[] = $productId;
+                $cart->getQuote()->removeItem($itemId);
             }
         }
 
-        if (!empty($productIds)) {
+        if ($productIds !== []) {
             $wishlist->save();
             Mage::helper('wishlist')->calculate();
         }
+
         return $this;
     }
 
+    /**
+     * @param  Varien_Event_Observer           $observer
+     * @return $this
+     * @throws Mage_Core_Model_Store_Exception
+     * @throws Zend_Cache_Exception
+     */
     public function processAddToCart($observer)
     {
+        /** @var Mage_Core_Controller_Request_Http $request */
         $request = $observer->getEvent()->getRequest();
         $sharedWishlist = Mage::getSingleton('checkout/session')->getSharedWishlist();
         $messages = Mage::getSingleton('checkout/session')->getWishlistPendingMessages();
@@ -99,33 +89,34 @@ class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
         $singleWishlistId = Mage::getSingleton('checkout/session')->getSingleWishlistId();
 
         if ($singleWishlistId) {
-            $wishlistIds = array($singleWishlistId);
+            $wishlistIds = [$singleWishlistId];
         }
 
-        if (empty($wishlistIds) && $request->getParam('wishlist_next')){
+        if (!empty($wishlistIds) && $request->getParam('wishlist_next')) {
             $wishlistId = array_shift($wishlistIds);
 
             if (Mage::getSingleton('customer/session')->isLoggedIn()) {
                 $wishlist = Mage::getModel('wishlist/wishlist')
                         ->loadByCustomer(Mage::getSingleton('customer/session')->getCustomer(), true);
-            } else if ($sharedWishlist) {
+            } elseif ($sharedWishlist) {
                 $wishlist = Mage::getModel('wishlist/wishlist')->loadByCode($sharedWishlist);
             } else {
-                return;
+                return $this;
             }
-
 
             $wishlist->getItemCollection()->load();
 
-            foreach($wishlist->getItemCollection() as $wishlistItem){
-                if ($wishlistItem->getId() == $wishlistId)
+            foreach ($wishlist->getItemCollection() as $wishlistItem) {
+                if ($wishlistItem->getId() == $wishlistId) {
                     $wishlistItem->delete();
+                }
             }
+
             Mage::getSingleton('checkout/session')->setWishlistIds($wishlistIds);
             Mage::getSingleton('checkout/session')->setSingleWishlistId(null);
         }
 
-        if ($request->getParam('wishlist_next') && empty($urls)) {
+        if ($request->getParam('wishlist_next') && !empty($urls)) {
             $url = array_shift($urls);
             $message = array_shift($messages);
 
@@ -137,13 +128,14 @@ class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
             $observer->getEvent()->getResponse()->setRedirect($url);
             Mage::getSingleton('checkout/session')->setNoCartRedirect(true);
         }
+
+        return $this;
     }
 
     /**
      * Customer login processing
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_Wishlist_Model_Observer
+     * @return $this
      */
     public function customerLogin(Varien_Event_Observer $observer)
     {
@@ -155,8 +147,7 @@ class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
     /**
      * Customer logout processing
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_Wishlist_Model_Observer
+     * @return $this
      */
     public function customerLogout(Varien_Event_Observer $observer)
     {
@@ -164,5 +155,4 @@ class Mage_Wishlist_Model_Observer extends Mage_Core_Model_Abstract
 
         return $this;
     }
-
 }

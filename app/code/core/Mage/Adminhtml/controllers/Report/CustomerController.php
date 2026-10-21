@@ -1,44 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
- *
  * Customer reports admin controller
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * @return $this
+     */
     public function _initAction()
     {
         $act = $this->getRequest()->getActionName();
-        if(!$act)
+        if (!$act) {
             $act = 'default';
+        }
 
         $this->loadLayout()
             ->_addBreadcrumb(Mage::helper('reports')->__('Reports'), Mage::helper('reports')->__('Reports'))
@@ -46,6 +30,9 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
         return $this;
     }
 
+    /**
+     * @return void
+     */
     public function accountsAction()
     {
         $this->_title($this->__('Reports'))
@@ -53,7 +40,7 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
              ->_title($this->__('New Accounts'));
 
         $this->_initAction()
-            ->_setActiveMenu('report/customer/accounts')
+            ->_setActiveMenu('report/customers/accounts')
             ->_addBreadcrumb(Mage::helper('adminhtml')->__('New Accounts'), Mage::helper('adminhtml')->__('New Accounts'))
             ->_addContent($this->getLayout()->createBlock('adminhtml/report_customer_accounts'))
             ->renderLayout();
@@ -61,6 +48,7 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
 
     /**
      * Export new accounts report grid to CSV format
+     * @return void
      */
     public function exportAccountsCsvAction()
     {
@@ -73,6 +61,7 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
 
     /**
      * Export new accounts report grid to Excel XML format
+     * @return void
      */
     public function exportAccountsExcelAction()
     {
@@ -83,6 +72,9 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function ordersAction()
     {
         $this->_title($this->__('Reports'))
@@ -90,15 +82,18 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
              ->_title($this->__('Customers by Number of Orders'));
 
         $this->_initAction()
-            ->_setActiveMenu('report/customer/orders')
-            ->_addBreadcrumb(Mage::helper('reports')->__('Customers by Number of Orders'),
-                Mage::helper('reports')->__('Customers by Number of Orders'))
+            ->_setActiveMenu('report/customers/orders')
+            ->_addBreadcrumb(
+                Mage::helper('reports')->__('Customers by Number of Orders'),
+                Mage::helper('reports')->__('Customers by Number of Orders'),
+            )
             ->_addContent($this->getLayout()->createBlock('adminhtml/report_customer_orders'))
             ->renderLayout();
     }
 
     /**
      * Export customers most ordered report to CSV format
+     * @return void
      */
     public function exportOrdersCsvAction()
     {
@@ -111,6 +106,7 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
 
     /**
      * Export customers most ordered report to Excel XML format
+     * @return void
      */
     public function exportOrdersExcelAction()
     {
@@ -121,6 +117,9 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function totalsAction()
     {
         $this->_title($this->__('Reports'))
@@ -128,15 +127,18 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
              ->_title($this->__('Customers by Orders Total'));
 
         $this->_initAction()
-            ->_setActiveMenu('report/customer/totals')
-            ->_addBreadcrumb(Mage::helper('reports')->__('Customers by Orders Total'),
-                Mage::helper('reports')->__('Customers by Orders Total'))
+            ->_setActiveMenu('report/customers/totals')
+            ->_addBreadcrumb(
+                Mage::helper('reports')->__('Customers by Orders Total'),
+                Mage::helper('reports')->__('Customers by Orders Total'),
+            )
             ->_addContent($this->getLayout()->createBlock('adminhtml/report_customer_totals'))
             ->renderLayout();
     }
 
     /**
      * Export customers biggest totals report to CSV format
+     * @return void
      */
     public function exportTotalsCsvAction()
     {
@@ -149,6 +151,7 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
 
     /**
      * Export customers biggest totals report to Excel XML format
+     * @return void
      */
     public function exportTotalsExcelAction()
     {
@@ -159,22 +162,20 @@ class Mage_Adminhtml_Report_CustomerController extends Mage_Adminhtml_Controller
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
-    protected function _isAllowed()
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    protected function _isAllowed(): bool
     {
         $action = strtolower($this->getRequest()->getActionName());
-        switch ($action) {
-            case 'accounts':
-                return Mage::getSingleton('admin/session')->isAllowed('report/customers/accounts');
-                break;
-            case 'orders':
-                return Mage::getSingleton('admin/session')->isAllowed('report/customers/orders');
-                break;
-            case 'totals':
-                return Mage::getSingleton('admin/session')->isAllowed('report/customers/totals');
-                break;
-            default:
-                return Mage::getSingleton('admin/session')->isAllowed('report/customers');
-                break;
-        }
+        $aclPath =  match ($action) {
+            'accounts' => 'report/customers/accounts',
+            'orders' => 'report/customers/orders',
+            'totals' => 'report/customers/totals',
+            default => 'report/customers',
+        };
+
+        return Mage::getSingleton('admin/session')->isAllowed($aclPath);
     }
 }

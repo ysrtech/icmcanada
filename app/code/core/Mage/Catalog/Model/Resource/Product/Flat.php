@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Product Flat resource model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -46,16 +26,15 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
      *
      * @var array
      */
-    protected $_isBuilt                  = array();
+    protected $_isBuilt                  = [];
 
     /**
-     * Init connection and resource table
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
         $this->_init('catalog/product_flat', 'entity_id');
-        $this->_storeId = (int)Mage::app()->getStore()->getId();
+        $this->_storeId = (int) Mage::app()->getStore()->getId();
     }
 
     /**
@@ -71,23 +50,20 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
     /**
      * Set store for resource model
      *
-     * @param mixed $store
-     * @return Mage_Catalog_Model_Resource_Product_Flat
+     * @param  mixed $store
+     * @return $this
      */
     public function setStoreId($store)
     {
-        if (is_int($store)) {
-            $this->_storeId = $store;
-        } else {
-            $this->_storeId = (int)Mage::app()->getStore($store)->getId();
-        }
+        $this->_storeId = is_int($store) ? $store : (int) Mage::app()->getStore($store)->getId();
+
         return $this;
     }
 
     /**
      * Retrieve Flat Table name
      *
-     * @param mixed $store
+     * @param  mixed  $store
      * @return string
      */
     public function getFlatTableName($store = null)
@@ -95,7 +71,8 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
         if ($store === null) {
             $store = $this->getStoreId();
         }
-        return $this->getTable(array('catalog/product_flat', $store));
+
+        return $this->getTable(['catalog/product_flat', $store]);
     }
 
     /**
@@ -113,16 +90,17 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
     /**
      * Retrieve attribute columns for collection select
      *
-     * @param string $attributeCode
-     * @return array|null
+     * @param  string     $attributeCode
+     * @return null|array
      */
     public function getAttributeForSelect($attributeCode)
     {
-        $describe = $this->_getWriteAdapter()->describeTable($this->getFlatTableName());
+        $describe = $this->_getReadAdapter()->describeTable($this->getFlatTableName());
         if (!isset($describe[$attributeCode])) {
             return null;
         }
-        $columns = array($attributeCode => $attributeCode);
+
+        $columns = [$attributeCode => $attributeCode];
 
         $attributeIndex = sprintf('%s_value', $attributeCode);
         if (isset($describe[$attributeIndex])) {
@@ -135,19 +113,21 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
     /**
      * Retrieve Attribute Sort column name
      *
-     * @param string $attributeCode
-     * @return string
+     * @param  string      $attributeCode
+     * @return null|string
      */
     public function getAttributeSortColumn($attributeCode)
     {
-        $describe = $this->_getWriteAdapter()->describeTable($this->getFlatTableName());
+        $describe = $this->_getReadAdapter()->describeTable($this->getFlatTableName());
         if (!isset($describe[$attributeCode])) {
             return null;
         }
+
         $attributeIndex = sprintf('%s_value', $attributeCode);
         if (isset($describe[$attributeIndex])) {
             return $attributeIndex;
         }
+
         return $attributeCode;
     }
 
@@ -158,15 +138,15 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
      */
     public function getAllTableColumns()
     {
-        $describe = $this->_getWriteAdapter()->describeTable($this->getFlatTableName());
+        $describe = $this->_getReadAdapter()->describeTable($this->getFlatTableName());
         return array_keys($describe);
     }
 
     /**
      * Check whether the attribute is a real field in entity table
-     * Rewrited for EAV Collection
+     * Rewritten for EAV Collection
      *
-     * @param integer|string|Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  int|Mage_Eav_Model_Entity_Attribute_Abstract|string $attribute
      * @return bool
      */
     public function isAttributeStatic($attribute)
@@ -193,7 +173,7 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
 
     /**
      * Retrieve entity id field name in entity table
-     * Rewrited for EAV collection compatible
+     * Rewritten for EAV collection compatible
      *
      * @return string
      */
@@ -206,7 +186,7 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
      * Retrieve attribute instance
      * Special for non static flat table
      *
-     * @param mixed $attribute
+     * @param  mixed                                    $attribute
      * @return Mage_Eav_Model_Entity_Attribute_Abstract
      */
     public function getAttribute($attribute)
@@ -220,6 +200,7 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
      *
      * @return string
      */
+    #[Override]
     public function getMainTable()
     {
         return $this->getFlatTableName($this->getStoreId());
@@ -228,7 +209,7 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
     /**
      * Check if Catalog Product Flat Data has been initialized
      *
-     * @param bool|int|\Mage_Core_Model_Store|null $storeView Store(id) for which the value is checked
+     * @param  null|bool|int|Mage_Core_Model_Store $storeView Store(id) for which the value is checked
      * @return bool
      */
     public function isBuilt($storeView = null)
@@ -246,11 +227,12 @@ class Mage_Catalog_Model_Resource_Product_Flat extends Mage_Core_Model_Resource_
                 ->from($this->getFlatTableName($storeId), 'entity_id')
                 ->limit(1);
             try {
-                $this->_isBuilt[$storeId] = (bool)$this->_getReadAdapter()->fetchOne($select);
-            } catch (Exception $e) {
+                $this->_isBuilt[$storeId] = (bool) $this->_getReadAdapter()->fetchOne($select);
+            } catch (Exception) {
                 $this->_isBuilt[$storeId] = false;
             }
         }
+
         return $this->_isBuilt[$storeId];
     }
 }

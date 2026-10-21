@@ -1,60 +1,48 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ConfigurableSwatches
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ConfigurableSwatches
  */
 
 /**
  * Class Mage_ConfigurableSwatches_Helper_Productlist
+ *
+ * @package    Mage_ConfigurableSwatches
  */
 class Mage_ConfigurableSwatches_Helper_Productlist extends Mage_Core_Helper_Abstract
 {
+    protected $_moduleName = 'Mage_ConfigurableSwatches';
+
     /**
      * ID of attribute to be used for swatches on product listing
      *
-     * @var string
+     * @var null|false|string
      */
     protected $_swatchAttributeId = null;
 
     /**
      * Attribute model to be used for swatches on product listing
      *
-     * @var Mage_Catalog_Model_Product_Type_Configurable_Attribute
+     * @var null|false|Mage_Catalog_Model_Product_Type_Configurable_Attribute
      */
     protected $_swatchAttribute = null;
 
     /**
      * The current value for the swatch attribute that the product list is being filtered by.
      *
-     * @var int
+     * @var null|false|int
      */
     protected $_swatchAttributeFilteredValue = null;
 
     /**
      * Convert a catalog layer block with the right templates
      *
-     * @param string $blockName
+     * @param  string              $blockName
      * @return void
+     * @throws Mage_Core_Exception
      */
     public function convertLayerBlock($blockName)
     {
@@ -62,7 +50,6 @@ class Mage_ConfigurableSwatches_Helper_Productlist extends Mage_Core_Helper_Abst
             && ($block = Mage::app()->getLayout()->getBlock($blockName))
             && $block instanceof Mage_Catalog_Block_Layer_View
         ) {
-
             // First, set a new template for the attribute that should show as a swatch
             if ($layer = $block->getLayer()) {
                 foreach ($layer->getFilterableAttributes() as $attribute) {
@@ -92,16 +79,18 @@ class Mage_ConfigurableSwatches_Helper_Productlist extends Mage_Core_Helper_Abst
     public function getSwatchAttributeId()
     {
         if (is_null($this->_swatchAttributeId)) {
-            $this->_swatchAttributeId =
-                Mage::getStoreConfig(Mage_ConfigurableSwatches_Helper_Data::CONFIG_PATH_LIST_SWATCH_ATTRIBUTE);
+            $this->_swatchAttributeId
+                = Mage::getStoreConfig(Mage_ConfigurableSwatches_Helper_Data::CONFIG_PATH_LIST_SWATCH_ATTRIBUTE);
         }
+
         return $this->_swatchAttributeId;
     }
 
     /**
      * Get model of attribute that should be used for swatches on product listing
      *
-     * @return Mage_Eav_Model_Attribute
+     * @return false|Mage_Catalog_Model_Product_Type_Configurable_Attribute|Mage_Eav_Model_Entity_Attribute_Abstract
+     * @throws Mage_Core_Exception
      */
     public function getSwatchAttribute()
     {
@@ -109,13 +98,14 @@ class Mage_ConfigurableSwatches_Helper_Productlist extends Mage_Core_Helper_Abst
             $this->_swatchAttribute = Mage::getSingleton('eav/config')
                 ->getAttribute('catalog_product', $this->getSwatchAttributeId());
         }
+
         return $this->_swatchAttribute;
     }
 
     /**
      * If the product list is currently filtered by the swatch attribute, get the selected value.
      *
-     * @return int | false
+     * @return false|int
      */
     protected function _getSwatchAttributeFilteredValue()
     {
@@ -131,14 +121,15 @@ class Mage_ConfigurableSwatches_Helper_Productlist extends Mage_Core_Helper_Abst
                 }
             }
         }
+
         return $this->_swatchAttributeFilteredValue;
     }
 
     /**
      * See if the swatch matches a filter currently applied to the product list.
      *
-     * @param int $optionId
-     * @return boolean
+     * @param  int  $optionId
+     * @return bool
      */
     public function swatchMatchesFilter($optionId)
     {

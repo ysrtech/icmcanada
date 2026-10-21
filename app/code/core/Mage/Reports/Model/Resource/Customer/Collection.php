@@ -1,50 +1,30 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Customers Report collection
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Model_Resource_Customer_Collection
 {
     /**
      * Add order statistics flag
      *
-     * @var boolean
+     * @var bool
      */
     protected $_addOrderStatistics           = false;
 
     /**
      * Add order statistics is filter flag
      *
-     * @var boolean
+     * @var bool
      */
     protected $_addOrderStatisticsIsFilter   = false;
 
@@ -79,7 +59,7 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Add cart info to collection
      *
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @return $this
      */
     public function addCartInfo()
     {
@@ -95,15 +75,15 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
             } else {
                 $item->remove();
             }
-
         }
+
         return $this;
     }
 
     /**
      * Add customer name to results
      *
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @return $this
      */
     public function addCustomerName()
     {
@@ -114,22 +94,20 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Order for each customer
      *
-     * @param string $from
-     * @param string $to
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @param  string $dateFrom
+     * @param  string $dateTo
+     * @return $this
      */
-    public function joinOrders($from = '', $to = '')
+    public function joinOrders($dateFrom = '', $dateTo = '')
     {
-        if ($from != '' && $to != '') {
-            $dateFilter = " AND orders.created_at BETWEEN '{$from}' AND '{$to}'";
-        } else {
-            $dateFilter = '';
-        }
+        $dateFilter = $dateFrom != '' && $dateTo != '' ? " AND orders.created_at BETWEEN '{$dateFrom}' AND '{$dateTo}'" : '';
 
         $this->getSelect()
-            ->joinLeft(array('orders' => $this->getTable('sales/order')),
-                "orders.customer_id = e.entity_id".$dateFilter,
-            array());
+            ->joinLeft(
+                ['orders' => $this->getTable('sales/order')],
+                'orders.customer_id = e.entity_id' . $dateFilter,
+                [],
+            );
 
         return $this;
     }
@@ -137,14 +115,14 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Add orders count
      *
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @return $this
      */
     public function addOrdersCount()
     {
         $this->getSelect()
-            ->columns(array("orders_count" => "COUNT(orders.entity_id)"))
+            ->columns(['orders_count' => 'COUNT(orders.entity_id)'])
             ->where('orders.state <> ?', Mage_Sales_Model_Order::STATE_CANCELED)
-            ->group("e.entity_id");
+            ->group('e.entity_id');
 
         return $this;
     }
@@ -153,8 +131,8 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
      * Order summary info for each customer
      * such as orders_count, orders_avg_amount, orders_total_amount
      *
-     * @param int $storeId
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @param  int   $storeId
+     * @return $this
      */
     public function addSumAvgTotals($storeId = 0)
     {
@@ -170,8 +148,8 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
             : "orders.base_subtotal - {$baseSubtotalCanceled} - {$baseSubtotalRefunded}";
 
         $this->getSelect()
-            ->columns(array("orders_avg_amount" => "AVG({$expr})"))
-            ->columns(array("orders_sum_amount" => "SUM({$expr})"));
+            ->columns(['orders_avg_amount' => "AVG({$expr})"])
+            ->columns(['orders_sum_amount' => "SUM({$expr})"]);
 
         return $this;
     }
@@ -179,8 +157,8 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Order by total amount
      *
-     * @param string $dir
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @param  string $dir
+     * @return $this
      */
     public function orderByTotalAmount($dir = self::SORT_ORDER_DESC)
     {
@@ -192,20 +170,20 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Add order statistics
      *
-     * @param boolean $isFilter
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @param  bool|int $isFilter
+     * @return $this
      */
     public function addOrdersStatistics($isFilter = false)
     {
         $this->_addOrderStatistics          = true;
-        $this->_addOrderStatisticsIsFilter  = (bool)$isFilter;
+        $this->_addOrderStatisticsIsFilter  = (bool) $isFilter;
         return $this;
     }
 
     /**
      * Add orders statistics to collection items
      *
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @return $this
      */
     protected function _addOrdersStatistics()
     {
@@ -216,24 +194,27 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
             $baseSubtotalRefunded   = $adapter->getIfNullSql('orders.base_subtotal_refunded', 0);
             $baseSubtotalCanceled   = $adapter->getIfNullSql('orders.base_subtotal_canceled', 0);
 
-            $totalExpr = (!$this->_addOrderStatisticsIsFilter)
-                ? "(orders.base_subtotal - {$baseSubtotalCanceled} - {$baseSubtotalRefunded}) * orders.base_to_global_rate"
-                : "orders.base_subtotal - {$baseSubtotalCanceled} - {$baseSubtotalRefunded}";
+            $totalExpr = ($this->_addOrderStatisticsIsFilter)
+                ? "orders.base_subtotal - {$baseSubtotalCanceled} - {$baseSubtotalRefunded}"
+                : "(orders.base_subtotal - {$baseSubtotalCanceled} - {$baseSubtotalRefunded}) * orders.base_to_global_rate";
 
             $select = $this->getConnection()->select();
-            $select->from(array('orders' => $this->getTable('sales/order')), array(
+            $select->from(['orders' => $this->getTable('sales/order')], [
                 'orders_avg_amount' => "AVG({$totalExpr})",
                 'orders_sum_amount' => "SUM({$totalExpr})",
                 'orders_count' => 'COUNT(orders.entity_id)',
-                'customer_id'
-            ))->where('orders.state <> ?', Mage_Sales_Model_Order::STATE_CANCELED)
+                'customer_id',
+            ])->where('orders.state <> ?', Mage_Sales_Model_Order::STATE_CANCELED)
               ->where('orders.customer_id IN(?)', $customerIds)
               ->group('orders.customer_id');
+
+            /** @var Mage_Core_Model_Resource_Helper_Mysql4 $helper */
+            $helper = Mage::getResourceHelper('core');
 
             /*
              * Analytic functions usage
              */
-            $select = Mage::getResourceHelper('core')->getQueryUsingAnalyticFunction($select);
+            $select = $helper->getQueryUsingAnalyticFunction($select);
 
             foreach ($this->getConnection()->fetchAll($select) as $ordersInfo) {
                 $this->getItemById($ordersInfo['customer_id'])->addData($ordersInfo);
@@ -246,8 +227,9 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Collection after load operations like adding orders statistics
      *
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @return $this
      */
+    #[Override]
     protected function _afterLoad()
     {
         $this->_addOrdersStatistics();
@@ -257,8 +239,8 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Order by customer registration
      *
-     * @param string $dir
-     * @return Mage_Reports_Model_Resource_Customer_Collection
+     * @param  string $dir
+     * @return $this
      */
     public function orderByCustomerRegistration($dir = self::SORT_ORDER_DESC)
     {
@@ -269,8 +251,9 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
     /**
      * Get select count sql
      *
-     * @return string
+     * @return Varien_Db_Select
      */
+    #[Override]
     public function getSelectCountSql()
     {
         $countSelect = clone $this->getSelect();
@@ -280,7 +263,7 @@ class Mage_Reports_Model_Resource_Customer_Collection extends Mage_Customer_Mode
         $countSelect->reset(Zend_Db_Select::COLUMNS);
         $countSelect->reset(Zend_Db_Select::GROUP);
         $countSelect->reset(Zend_Db_Select::HAVING);
-        $countSelect->columns("count(DISTINCT e.entity_id)");
+        $countSelect->columns('count(DISTINCT e.entity_id)');
 
         return $countSelect;
     }

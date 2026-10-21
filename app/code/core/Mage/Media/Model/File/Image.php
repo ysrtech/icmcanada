@@ -1,49 +1,26 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Media
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Media
+ */
 
 /**
  * Media library file image resource model
  *
- * @category   Mage
  * @package    Mage_Media
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
 {
     /**
-     * Resource initialization
+     * @inheritDoc
      */
-    protected function _construct()
-    {
-        return $this;
-    }
+    protected function _construct() {}
 
     /**
-     * Retrieve connection for read data
+     * @return false|Varien_Db_Adapter_Interface
      */
     protected function _getReadAdapter()
     {
@@ -51,25 +28,36 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     }
 
     /**
-     * Retrieve connection for write data
+     * @return false|Varien_Db_Adapter_Interface
      */
     protected function _getWriteAdapter()
     {
         return false;
     }
 
-    public function load(Mage_Media_Model_Image $object, $file, $field=null)
+    /**
+     * @param  mixed      $file
+     * @param  null|mixed $field
+     * @return $this
+     */
+    public function load(Mage_Media_Model_Image $object, $file, $field = null)
     {
         // Do some implementation
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function save(Mage_Media_Model_Image $object)
     {
         // Do some implementation
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function delete(Mage_Media_Model_Image $object)
     {
         return $this;
@@ -78,16 +66,20 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     /**
      * Create image resource for operation from file
      *
-     * @param Mage_Media_Model_Image $object
-     * @return Mage_Media_Model_File_Image
+     * @return false|GdImage|resource
+     * @throws Mage_Core_Exception
      */
     public function getImage(Mage_Media_Model_Image $object)
     {
         $resource = false;
-        switch(strtolower($object->getExtension())) {
+        switch (strtolower($object->getExtension())) {
             case 'jpg':
             case 'jpeg':
                 $resource = imagecreatefromjpeg($object->getFilePath());
+                break;
+
+            case 'webp':
+                $resource = imagecreatefromwebp($object->getFilePath());
                 break;
 
             case 'gif':
@@ -99,10 +91,9 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
                 break;
         }
 
-        if(!$resource) {
+        if (!$resource) {
             Mage::throwException(Mage::helper('media')->__('The image does not exist or is invalid.'));
         }
-
 
         return $resource;
     }
@@ -110,20 +101,17 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     /**
      * Create tmp image resource for operations
      *
-     * @param Mage_Media_Model_Image $object
-     * @return Mage_Media_Model_File_Image
+     * @return false|GdImage|resource
      */
     public function getTmpImage(Mage_Media_Model_Image $object)
     {
-        $resource = imagecreatetruecolor($object->getDestanationDimensions()->getWidth(), $object->getDestanationDimensions()->getHeight());
-        return $resource;
+        return imagecreatetruecolor($object->getDestanationDimensions()->getWidth(), $object->getDestanationDimensions()->getHeight());
     }
 
     /**
      * Resize image
      *
-     * @param Mage_Media_Model_Image $object
-     * @return Mage_Media_Model_File_Image
+     * @return $this
      */
     public function resize(Mage_Media_Model_Image $object)
     {
@@ -133,11 +121,14 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
         imagecopyresampled(
             $tmpImage,
             $sourceImage,
-            0, 0, 0, 0,
+            0,
+            0,
+            0,
+            0,
             $object->getDestanationDimensions()->getWidth(),
             $object->getDestanationDimensions()->getHeight(),
             $object->getDimensions()->getWidth(),
-            $object->getDimensions()->getHeight()
+            $object->getDimensions()->getHeight(),
         );
 
         return $this;
@@ -146,8 +137,7 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     /**
      * Add watermark for image
      *
-     * @param Mage_Media_Model_Image $object
-     * @return Mage_Media_Model_File_Image
+     * @return $this
      */
     public function watermark(Mage_Media_Model_Image $object)
     {
@@ -157,13 +147,12 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     /**
      * Creates image
      *
-     * @param Mage_Media_Model_Image $object
-     * @param string|null $extension
-     * @return Mage_Media_Model_File_Image
+     * @param  null|string $extension
+     * @return $this
      */
-    public function saveAs(Mage_Media_Model_Image $object, $extension=null)
+    public function saveAs(Mage_Media_Model_Image $object, $extension = null)
     {
-        if(is_null($extension)) {
+        if (is_null($extension)) {
             $extension = $object->getExtension();
         }
 
@@ -173,6 +162,9 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
             case 'jpeg':
                 $result = imagejpeg($object->getTmpImage(), $object->getFilePath(true), 80);
                 break;
+            case 'webp':
+                $result = imagewebp($object->getTmpImage(), $object->getFilePath(true), 80);
+                break;
             case 'gif':
                 $result = imagegif($object->getTmpImage(), $object->getFilePath(true));
                 break;
@@ -181,7 +173,7 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
                 break;
         }
 
-        if(!$result) {
+        if (!$result) {
             Mage::throwException(Mage::helper('media')->__('An error occurred while creating the image.'));
         }
 
@@ -189,26 +181,27 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     }
 
     /**
-     * Retrive image dimensions
+     * Retrieve image dimensions
      *
-     * @param Mage_Media_Model_Image $object
      * @return Varien_Object
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
     public function getDimensions(Mage_Media_Model_Image $object)
     {
         $info = @getimagesize($object->getFilePath());
-        if(!$info) {
+        if (!$info) {
             Mage::throwException(Mage::helper('media')->__('The image does not exist or is invalid.'));
         }
 
-        $info = array('width'=>$info[0], 'height'=>$info[1], 'type'=>$info[2]);
+        $info = ['width' => $info[0], 'height' => $info[1], 'type' => $info[2]];
         return new Varien_Object($info);
     }
 
     /**
      * Destroys resource object
      *
-     * @param resource $resource
+     * @param  GdImage|resource $resource
+     * @return $this
      */
     public function destroyResource(&$resource)
     {
@@ -219,16 +212,10 @@ class Mage_Media_Model_File_Image extends Mage_Core_Model_Resource_Abstract
     /**
      * Destroys resource object
      *
-     * @param resource $resource
+     * @return bool
      */
     public function hasSpecialImage(Mage_Media_Model_Image $object)
     {
-        if(file_exists($object->getFilePath(true))) {
-            return true;
-        }
-
-        return false;
+        return file_exists($object->getFilePath(true));
     }
-
-
 }

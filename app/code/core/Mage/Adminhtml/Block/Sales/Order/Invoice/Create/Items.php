@@ -1,37 +1,17 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml invoice items grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminhtml_Block_Sales_Items_Abstract
 {
     protected $_disableSubmitButton = false;
@@ -39,44 +19,47 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
     /**
      * Prepare child blocks
      *
-     * @return Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items
+     * @return $this
      */
+    #[Override]
     protected function _beforeToHtml()
     {
-        $onclick = "submitAndReloadArea($('invoice_item_container'),'".$this->getUpdateUrl()."')";
+        $onclick = "submitAndReloadArea($('invoice_item_container'),'" . $this->getUpdateUrl() . "')";
         $this->setChild(
             'update_button',
-            $this->getLayout()->createBlock('adminhtml/widget_button')->setData(array(
+            $this->getLayout()->createBlock('adminhtml/widget_button')->setData([
                 'class'     => 'update-button',
-                'label'     => Mage::helper('sales')->__('Update Qty\'s'),
+                'label'     => Mage::helper('sales')->__("Update Qty's"),
                 'onclick'   => $onclick,
-            ))
+            ]),
         );
         $this->_disableSubmitButton = true;
-        $_submitButtonClass = ' disabled';
+        $submitButtonClass = ' disabled';
         foreach ($this->getInvoice()->getAllItems() as $item) {
             /**
              * @see bug #14839
              */
-            if ($item->getQty()/* || $this->getSource()->getData('base_grand_total')*/) {
+            if ($item->getQty()/* || $this->getSource()->getDataByKey('base_grand_total')*/) {
                 $this->_disableSubmitButton = false;
-                $_submitButtonClass = '';
+                $submitButtonClass = '';
                 break;
             }
         }
+
         if ($this->getOrder()->getForcedDoShipmentWithInvoice()) {
-            $_submitLabel = Mage::helper('sales')->__('Submit Invoice and Shipment');
+            $submitLabel = Mage::helper('sales')->__('Submit Invoice and Shipment');
         } else {
-            $_submitLabel = Mage::helper('sales')->__('Submit Invoice');
+            $submitLabel = Mage::helper('sales')->__('Submit Invoice');
         }
+
         $this->setChild(
             'submit_button',
-            $this->getLayout()->createBlock('adminhtml/widget_button')->setData(array(
-                'label'     => $_submitLabel,
-                'class'     => 'save submit-button' . $_submitButtonClass,
+            $this->getLayout()->createBlock('adminhtml/widget_button')->setData([
+                'label'     => $submitLabel,
+                'class'     => 'save submit-button' . $submitButtonClass,
                 'onclick'   => 'disableElements(\'submit-button\');$(\'edit_form\').submit()',
-                'disabled'  => $this->_disableSubmitButton
-            ))
+                'disabled'  => $this->_disableSubmitButton,
+            ]),
         );
 
         return parent::_prepareLayout();
@@ -85,7 +68,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
     /**
      * Get is submit button disabled or not
      *
-     * @return boolean
+     * @return bool
      */
     public function getDisableSubmitButton()
     {
@@ -97,6 +80,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
      *
      * @return Mage_Sales_Model_Order
      */
+    #[Override]
     public function getOrder()
     {
         return $this->getInvoice()->getOrder();
@@ -107,6 +91,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
      *
      * @return Mage_Sales_Model_Order_Invoice
      */
+    #[Override]
     public function getSource()
     {
         return $this->getInvoice();
@@ -117,6 +102,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
      *
      * @return Mage_Sales_Model_Order_Invoice
      */
+    #[Override]
     public function getInvoice()
     {
         return Mage::registry('current_invoice');
@@ -125,31 +111,32 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
     /**
      * Retrieve order totals block settings
      *
-     * @return array
+     * @return array<void>
      */
     public function getOrderTotalData()
     {
-        return array();
+        return [];
     }
 
     /**
      * Retrieve order totalbar block data
      *
-     * @return array
+     * @return array<int, array<int, bool|string>>
      */
     public function getOrderTotalbarData()
     {
-        $totalbarData = array();
+        $totalbarData = [];
         $this->setPriceDataObject($this->getInvoice()->getOrder());
-        $totalbarData[] = array(Mage::helper('sales')->__('Paid Amount'), $this->displayPriceAttribute('amount_paid'), false);
-        $totalbarData[] = array(Mage::helper('sales')->__('Refund Amount'), $this->displayPriceAttribute('amount_refunded'), false);
-        $totalbarData[] = array(Mage::helper('sales')->__('Shipping Amount'), $this->displayPriceAttribute('shipping_captured'), false);
-        $totalbarData[] = array(Mage::helper('sales')->__('Shipping Refund'), $this->displayPriceAttribute('shipping_refunded'), false);
-        $totalbarData[] = array(Mage::helper('sales')->__('Order Grand Total'), $this->displayPriceAttribute('grand_total'), true);
+        $totalbarData[] = [Mage::helper('sales')->__('Paid Amount'), $this->displayPriceAttribute('amount_paid'), false];
+        $totalbarData[] = [Mage::helper('sales')->__('Refund Amount'), $this->displayPriceAttribute('amount_refunded'), false];
+        $totalbarData[] = [Mage::helper('sales')->__('Shipping Amount'), $this->displayPriceAttribute('shipping_captured'), false];
+        $totalbarData[] = [Mage::helper('sales')->__('Shipping Refund'), $this->displayPriceAttribute('shipping_refunded'), false];
+        $totalbarData[] = [Mage::helper('sales')->__('Order Grand Total'), $this->displayPriceAttribute('grand_total'), true];
 
         return $totalbarData;
     }
 
+    #[Override]
     public function formatPrice($price)
     {
         return $this->getInvoice()->getOrder()->formatPrice($price);
@@ -162,7 +149,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
 
     public function getUpdateUrl()
     {
-        return $this->getUrl('*/*/updateQty', array('order_id'=>$this->getInvoice()->getOrderId()));
+        return $this->getUrl('*/*/updateQty', ['order_id' => $this->getInvoice()->getOrderId()]);
     }
 
     /**
@@ -170,6 +157,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
      *
      * @return bool
      */
+    #[Override]
     public function canCreateShipment()
     {
         foreach ($this->getInvoice()->getAllItems() as $item) {
@@ -177,14 +165,17 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
                 return true;
             }
         }
+
         return false;
     }
 
+    #[Override]
     public function canEditQty()
     {
         if ($this->getInvoice()->getOrder()->getPayment()->canCapture()) {
             return $this->getInvoice()->getOrder()->getPayment()->canCapturePartial();
         }
+
         return true;
     }
 
@@ -201,6 +192,7 @@ class Mage_Adminhtml_Block_Sales_Order_Invoice_Create_Items extends Mage_Adminht
      * Check if invoice can be captured
      * @return bool
      */
+    #[Override]
     public function canCapture()
     {
         return $this->getInvoice()->canCapture();

@@ -18,7 +18,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     protected function _construct()
     {
         parent::_construct();
-        $this->setId($this->_getCoreHelper()->uniqHash('blcgConfig'));
+        $this->setId($this->getCoreHelper()->uniqHash('blcgConfig'));
         $this->setTemplate('bl/customgrid/widget/grid/config.phtml');
     }
     
@@ -44,11 +44,11 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     }
     
     /**
-     * Return core helper
+     * Return the core helper
      * 
      * @return Mage_Core_Helper_Data
      */
-    protected function _getCoreHelper()
+    public function getCoreHelper()
     {
         return $this->helper('core');
     }
@@ -79,7 +79,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     /**
      * Return the current grid block only if it has been rewrited by the extension
      * 
-     * @return Mage_Adminhtml_Block_Widget_Grid|null
+     * @return Mage_Adminhtml_Block_Widget_Grid|false
      */
     public function getRewritedGridBlock()
     {
@@ -105,19 +105,6 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     }
     
     /**
-     * Return the name of the JS object used to handle the profiles bar
-     * 
-     * @return string
-     */
-    public function getProfilesJsObjectName()
-    {
-        if (!$this->hasData('profiles_js_object_name')) {
-            $this->setData('profiles_js_object_name', $this->_getCoreHelper()->uniqHash('blcgProfilesBar'));
-        }
-        return $this->_getData('profiles_js_object_name');
-    }
-    
-    /**
      * Return the base URL parameters, that should be common to most requests
      * 
      * @return array
@@ -135,13 +122,23 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     }
     
     /**
+     * Return the URL of the columns list form
+     *
+     * @return string
+     */
+    public function getColumnsListFormUrl()
+    {
+        return $this->getUrl('adminhtml/blcg_grid/columnsListForm', $this->getBaseUrlParams());
+    }
+    
+    /**
      * Return the URL of the custom columns form
      * 
      * @return string
      */
     public function getCustomColumnsFormUrl()
     {
-        return $this->getUrl('customgrid/grid/customColumnsForm', $this->getBaseUrlParams());
+        return $this->getUrl('adminhtml/blcg_grid/customColumnsForm', $this->getBaseUrlParams());
     }
     
     /**
@@ -151,7 +148,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      */
     public function getDefaultParamsFormUrl()
     {
-        return $this->getUrl('customgrid/grid/defaultParamsForm', $this->getBaseUrlParams());
+        return $this->getUrl('adminhtml/blcg_grid/defaultParamsForm', $this->getBaseUrlParams());
     }
     
     /**
@@ -161,7 +158,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      */
     public function getExportFormUrl()
     {
-        return $this->getUrl('customgrid/grid/exportForm', $this->getBaseUrlParams());
+        return $this->getUrl('adminhtml/blcg_grid_export/form', $this->getBaseUrlParams());
     }
     
     /**
@@ -171,7 +168,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      */
     public function getGridInfosUrl()
     {
-        return $this->getUrl('customgrid/grid/gridInfos', $this->getBaseUrlParams());
+        return $this->getUrl('adminhtml/blcg_grid/gridInfos', $this->getBaseUrlParams());
     }
     
     /**
@@ -181,294 +178,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      */
     public function getGridEditUrl()
     {
-        return $this->getUrl('customgrid/grid/edit', $this->getBaseUrlParams());
-    }
-    
-    /**
-     * Return the placeholder usable to represent a profile ID
-     * 
-     * @return string
-     */
-    public function getProfileIdPlaceholder()
-    {
-        return '{{profile_id}}';
-    }
-    
-    /**
-     * Return the available profiles, already prepared for JSON usage
-     * 
-     * @return array
-     */
-    public function getProfiles()
-    {
-        if (!$this->hasData('profiles')) {
-            $profiles = array();
-            
-            if ($gridModel = $this->getGridModel()) {
-                $profiles = $gridModel->getProfiles(true, true);
-            }
-            
-            foreach ($profiles as $key => $profile) {
-                $profiles[$key] = array(
-                    'id'        => $profile->getId(),
-                    'name'      => $profile->getName(),
-                    'isBase'    => $profile->isBase(),
-                    'isCurrent' => $profile->isCurrent(),
-                );
-            }
-            
-            $this->setData('profiles', $profiles);
-        }
-        return $this->_getData('profiles');
-    }
-    
-    /**
-     * Return the JSON config for the available profiles
-     * 
-     * @return string
-     */
-    public function getProfilesJsonConfig()
-    {
-        if (!$this->hasData('profiles_json_config')) {
-            $this->setData('profiles_json_config', $this->_getCoreHelper()->jsonEncode((object) $this->getProfiles()));
-        }
-        return $this->_getData('profiles_json_config');
-    }
-    
-    /**
-     * Return the sorted IDs of the available profiles as JSON
-     * 
-     * @return string
-     */
-    public function getSortedProfilesIdsJson()
-    {
-        if (!$this->hasData('sorted_profiles_ids_json')) {
-            $this->setData(
-                'sorted_profiles_ids_json',
-                $this->_getCoreHelper()->jsonEncode(array_keys($this->getProfiles()))
-            );
-        }
-        return $this->_getData('sorted_profiles_ids_json');
-    }
-    
-    /**
-     * Return whether the "Choose As Default" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesDefaultActionAvailable()
-    {
-        if (count($this->getProfiles()) <= 1) {
-            return false;
-        }
-        
-        return $this->getGridModel()
-            ->checkUserPermissions(
-                array(
-                    BL_CustomGrid_Model_Grid_Sentry::ACTION_CHOOSE_OWN_USER_DEFAULT_PROFILE,
-                    BL_CustomGrid_Model_Grid_Sentry::ACTION_CHOOSE_OTHER_USERS_DEFAULT_PROFILE,
-                    BL_CustomGrid_Model_Grid_Sentry::ACTION_CHOOSE_OWN_ROLE_DEFAULT_PROFILE,
-                    BL_CustomGrid_Model_Grid_Sentry::ACTION_CHOOSE_OTHER_ROLES_DEFAULT_PROFILE,
-                    BL_CustomGrid_Model_Grid_Sentry::ACTION_CHOOSE_GLOBAL_DEFAULT_PROFILE,
-                )
-            );
-    }
-    
-    /**
-     * Return whether the "Copy To New" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesCopyToNewActionAvailable()
-    {
-        return $this->getGridModel()
-            ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_COPY_PROFILES_TO_NEW);
-    }
-    
-    /**
-     * Return whether the "Copy To Existing" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesCopyToExistingActionAvailable()
-    {
-        return (count($this->getProfiles()) > 1)
-            ? $this->getGridModel()
-                ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_COPY_PROFILES_TO_EXISTING)
-            : false;
-    }
-    
-    /**
-     * Return whether the "Edit" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesEditActionAvailable()
-    {
-        return $this->getGridModel()
-            ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_EDIT_PROFILES);
-    }
-    
-    /**
-     * Return whether the "Assign" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesAssignActionAvailable()
-    {
-        return $this->getGridModel()
-            ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_ASSIGN_PROFILES);
-    }
-    
-    /**
-     * Return whether the "Delete" profile action is available
-     * 
-     * @return bool
-     */
-    protected function _isProfilesDeleteActionAvailable()
-    {
-        return $this->getGridModel()
-            ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_DELETE_PROFILES);
-    }
-    
-    /**
-     * Return the config for the available profiles actions
-     * 
-     * @return array
-     */
-    protected function _getProfilesActionsConfig()
-    {
-        $gridModel = $this->getGridModel();
-        $actions   = array();
-        $actionsRoute  = 'customgrid/grid_profile/';
-        $actionsParams = array(
-            'grid_id' => $gridModel->getId(),
-            'profile_id' => $this->getProfileIdPlaceholder(),
-            'profiles_js_object_name' => $this->getProfilesJsObjectName(),
-        );
-        
-        $actions['go_to'] = array(
-            'label'   => $this->__('Go To'),
-            'url'     => $this->getUrl($actionsRoute . 'goTo', $actionsParams),
-            'mode'    => 'direct',
-            'confirm' => false,
-            'appliesToBase'    => true,
-            'appliesToCurrent' => false,
-            'leftClickable'    => true,
-        );
-        
-        if ($this->_isProfilesDefaultActionAvailable()) {
-            $actions['default'] = array(
-                'label'     => $this->__('Choose As Default'),
-                'mode'      => 'window',
-                'confirm'   => false,
-                'url'       => $this->getUrl($actionsRoute . 'default', $actionsParams),
-                'windowUrl'    => $this->getUrl($actionsRoute . 'defaultForm', $actionsParams),
-                'windowConfig' => array('height' => 600),
-                'appliesToBase'    => true,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        if ($this->_isProfilesCopyToNewActionAvailable()) {
-            $actions['copy_new'] = array(
-                'label'     => $this->__('Copy To New Profile'),
-                'mode'      => 'window',
-                'confirm'   => false,
-                'url'       => $this->getUrl($actionsRoute . 'copyToNew', $actionsParams),
-                'windowUrl' => $this->getUrl($actionsRoute . 'copyToNewForm', $actionsParams),
-                'appliesToBase'    => true,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        if ($this->_isProfilesCopyToExistingActionAvailable()) {
-            $actions['copy_existing'] = array(
-                'label'     => $this->__('Copy To Existing Profile'),
-                'mode'      => 'window',
-                'confirm'   => false,
-                'url'       => $this->getUrl($actionsRoute . 'copyToExisting', $actionsParams),
-                'windowUrl' => $this->getUrl($actionsRoute . 'copyToExistingForm', $actionsParams),
-                'appliesToBase'    => true,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        if ($this->_isProfilesEditActionAvailable()) {
-            $actions['edit'] = array(
-                'label'        => $this->__('Edit'),
-                'mode'         => 'window',
-                'confirm'      => false,
-                'url'          => $this->getUrl($actionsRoute . 'edit', $actionsParams),
-                'windowUrl'    => $this->getUrl($actionsRoute . 'editForm', $actionsParams),
-                'windowConfig' => array('height' => 490),
-                'appliesToBase'    => true,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        if ($this->_isProfilesAssignActionAvailable()) {
-            $actions['assign'] = array(
-                'label'     => $this->__('Assign'),
-                'mode'      => 'window',
-                'confirm'   => false,
-                'url'       => $this->getUrl($actionsRoute . 'assign', $actionsParams),
-                'windowUrl' => $this->getUrl($actionsRoute . 'assignForm', $actionsParams),
-                'appliesToBase'    => true,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        if ($this->_isProfilesDeleteActionAvailable()) {
-            $actions['delete'] = array(
-                'label'   => $this->__('Delete'),
-                'url'     => $this->getUrl($actionsRoute . 'delete', $actionsParams),
-                'mode'    => 'direct',
-                'confirm' => $this->__('Are you sure you want to delete this profile?'),
-                'appliesToBase'    => false,
-                'appliesToCurrent' => true,
-            );
-        }
-        
-        return $actions;
-    }
-    
-    /**
-     * Return the JSON config for the available profiles actions
-     * 
-     * @return string
-     */
-    public function getProfilesActionsJsonConfig()
-    {
-        if (!$this->hasData('profiles_actions_json_config')) {
-            $actions = ($gridModel = $this->getGridModel())
-                ? $this->_getProfilesActionsConfig()
-                : array();
-            $this->setData('profiles_actions_json_config', $this->_getCoreHelper()->jsonEncode($actions));
-        }
-        return $this->_getData('profiles_actions_json_config');
-    }
-    
-    /**
-     * Return the JSON config for the profiles bar JS object
-     * 
-     * @return string
-     */
-    public function getProfilesBarJsonConfig()
-    {
-        if (!$this->hasData('profiles_bar_json_config')) {
-            $config = array(
-                'profileIdPlaceholder' => $this->getProfileIdPlaceholder(),
-                'profileItemIdPrefix'  => $this->_getCoreHelper()->uniqHash('blcg-grid-profile-item-'),
-            );
-            
-            if ($gridModel = $this->getGridModel()) {
-                $config['removableUrlParams'] = array_values($gridModel->getBlockVarNames());
-            }
-            
-            $this->setData('profiles_bar_json_config', $this->_getCoreHelper()->jsonEncode((object) $config));
-        }
-        return $this->_getData('profiles_bar_json_config');
+        return $this->getUrl('adminhtml/blcg_grid/edit', $this->getBaseUrlParams());
     }
     
     /**
@@ -476,9 +186,10 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      * 
      * @param string $title Window title
      * @param int $height Window height
+     * @param array $additional Additional config data
      * @return string
      */
-    protected function _getGridFormWindowJsonConfig($title = null, $height = null)
+    protected function _getGridFormWindowJsonConfig($title = null, $height = null, array $additional = array())
     {
         $config = array(
             'title' => $this->getGridModel()->getProfile()->getName() . (is_null($title) ? '' : ' - ' . $title)
@@ -488,7 +199,8 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
             $config['height'] = (int) $height;
         }
         
-        return $this->_getCoreHelper()->jsonEncode($config);
+        $config = array_merge($additional, $config);
+        return $this->getCoreHelper()->jsonEncode($config);
     }
     
     /**
@@ -534,10 +246,21 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
                 ->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_CUSTOMIZE_COLUMNS);
             
             if ($hasUserPermissions) {
+                $functionName = $this->_prepareButtonScript(
+                    'CL',
+                    'blcg.Tools.openIframeDialog('
+                    . '\''. $this->getColumnsListFormUrl() . '\','
+                    . $this->_getGridFormWindowJsonConfig(
+                        $this->__('Columns List'),
+                        null,
+                        array('alwaysMaximized' => true)
+                    )
+                    . ');'
+                );
+                
                 $buttonHtml = $this->getButtonHtml(
                     $this->__('Columns List'),
-                    '$(\'' . $this->getColumnsListBlock()->getHtmlId() . '\').toggle(); '
-                    . '$(this).toggleClassName(\'blcg-on\');',
+                    $functionName . '();',
                     'blcg-grid-profiles-bar-button blcg-grid-profiles-bar-button-columns-list'
                 );
             }
@@ -582,7 +305,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     }
     
     /**
-     * Return the HTML content of the default params form button
+     * Return the HTML content of the default parameters form button
      * 
      * @return string
      */
@@ -610,7 +333,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
                     'DP',
                     'blcg.Tools.openDialogFromPost('
                     . '\''. $this->getDefaultParamsFormUrl() . '\','
-                    . $this->_getCoreHelper()->jsonEncode(array('default_params' => $defaultParams)) . ','
+                    . $this->getCoreHelper()->jsonEncode(array('default_params' => $defaultParams)) . ','
                     . $this->_getGridFormWindowJsonConfig($this->__('Default Parameters'))
                     . ');'
                 );
@@ -652,7 +375,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
                     'Export',
                     'blcg.Tools.openDialogFromPost('
                     . '\''. $this->getExportFormUrl() . '\','
-                    . $this->_getCoreHelper()->jsonEncode($params) . ','
+                    . $this->getCoreHelper()->jsonEncode($params) . ','
                     . $this->_getGridFormWindowJsonConfig($this->__('Export'), 240)
                     . ');'
                 );
@@ -813,36 +536,34 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
     }
     
     /**
-     * Return the columns list block
+     * Return the profiles bar block
      * 
-     * @return BL_CustomGrid_Block_Widget_Grid_Config_Columns_List
+     * @return BL_CustomGrid_Block_Widget_Grid_Config_Profiles_Bar
      */
-    public function getColumnsListBlock()
+    public function getProfilesBarBlock()
     {
-        if (!$this->getChild('columns_list')) {
-            /** @var $columnsList BL_CustomGrid_Block_Widget_Grid_Config_Columns_List */
-            $columnsList = $this->getLayout()->createBlock('customgrid/widget_grid_config_columns_list');
+        if (!$this->getChild('profiles_bar')) {
+            /** @var $profilesBar BL_CustomGrid_Block_Widget_Grid_Config_Profiles_Bar */
+            $profilesBar = $this->getLayout()->createBlock('customgrid/widget_grid_config_profiles_bar');
             
-            $columnsList->setId($this->getId())
+            $profilesBar->setId($this->getId())
                 ->setGridModel($this->getGridModel())
-                ->setIsNewGridModel($this->getIsNewGridModel())
-                ->setGridBlock($this->getGridBlock());
+                ->setGridConfigButtonsHtml($this->getButtonsHtml())
+                ->setGridBlockJsObjectName($this->getGridBlockJsObjectName());
             
-            $this->setChild('columns_list', $columnsList);
+            $this->setChild('profiles_bar', $profilesBar);
         }
-        return $this->getChild('columns_list');
+        return $this->getChild('profiles_bar');
     }
     
     /**
-     * Return the HTML content of the columns list block
-     * 
+     * Return the HTML content of the profiles bar block
+     *
      * @return string
      */
-    public function getColumnsListHtml()
+    public function getProfilesBarHtml()
     {
-        return ($this->getColumnsListButtonHtml($this->getGridModel()) != '')
-            ? $this->getColumnsListBlock()->toHtml()
-            : '';
+        return $this->getProfilesBarBlock()->toHtml(); 
     }
     
     /**
@@ -868,8 +589,6 @@ class BL_CustomGrid_Block_Widget_Grid_Config extends Mage_Adminhtml_Block_Widget
      */
     public function getRssLinksHtml()
     {
-        return ($this->getRssLinksListButtonHtml($this->getGridModel()) != '')
-            ? $this->getRssLinksBlock()->toHtml()
-            : '';
+        return (($this->getRssLinksListButtonHtml() != '') ? $this->getRssLinksBlock()->toHtml() : '');
     }
 }

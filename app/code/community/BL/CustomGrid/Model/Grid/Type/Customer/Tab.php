@@ -85,7 +85,7 @@ class BL_CustomGrid_Model_Grid_Type_Customer_Tab extends BL_CustomGrid_Model_Gri
      * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Exported grid block
      * @return BL_CustomGrid_Model_Grid_Type_Customer_Tab
      */
-    protected function _applyExportCurrentCustomer(Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
+    protected function _applyExportCurrentCustomer(?Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
     {
         if (!$customer = Mage::registry('current_customer')) {
             /** @var $customer Mage_Customer_Model_Customer */
@@ -124,7 +124,7 @@ class BL_CustomGrid_Model_Grid_Type_Customer_Tab extends BL_CustomGrid_Model_Gri
         return $this;
     }
     
-    public function beforeGridExport($format, Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
+    public function beforeGridExport($format, ?Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
     {
         if (is_null($gridBlock)) {
             $this->_applyExportCurrentCustomer();

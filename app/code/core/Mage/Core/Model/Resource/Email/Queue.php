@@ -1,33 +1,19 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
+
+/**
+ * @package    Mage_Core
  */
 class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Initialize email queue resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -37,28 +23,32 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
     /**
      * Load recipients, unserialize message parameters
      *
-     * @param Mage_Core_Model_Abstract $object
-     *
-     * @return Mage_Core_Model_Resource_Email_Queue
+     * @param Mage_Core_Model_Email_Queue $object
+     * @inheritDoc
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     protected function _afterLoad(Mage_Core_Model_Abstract $object)
     {
         $object->setRecipients($this->getRecipients($object->getId()));
-        $object->setMessageParameters(unserialize($object->getMessageParameters()));
+        $object->setMessageParameters(unserialize($object->getMessageParameters(), ['allowed_classes' => false]));
         return $this;
     }
 
     /**
      * Prepare object data for saving
      *
-     * @param Mage_Core_Model_Email_Queue|Mage_Core_Model_Abstract $object
-     * @return Mage_Core_Model_Resource_Email_Queue
+     * @param Mage_Core_Model_Email_Queue $object
+     * @inheritDoc
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     protected function _beforeSave(Mage_Core_Model_Abstract $object)
     {
         if ($object->isObjectNew()) {
             $object->setCreatedAt($this->formatDate(true));
         }
+
         $object->setMessageBodyHash(md5($object->getMessageBody()));
         $object->setMessageParameters(serialize($object->getMessageParameters()));
 
@@ -68,47 +58,52 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
     /**
      * Check if email was added to queue for requested recipients
      *
-     * @param Mage_Core_Model_Email_Queue $queue
-     *
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function wasEmailQueued(Mage_Core_Model_Email_Queue $queue)
     {
         $readAdapter = $this->_getReadAdapter();
         $select = $readAdapter->select()
             ->from(
-                array('recips' => $this->getTable('core/email_recipients')),
-                array('recipient_email', 'recipient_name', 'email_type')
+                ['recips' => $this->getTable('core/email_recipients')],
+                ['recipient_email', 'recipient_name', 'email_type'],
             )
-            ->join(array('queue' => $this->getMainTable()), 'queue.message_id = recips.message_id', array())
+            ->join(['queue' => $this->getMainTable()], 'queue.message_id = recips.message_id', [])
             ->where('queue.entity_id =? ', $queue->getEntityId())
             ->where('queue.entity_type =? ', $queue->getEntityType())
             ->where('queue.event_type =? ', $queue->getEventType())
             ->where('queue.message_body_hash =? ', md5($queue->getMessageBody()));
 
+        // phpcs:ignore Ecg.Performance.FetchAll.Found
         $existingRecipients = $readAdapter->fetchAll($select);
         if ($existingRecipients) {
             $newRecipients = $queue->getRecipients();
-            $oldEmails = $newEmails = array();
+            $oldEmails = [];
+            $newEmails = [];
             foreach ($existingRecipients as $recipient) {
-                $oldEmails[$recipient['recipient_email']] = array(
-                    $recipient['recipient_email'], $recipient['recipient_name'], $recipient['email_type']
-                );
+                $oldEmails[$recipient['recipient_email']] = [
+                    $recipient['recipient_email'], $recipient['recipient_name'], $recipient['email_type'],
+                ];
             }
+
             unset($recipient);
             foreach ($newRecipients as $recipient) {
-                list($email, $name, $type) = $recipient;
-                $newEmails[$email] = array($email, $name, $type);
+                [$email, $name, $type] = $recipient;
+                $newEmails[$email] = [$email, $name, $type];
             }
+
             $diff = array_diff_key($newEmails, $oldEmails);
-            if (sizeof($diff) > 0) {
+            if ($diff !== []) {
                 $queue->clearRecipients();
                 foreach ($diff as $recipient) {
-                    list($email, $name, $type) = $recipient;
+                    [$email, $name, $type] = $recipient;
                     $queue->addRecipients($email, $name, $type);
                 }
+
                 return false;
             }
+
             return true;
         }
 
@@ -126,17 +121,18 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
     {
         $readAdapter = $this->_getReadAdapter();
         $select = $readAdapter->select()
-            ->from($this->getTable('core/email_recipients'), array('recipient_email', 'recipient_name', 'email_type'))
+            ->from($this->getTable('core/email_recipients'), ['recipient_email', 'recipient_name', 'email_type'])
             ->where('message_id =? ', $messageId);
+        // phpcs:ignore Ecg.Performance.FetchAll.Found
         $recipients = $readAdapter->fetchAll($select);
-        $existingRecipients = array();
+        $existingRecipients = [];
         if ($recipients) {
             foreach ($recipients as $recipient) {
-                $existingRecipients[] = array(
+                $existingRecipients[] = [
                     $recipient['recipient_email'],
                     $recipient['recipient_name'],
-                    $recipient['email_type']
-                );
+                    $recipient['email_type'],
+                ];
             }
         }
 
@@ -147,11 +143,9 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
      * Save message recipients
      *
      * @param int $messageId
-     * @param array $recipients
      *
+     * @return $this
      * @throws Exception
-     *
-     * @return Mage_Core_Model_Resource_Email_Queue
      */
     public function saveRecipients($messageId, array $recipients)
     {
@@ -161,22 +155,23 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
 
         try {
             foreach ($recipients as $recipient) {
-                list($email, $name, $type) = $recipient;
+                [$email, $name, $type] = $recipient;
                 $writeAdapter->insertOnDuplicate(
                     $recipientsTable,
-                    array(
-                         'message_id'      => $messageId,
-                         'recipient_email' => $email,
-                         'recipient_name'  => $name,
-                         'email_type'      => $type
-                    ),
-                    array('recipient_name')
+                    [
+                        'message_id'      => $messageId,
+                        'recipient_email' => $email,
+                        'recipient_name'  => $name,
+                        'email_type'      => $type,
+                    ],
+                    ['recipient_name'],
                 );
             }
+
             $writeAdapter->commit();
-        } catch (Exception $e) {
-            $writeAdapter->rollback();
-            throw $e;
+        } catch (Exception $exception) {
+            $writeAdapter->rollBack();
+            throw $exception;
         }
 
         return $this;
@@ -185,7 +180,8 @@ class Mage_Core_Model_Resource_Email_Queue extends Mage_Core_Model_Resource_Db_A
     /**
      * Remove already sent messages
      *
-     * @return Mage_Core_Model_Resource_Email_Queue
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function removeSentMessages()
     {

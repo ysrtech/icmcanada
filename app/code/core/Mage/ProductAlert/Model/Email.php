@@ -1,42 +1,24 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ProductAlert
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ProductAlert
+ */
 
 /**
  * ProductAlert Email processor
  *
- * @category   Mage
  * @package    Mage_ProductAlert
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
 {
-    const XML_PATH_EMAIL_PRICE_TEMPLATE = 'catalog/productalert/email_price_template';
-    const XML_PATH_EMAIL_STOCK_TEMPLATE = 'catalog/productalert/email_stock_template';
-    const XML_PATH_EMAIL_IDENTITY       = 'catalog/productalert/email_identity';
+    public const XML_PATH_EMAIL_PRICE_TEMPLATE = 'catalog/productalert/email_price_template';
+
+    public const XML_PATH_EMAIL_STOCK_TEMPLATE = 'catalog/productalert/email_stock_template';
+
+    public const XML_PATH_EMAIL_IDENTITY       = 'catalog/productalert/email_identity';
 
     /**
      * Type
@@ -48,14 +30,14 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Website Model
      *
-     * @var Mage_Core_Model_Website
+     * @var null|Mage_Core_Model_Website
      */
     protected $_website;
 
     /**
      * Customer model
      *
-     * @var Mage_Customer_Model_Customer
+     * @var null|Mage_Customer_Model_Customer
      */
     protected $_customer;
 
@@ -64,26 +46,26 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
      *
      * @var array
      */
-    protected $_priceProducts = array();
+    protected $_priceProducts = [];
 
     /**
      * Product collection which of back in stock
      *
      * @var array
      */
-    protected $_stockProducts = array();
+    protected $_stockProducts = [];
 
     /**
      * Price block
      *
-     * @var Mage_ProductAlert_Block_Email_Price
+     * @var null|Mage_ProductAlert_Block_Email_Price
      */
     protected $_priceBlock;
 
     /**
      * Stock block
      *
-     * @var Mage_ProductAlert_Block_Email_Stock
+     * @var null|Mage_ProductAlert_Block_Email_Stock
      */
     protected $_stockBlock;
 
@@ -110,8 +92,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Set website model
      *
-     * @param Mage_Core_Model_Website $website
-     * @return Mage_ProductAlert_Model_Email
+     * @return $this
      */
     public function setWebsite(Mage_Core_Model_Website $website)
     {
@@ -122,8 +103,8 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Set website id
      *
-     * @param int $websiteId
-     * @return Mage_ProductAlert_Model_Email
+     * @param  int   $websiteId
+     * @return $this
      */
     public function setWebsiteId($websiteId)
     {
@@ -134,8 +115,8 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Set customer by id
      *
-     * @param int $customerId
-     * @return Mage_ProductAlert_Model_Email
+     * @param  int   $customerId
+     * @return $this
      */
     public function setCustomerId($customerId)
     {
@@ -146,8 +127,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Set customer model
      *
-     * @param Mage_Customer_Model_Customer $customer
-     * @return Mage_ProductAlert_Model_Email
+     * @return $this
      */
     public function setCustomer(Mage_Customer_Model_Customer $customer)
     {
@@ -158,13 +138,13 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Clean data
      *
-     * @return Mage_ProductAlert_Model_Email
+     * @return $this
      */
     public function clean()
     {
         $this->_customer      = null;
-        $this->_priceProducts = array();
-        $this->_stockProducts = array();
+        $this->_priceProducts = [];
+        $this->_stockProducts = [];
 
         return $this;
     }
@@ -172,8 +152,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Add product (price change) to collection
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return Mage_ProductAlert_Model_Email
+     * @return $this
      */
     public function addPriceProduct(Mage_Catalog_Model_Product $product)
     {
@@ -184,8 +163,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
     /**
      * Add product (back in stock) to collection
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return Mage_ProductAlert_Model_Email
+     * @return $this
      */
     public function addStockProduct(Mage_Catalog_Model_Product $product)
     {
@@ -204,6 +182,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
             $this->_priceBlock = Mage::helper('productalert')
                 ->createBlock('productalert/email_price');
         }
+
         return $this->_priceBlock;
     }
 
@@ -218,6 +197,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
             $this->_stockBlock = Mage::helper('productalert')
                 ->createBlock('productalert/email_stock');
         }
+
         return $this->_stockBlock;
     }
 
@@ -231,21 +211,24 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
         if (is_null($this->_website) || is_null($this->_customer)) {
             return false;
         }
+
         if (($this->_type == 'price' && count($this->_priceProducts) == 0)
             || ($this->_type == 'stock' && count($this->_stockProducts) == 0)
         ) {
             return false;
         }
+
         if (!$this->_website->getDefaultGroup() || !$this->_website->getDefaultGroup()->getDefaultStore()) {
             return false;
         }
 
         $store      = Mage::getModel('core/store')->load($this->_customer->getStoreId());
         $storeId    = $store->getId();
-
         if ($this->_type == 'price' && !Mage::getStoreConfig(self::XML_PATH_EMAIL_PRICE_TEMPLATE, $storeId)) {
             return false;
-        } elseif ($this->_type == 'stock' && !Mage::getStoreConfig(self::XML_PATH_EMAIL_STOCK_TEMPLATE, $storeId)) {
+        }
+
+        if ($this->_type == 'stock' && !Mage::getStoreConfig(self::XML_PATH_EMAIL_STOCK_TEMPLATE, $storeId)) {
             return false;
         }
 
@@ -255,7 +238,6 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
 
         $appEmulation = Mage::getSingleton('core/app_emulation');
         $initialEnvironmentInfo = $appEmulation->startEnvironmentEmulation($storeId);
-        Mage::app()->getTranslator()->init('frontend', true);
 
         if ($this->_type == 'price') {
             $this->_getPriceBlock()
@@ -265,6 +247,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
                 $product->setCustomerGroupId($this->_customer->getGroupId());
                 $this->_getPriceBlock()->addProduct($product);
             }
+
             $block = $this->_getPriceBlock()->toHtml();
             $templateId = Mage::getStoreConfig(self::XML_PATH_EMAIL_PRICE_TEMPLATE, $storeId);
         } else {
@@ -275,6 +258,7 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
                 $product->setCustomerGroupId($this->_customer->getGroupId());
                 $this->_getStockBlock()->addProduct($product);
             }
+
             $block = $this->_getStockBlock()->toHtml();
             $templateId = Mage::getStoreConfig(self::XML_PATH_EMAIL_STOCK_TEMPLATE, $storeId);
         }
@@ -282,18 +266,18 @@ class Mage_ProductAlert_Model_Email extends Mage_Core_Model_Abstract
         $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
 
         Mage::getModel('core/email_template')
-            ->setDesignConfig(array(
+            ->setDesignConfig([
                 'area'  => 'frontend',
-                'store' => $storeId
-            ))->sendTransactional(
+                'store' => $storeId,
+            ])->sendTransactional(
                 $templateId,
                 Mage::getStoreConfig(self::XML_PATH_EMAIL_IDENTITY, $storeId),
                 $this->_customer->getEmail(),
                 $this->_customer->getName(),
-                array(
+                [
                     'customerName'  => $this->_customer->getName(),
-                    'alertGrid'     => $block
-                )
+                    'alertGrid'     => $block,
+                ],
             );
 
         return true;

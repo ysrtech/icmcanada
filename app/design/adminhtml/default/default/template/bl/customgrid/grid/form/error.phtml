@@ -16,6 +16,6 @@
 <?php /** @var $this Mage_Adminhtml_Block_Template */ ?>
 <ul class="messages">
     <li class="error-msg">
-        <ul><li><span><?php echo $this->htmlEscape($this->getErrorText()) ?></span></li></ul>
+        <ul><li><span><?php echo $this->escapeHtml($this->getErrorText()) ?></span></li></ul>
     </li>
 </ul>

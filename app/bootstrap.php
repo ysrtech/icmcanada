@@ -1,34 +1,30 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage
  */
+
+/**
+ * Disable the phar stream wrapper to prevent phar deserialization attacks.
+ * Functions like file_exists(), getimagesize(), etc. can trigger deserialization
+ * when processing phar:// paths, potentially leading to remote code execution.
+ *
+ * @link https://blog.ripstech.com/2018/new-php-exploitation-technique/
+ */
+if (in_array('phar', stream_get_wrappers(), true)) {
+    stream_wrapper_unregister('phar');
+}
 
 /**
  * Apply workaround for the libxml PHP bugs:
  * @link https://bugs.php.net/bug.php?id=62577
  * @link https://bugs.php.net/bug.php?id=64938
  */
-if (function_exists('libxml_disable_entity_loader')) {
+if ((LIBXML_VERSION < 20900) && function_exists('libxml_disable_entity_loader')) {
     libxml_disable_entity_loader(false);
 }

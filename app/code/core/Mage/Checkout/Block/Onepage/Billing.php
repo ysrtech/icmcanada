@@ -1,43 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * One page checkout status
  *
- * @category   Mage
- * @category   Mage
  * @package    Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Abstract
 {
     /**
-     * Sales Qoute Billing Address instance
+     * Sales Quote Billing Address instance
      *
-     * @var Mage_Sales_Model_Quote_Address
+     * @var null|Mage_Sales_Model_Quote_Address
      */
     protected $_address;
 
@@ -49,35 +29,35 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
     protected $_taxvat;
 
     /**
-     * Initialize billing address step
-     *
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
-        $this->getCheckout()->setStepData('billing', array(
+        $this->getCheckout()->setStepData('billing', [
             'label'     => Mage::helper('checkout')->__('Billing Information'),
-            'is_show'   => $this->isShow()
-        ));
+            'is_show'   => $this->isShow(),
+        ]);
 
         if ($this->isCustomerLoggedIn()) {
             $this->getCheckout()->setStepData('billing', 'allow', true);
         }
+
         parent::_construct();
     }
 
+    /**
+     * @return bool
+     */
     public function isUseBillingAddressForShipping()
     {
-        if (($this->getQuote()->getIsVirtual())
-            || !$this->getQuote()->getShippingAddress()->getSameAsBilling()) {
-            return false;
-        }
-        return true;
+        return !$this->getQuote()->getIsVirtual() && $this->getQuote()->getShippingAddress()->getSameAsBilling();
     }
 
     /**
      * Return country collection
      *
-     * @return Mage_Directory_Model_Mysql4_Country_Collection
+     * @return Mage_Directory_Model_Resource_Country_Collection
      */
     public function getCountries()
     {
@@ -107,14 +87,16 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
                 if (!$this->_address->getFirstname()) {
                     $this->_address->setFirstname($this->getQuote()->getCustomer()->getFirstname());
                 }
+
                 if (!$this->_address->getMiddlename()) {
                     $this->_address->setMiddlename($this->getQuote()->getCustomer()->getMiddlename());
                 }
+
                 if (!$this->_address->getLastname()) {
                     $this->_address->setLastname($this->getQuote()->getCustomer()->getLastname());
                 }
             } else {
-                $this->_address = Mage::getModel('sales/quote_address');
+                $this->_address = $this->getQuote()->getBillingAddress();
             }
         }
 
@@ -133,6 +115,7 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
         if (empty($firstname) && $this->getQuote()->getCustomer()) {
             return $this->getQuote()->getCustomer()->getFirstname();
         }
+
         return $firstname;
     }
 
@@ -148,6 +131,7 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
         if (empty($lastname) && $this->getQuote()->getCustomer()) {
             return $this->getQuote()->getCustomer()->getLastname();
         }
+
         return $lastname;
     }
 
@@ -155,7 +139,7 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
      * Return Customer Address Middle Name
      * If Sales Quote Address Middle Name is not defined - return Customer Middle Name
      *
-     * @return string | NULL
+     * @return null|string
      */
     public function getMiddlename()
     {
@@ -163,22 +147,21 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
         if (empty($middlename) && $this->getQuote()->getCustomer()) {
             return $this->getQuote()->getCustomer()->getMiddlename();
         }
+
         return $middlename;
     }
 
     /**
      * Check is Quote items can ship to
      *
-     * @return boolean
+     * @return bool
      */
     public function canShip()
     {
         return !$this->getQuote()->isVirtual();
     }
 
-    public function getSaveUrl()
-    {
-    }
+    public function getSaveUrl() {}
 
     /**
      * Get Customer Taxvat Widget block
@@ -188,7 +171,9 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
     protected function _getTaxvat()
     {
         if (!$this->_taxvat) {
-            $this->_taxvat = $this->getLayout()->createBlock('customer/widget_taxvat');
+            /** @var Mage_Customer_Block_Widget_Taxvat $block */
+            $block = $this->getLayout()->createBlock('customer/widget_taxvat');
+            $this->_taxvat = $block;
         }
 
         return $this->_taxvat;
@@ -204,6 +189,9 @@ class Mage_Checkout_Block_Onepage_Billing extends Mage_Checkout_Block_Onepage_Ab
         return $this->_getTaxvat()->isEnabled();
     }
 
+    /**
+     * @return string
+     */
     public function getTaxvatHtml()
     {
         return $this->_getTaxvat()

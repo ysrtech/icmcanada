@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Abstract block for display sales (quote/order/invoice etc.) items
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
  */
 class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
 {
@@ -41,11 +22,12 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
      *
      * @var array
      */
-    protected $_itemRenders = array();
+    protected $_itemRenders = [];
 
     /**
-     * Initialize default item renderer
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -55,18 +37,18 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
     /**
      * Add renderer for item product type
      *
-     * @param   string $type
-     * @param   string $block
-     * @param   string $template
-     * @return  Mage_Checkout_Block_Cart_Abstract
+     * @param  string $type
+     * @param  string $block
+     * @param  string $template
+     * @return $this
      */
     public function addItemRender($type, $block, $template)
     {
-        $this->_itemRenders[$type] = array(
+        $this->_itemRenders[$type] = [
             'block'     => $block,
             'template'  => $template,
-            'renderer'  => null
-        );
+            'renderer'  => null,
+        ];
 
         return $this;
     }
@@ -74,7 +56,7 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
     /**
      * Retrieve item renderer block
      *
-     * @param string $type
+     * @param  string                   $type
      * @return Mage_Core_Block_Abstract
      */
     public function getItemRenderer($type)
@@ -89,14 +71,14 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
                 ->setTemplate($this->_itemRenders[$type]['template'])
                 ->setRenderedBlock($this);
         }
+
         return $this->_itemRenders[$type]['renderer'];
     }
 
     /**
      * Prepare item before output
      *
-     * @param Mage_Core_Block_Abstract $renderer
-     * @return Mage_Sales_Block_Items_Abstract
+     * @return $this
      */
     protected function _prepareItem(Mage_Core_Block_Abstract $renderer)
     {
@@ -106,7 +88,6 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
     /**
      * Return product type for quote/order item
      *
-     * @param Varien_Object $item
      * @return string
      */
     protected function _getItemType(Varien_Object $item)
@@ -118,14 +99,14 @@ class Mage_Sales_Block_Items_Abstract extends Mage_Core_Block_Template
         } else {
             $type = $item->getProductType();
         }
+
         return $type;
     }
 
     /**
      * Get item row html
      *
-     * @param   Varien_Object $item
-     * @return  string
+     * @return string
      */
     public function getItemHtml(Varien_Object $item)
     {

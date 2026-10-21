@@ -1,41 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml sales orders creation process controller
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Controller_Action
 {
     /**
-     * Additional initialization
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -50,6 +30,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
      *
      * @return Mage_Adminhtml_Model_Session_Quote
      */
+    #[Override]
     protected function _getSession()
     {
         return Mage::getSingleton('adminhtml/session_quote');
@@ -88,7 +69,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
     /**
      * Initialize order creation session data
      *
-     * @return Mage_Adminhtml_Sales_Order_CreateController
+     * @return $this
      */
     protected function _initSession()
     {
@@ -97,6 +78,14 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
          */
         if ($customerId = $this->getRequest()->getParam('customer_id')) {
             $this->_getSession()->setCustomerId((int) $customerId);
+        }
+
+        /**
+         * Identify guest
+         */
+        if ($this->getRequest()->getParam('customer_is_guest')) {
+            $this->_getSession()->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
+            $this->_getSession()->setCustomerIsGuest(true);
         }
 
         /**
@@ -115,8 +104,10 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         }
 
         //Notify other modules about the session quote
-        Mage::dispatchEvent('create_order_session_quote_initialized',
-                array('session_quote' => $this->_getSession()));
+        Mage::dispatchEvent(
+            'create_order_session_quote_initialized',
+            ['session_quote' => $this->_getSession()],
+        );
 
         return $this;
     }
@@ -124,7 +115,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
     /**
      * Processing request data
      *
-     * @return Mage_Adminhtml_Sales_Order_CreateController
+     * @return $this
      */
     protected function _processData()
     {
@@ -134,16 +125,16 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
     /**
      * Process request data with additional logic for saving quote and creating order
      *
-     * @param string $action
-     * @return Mage_Adminhtml_Sales_Order_CreateController
+     * @param  string $action
+     * @return $this
      */
     protected function _processActionData($action = null)
     {
-        $eventData = array(
+        $eventData = [
             'order_create_model' => $this->_getOrderCreateModel(),
             'request_model'      => $this->getRequest(),
             'session'            => $this->_getSession(),
-        );
+        ];
 
         Mage::dispatchEvent('adminhtml_sales_order_create_process_data_before', $eventData);
 
@@ -151,8 +142,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
          * Saving order data
          */
         if ($data = $this->getRequest()->getPost('order')) {
-            if (
-                array_key_exists('comment', $data)
+            if (array_key_exists('comment', $data)
                 && array_key_exists('reserved_order_id', $data['comment'])
             ) {
                 unset($data['comment']['reserved_order_id']);
@@ -183,7 +173,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
             ) {
                 $this->_getOrderCreateModel()->setShippingAsBilling(1);
             } else {
-                $this->_getOrderCreateModel()->setShippingAsBilling((int)$syncFlag);
+                $this->_getOrderCreateModel()->setShippingAsBilling((int) $syncFlag);
             }
         }
 
@@ -191,18 +181,17 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
          * Change shipping address flag
          */
         if (!$this->_getOrderCreateModel()->getQuote()->isVirtual() && $this->getRequest()->getPost('reset_shipping')) {
-            $this->_getOrderCreateModel()->resetShippingMethod(true);
+            $this->_getOrderCreateModel()->resetShippingMethod();
         }
 
         /**
          * Collecting shipping rates
          */
-        if (!$this->_getOrderCreateModel()->getQuote()->isVirtual() &&
-            $this->getRequest()->getPost('collect_shipping_rates')
+        if (!$this->_getOrderCreateModel()->getQuote()->isVirtual()
+            && $this->getRequest()->getPost('collect_shipping_rates')
         ) {
             $this->_getOrderCreateModel()->collectShippingRates();
         }
-
 
         /**
          * Apply mass changes from sidebar
@@ -221,7 +210,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         /**
          * Adding products to quote from special grid
          */
-        if ($this->getRequest()->has('item') && !$this->getRequest()->getPost('update_items') && !($action == 'save')) {
+        if ($this->getRequest()->has('item') && !$this->getRequest()->getPost('update_items') && $action != 'save') {
             $items = $this->getRequest()->getPost('item');
             $items = $this->_processFiles($items);
             $this->_getOrderCreateModel()->addProducts($items);
@@ -231,7 +220,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
          * Update quote items
          */
         if ($this->getRequest()->getPost('update_items')) {
-            $items = $this->getRequest()->getPost('item', array());
+            $items = $this->getRequest()->getPost('item', []);
             $items = $this->_processFiles($items);
             $this->_getOrderCreateModel()->updateQuoteItems($items);
         }
@@ -258,10 +247,10 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
             $this->_getOrderCreateModel()->getQuote()->getPayment()->addData($paymentData);
         }
 
-        $eventData = array(
+        $eventData = [
             'order_create_model' => $this->_getOrderCreateModel(),
             'request'            => $this->getRequest()->getPost(),
-        );
+        ];
 
         Mage::dispatchEvent('adminhtml_sales_order_create_process_data', $eventData);
 
@@ -293,7 +282,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
          * Importing gift message allow items on update quote items
          */
         if ($this->getRequest()->getPost('update_items')) {
-            $items = $this->getRequest()->getPost('item', array());
+            $items = $this->getRequest()->getPost('item', []);
             $this->_getGiftmessageSaveModel()->importAllowQuoteItemsFromItems($items);
         }
 
@@ -302,10 +291,12 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         if (isset($data) && isset($data['coupon']['code'])) {
             $couponCode = trim($data['coupon']['code']);
         }
+
         if (!empty($couponCode)) {
             if ($this->_getQuote()->getCouponCode() !== $couponCode) {
                 $this->_getSession()->addError(
-                    $this->__('"%s" coupon code is not valid.', $this->_getHelper()->escapeHtml($couponCode)));
+                    $this->__('"%s" coupon code is not valid.', $this->_getHelper()->escapeHtml($couponCode)),
+                );
             } else {
                 $this->_getSession()->addSuccess($this->__('The coupon code has been accepted.'));
             }
@@ -317,26 +308,28 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
     /**
      * Process buyRequest file options of items
      *
-     * @param array $items
+     * @param  array $items
      * @return array
      */
     protected function _processFiles($items)
     {
-        /* @var $productHelper Mage_Catalog_Helper_Product */
+        /** @var Mage_Catalog_Helper_Product $productHelper */
         $productHelper = Mage::helper('catalog/product');
         foreach ($items as $id => $item) {
             $buyRequest = new Varien_Object($item);
-            $params = array('files_prefix' => 'item_' . $id . '_');
+            $params = ['files_prefix' => 'item_' . $id . '_'];
             $buyRequest = $productHelper->addParamsToBuyRequest($buyRequest, $params);
             if ($buyRequest->hasData()) {
                 $items[$id] = $buyRequest->toArray();
             }
         }
+
         return $items;
     }
 
     /**
      * Index page
+     * @return void
      */
     public function indexAction()
     {
@@ -347,7 +340,6 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         $this->_setActiveMenu('sales/order')
             ->renderLayout();
     }
-
 
     public function reorderAction()
     {
@@ -364,8 +356,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
             $this->_getOrderCreateModel()->initFromOrder($order);
 
             $this->_redirect('*/*');
-        }
-        else {
+        } else {
             $this->_redirect('*/sales_order/');
         }
     }
@@ -379,6 +370,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
 
     /**
      * Loading page block
+     * @return void
      */
     public function loadBlockAction()
     {
@@ -386,18 +378,15 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         try {
             $this->_initSession()
                 ->_processData();
-        }
-        catch (Mage_Core_Exception $e){
+        } catch (Mage_Core_Exception $mageCoreException) {
             $this->_reloadQuote();
-            $this->_getSession()->addError($e->getMessage());
-        }
-        catch (Exception $e){
+            $this->_getSession()->addError($mageCoreException->getMessage());
+        } catch (Exception $exception) {
             $this->_reloadQuote();
-            $this->_getSession()->addException($e, $e->getMessage());
+            $this->_getSession()->addException($exception, $exception->getMessage());
         }
 
-
-        $asJson= $request->getParam('json');
+        $asJson = $request->getParam('json');
         $block = $request->getParam('block');
 
         $update = $this->getLayout()->getUpdate();
@@ -409,7 +398,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
 
         if ($block) {
             $blocks = explode(',', $block);
-            if ($asJson && !in_array('message', $blocks)) {
+            if ($asJson && !in_array('message', $blocks, true)) {
                 $blocks[] = 'message';
             }
 
@@ -417,6 +406,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
                 $update->addHandle('adminhtml_sales_order_create_load_block_' . $block);
             }
         }
+
         $this->loadLayoutUpdates()->generateLayoutXml()->generateLayoutBlocks();
         $result = $this->getLayout()->getBlock('content')->toHtml();
         if ($request->getParam('as_js_varname')) {
@@ -429,6 +419,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
 
     /**
      * Adds configured product to quote
+     * @return void
      */
     public function addConfiguredAction()
     {
@@ -436,10 +427,9 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         try {
             $this->_initSession()
                 ->_processData();
-        }
-        catch (Exception $e){
+        } catch (Exception $exception) {
             $this->_reloadQuote();
-            $errorMessage = $e->getMessage();
+            $errorMessage = $exception->getMessage();
         }
 
         // Form result for client javascript
@@ -458,41 +448,40 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
 
     /**
      * Start order create action
+     * @return void
      */
     public function startAction()
     {
         $this->_getSession()->clear();
-        $this->_redirect('*/*', array('customer_id' => $this->getRequest()->getParam('customer_id')));
+        $this->_redirect('*/*', ['customer_id' => $this->getRequest()->getParam('customer_id')]);
     }
 
     /**
      * Cancel order create
+     * @return void
      */
     public function cancelAction()
     {
         if ($orderId = $this->_getSession()->getReordered()) {
             $this->_getSession()->clear();
-            $this->_redirect('*/sales_order/view', array(
-                'order_id'=>$orderId
-            ));
+            $this->_redirect('*/sales_order/view', [
+                'order_id' => $orderId,
+            ]);
         } else {
             $this->_getSession()->clear();
             $this->_redirect('*/*');
         }
-
     }
 
     /**
      * Saving quote and create order
-     *
-     * @throws Mage_Core_Exception
+     * @return void
      */
     public function saveAction()
     {
         try {
             $orderData = $this->getRequest()->getPost('order');
-            if (
-                array_key_exists('reserved_order_id', $orderData['comment'])
+            if (array_key_exists('reserved_order_id', $orderData['comment'])
                 && Mage::helper('adminhtml/sales')->hasTags($orderData['comment']['reserved_order_id'])
             ) {
                 Mage::throwException($this->__('Invalid order data.'));
@@ -518,73 +507,56 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
             $this->_getSession()->clear();
             Mage::getSingleton('adminhtml/session')->addSuccess($this->__('The order has been created.'));
             if (Mage::getSingleton('admin/session')->isAllowed('sales/order/actions/view')) {
-                $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
+                $this->_redirect('*/sales_order/view', ['order_id' => $order->getId()]);
             } else {
                 $this->_redirect('*/sales_order/index');
             }
-        } catch (Mage_Payment_Model_Info_Exception $e) {
+        } catch (Mage_Payment_Model_Info_Exception $magePaymentModelInfoException) {
             $this->_getOrderCreateModel()->saveQuote();
-            $message = $e->getMessage();
-            if( !empty($message) ) {
+            $message = $magePaymentModelInfoException->getMessage();
+            if (!empty($message)) {
                 $this->_getSession()->addError($message);
             }
+
             $this->_redirect('*/*/');
-        } catch (Mage_Core_Exception $e){
-            $message = $e->getMessage();
-            if( !empty($message) ) {
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $message = $mageCoreException->getMessage();
+            if (!empty($message)) {
                 $this->_getSession()->addError($message);
             }
+
             $this->_redirect('*/*/');
-        }
-        catch (Exception $e){
-            $this->_getSession()->addException($e, $this->__('Order saving error: %s', $e->getMessage()));
+        } catch (Exception $exception) {
+            $this->_getSession()->addException($exception, $this->__('Order saving error: %s', $exception->getMessage()));
             $this->_redirect('*/*/');
         }
     }
 
     /**
-     * Acl check for admin
-     *
-     * @return bool
+     * @inheritDoc
      */
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed($this->_getAclResourse());
-    }
-
-    /**
-     * Get acl resource
-     *
-     * @return string
-     */
-    protected function _getAclResourse()
+    #[Override]
+    protected function _isAllowed(): bool
     {
         $action = strtolower($this->getRequest()->getActionName());
-        if (in_array($action, array('index', 'save')) && $this->_getSession()->getReordered()) {
+        if (in_array($action, ['index', 'save'], true) && $this->_getSession()->getReordered()) {
             $action = 'reorder';
         }
-        switch ($action) {
-            case 'index':
-            case 'save':
-                $aclResource = 'sales/order/actions/create';
-                break;
-            case 'reorder':
-                $aclResource = 'sales/order/actions/reorder';
-                break;
-            case 'cancel':
-                $aclResource = 'sales/order/actions/cancel';
-                break;
-            default:
-                $aclResource = 'sales/order/actions';
-                break;
-        }
-        return $aclResource;
+
+        $aclPath = match ($action) {
+            'index', 'save' => 'sales/order/actions/create',
+            'reorder' => 'sales/order/actions/reorder',
+            'cancel' => 'sales/order/actions/cancel',
+            default => 'sales/order/actions',
+        };
+
+        return Mage::getSingleton('admin/session')->isAllowed($aclPath);
     }
 
-    /*
+    /**
      * Ajax handler to response configuration fieldset of composite product in order
      *
-     * @return Mage_Adminhtml_Sales_Order_CreateController
+     * @return $this
      */
     public function configureProductToAddAction()
     {
@@ -594,22 +566,23 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
         $configureResult = new Varien_Object();
         $configureResult->setOk(true);
         $configureResult->setProductId($productId);
+
         $sessionQuote = Mage::getSingleton('adminhtml/session_quote');
         $configureResult->setCurrentStoreId($sessionQuote->getStore()->getId());
         $configureResult->setCurrentCustomerId($sessionQuote->getCustomerId());
 
         // Render page
-        /* @var $helper Mage_Adminhtml_Helper_Catalog_Product_Composite */
+        /** @var Mage_Adminhtml_Helper_Catalog_Product_Composite $helper */
         $helper = Mage::helper('adminhtml/catalog_product_composite');
         $helper->renderConfigureResult($this, $configureResult);
 
         return $this;
     }
 
-    /*
+    /**
      * Ajax handler to response configuration fieldset of composite product in quote items
      *
-     * @return Mage_Adminhtml_Sales_Order_CreateController
+     * @return $this
      */
     public function configureQuoteItemsAction()
     {
@@ -628,7 +601,7 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
 
             $configureResult->setOk(true);
             $optionCollection = Mage::getModel('sales/quote_item_option')->getCollection()
-                    ->addItemFilter(array($quoteItemId));
+                    ->addItemFilter([$quoteItemId]);
             $quoteItem->setOptions($optionCollection->getOptionsByItem($quoteItem));
 
             $configureResult->setBuyRequest($quoteItem->getBuyRequest());
@@ -636,40 +609,41 @@ class Mage_Adminhtml_Sales_Order_CreateController extends Mage_Adminhtml_Control
             $configureResult->setProductId($quoteItem->getProductId());
             $sessionQuote = Mage::getSingleton('adminhtml/session_quote');
             $configureResult->setCurrentCustomerId($sessionQuote->getCustomerId());
-
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $configureResult->setError(true);
-            $configureResult->setMessage($e->getMessage());
+            $configureResult->setMessage($exception->getMessage());
         }
 
         // Render page
-        /* @var $helper Mage_Adminhtml_Helper_Catalog_Product_Composite */
+        /** @var Mage_Adminhtml_Helper_Catalog_Product_Composite $helper */
         $helper = Mage::helper('adminhtml/catalog_product_composite');
         $helper->renderConfigureResult($this, $configureResult);
 
         return $this;
     }
 
-
     /**
      * Show item update result from loadBlockAction
      * to prevent popup alert with resend data question
-     *
+     * @return null|false
      */
     public function showUpdateResultAction()
     {
         $session = Mage::getSingleton('adminhtml/session');
-        if ($session->hasUpdateResult() && is_scalar($session->getUpdateResult())){
+        if ($session->hasUpdateResult() && is_scalar($session->getUpdateResult())) {
             $this->getResponse()->setBody($session->getUpdateResult());
             $session->unsUpdateResult();
         } else {
             $session->unsUpdateResult();
             return false;
         }
+
+        return null;
     }
 
     /**
      * Process data and display index page
+     * @return void
      */
     public function processDataAction()
     {

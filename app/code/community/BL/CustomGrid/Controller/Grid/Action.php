@@ -77,21 +77,24 @@ class BL_CustomGrid_Controller_Grid_Action extends Mage_Adminhtml_Controller_Act
      * 
      * @param string $type Response type
      * @param array $additional Additional values
+     * @param bool $withMessages Whether session messages should be included in the response
      * @return array
      */
-    protected function _setActionJsonResponse($type, array $additional = array())
+    protected function _setActionJsonResponse($type, array $additional = array(), $withMessages = true)
     {
-        /** @var $messagesBlock BL_CustomGrid_Block_Messages */
-        $messagesBlock = $this->getLayout()->createBlock('customgrid/messages');
-        $messagesBlock->setIsAjaxMode(true);
-        $messagesBlock->setIncludeJsScript(false);
-        
         $values = $additional;
         $values['type'] = $type;
         
-        if ($this->_getBlcgSession()->hasMessages()) {
-            $values['blcgMessagesHtml'] = $messagesBlock->toHtml();
-            $values['blcgMessagesWrapperId'] = $messagesBlock->getAjaxModeWrapperId();
+        if ($withMessages) {
+            /** @var $messagesBlock BL_CustomGrid_Block_Messages */
+            $messagesBlock = $this->getLayout()->createBlock('customgrid/messages');
+            $messagesBlock->setIsAjaxMode(true);
+            $messagesBlock->setIncludeJsScript(false);
+            
+            if ($this->_getBlcgSession()->hasMessages()) {
+                $values['blcgMessagesHtml'] = $messagesBlock->toHtml();
+                $values['blcgMessagesWrapperId'] = $messagesBlock->getAjaxModeWrapperId();
+            }
         }
         
         /** @var $helper Mage_Core_Helper_Data */
@@ -104,22 +107,24 @@ class BL_CustomGrid_Controller_Grid_Action extends Mage_Adminhtml_Controller_Act
      * Set error JSON response
      * 
      * @param string $errorMessage Error message
+     * @param bool $withMessages Whether session messages should be included in the response
      * @return BL_CustomGrid_Controller_Grid_Action
      */
-    protected function _setActionErrorJsonResponse($errorMessage)
+    protected function _setActionErrorJsonResponse($errorMessage, $withMessages = true)
     {
-        return $this->_setActionJsonResponse('error', array('message' => $errorMessage));
+        return $this->_setActionJsonResponse('error', array('message' => $errorMessage), $withMessages);
     }
     
     /**
      * Set success JSON response
      * 
      * @param array $additional Additional values
+     * @param bool $withMessages Whether session messages should be included in the response 
      * @return BL_CustomGrid_Controller_Grid_Action
      */
-    protected function _setActionSuccessJsonResponse(array $additional = array())
+    protected function _setActionSuccessJsonResponse(array $additional = array(), $withMessages = true)
     {
-        return $this->_setActionJsonResponse('success', $additional);
+        return $this->_setActionJsonResponse('success', $additional, $withMessages);
     }
     
     /**
@@ -147,6 +152,8 @@ class BL_CustomGrid_Controller_Grid_Action extends Mage_Adminhtml_Controller_Act
     /**
      * Initialize and register the grid profile from the current request
      * 
+     * @param bool $temporary Whether the grid profile should not be set as the active grid profile
+     * @param bool $baseIfNone Whether the base profile should be used if no profile is set on the current request
      * @return BL_CustomGrid_Model_Grid_Profile
      */
     protected function _initGridProfile($temporary = true, $baseIfNone = false)
@@ -190,5 +197,138 @@ class BL_CustomGrid_Controller_Grid_Action extends Mage_Adminhtml_Controller_Act
             unset($data['use_config']);
         }
         return $this;
+    }
+    
+    /**
+     * Initialize the current grid model and profile, check the given permissions,
+     * then prepare the layout for a window form
+     * 
+     * @param string $formHandle Form page layout handle
+     * @param string $errorHandle Error page layout handle
+     * @param string $errorBlockName Error message block name
+     * @param string|array $permissions Required user permission(s)
+     * @param bool $anyPermission Whether all the given permissions are required, or just any of them
+     * @param array $handles Layout handles
+     * @return BL_CustomGrid_Controller_Grid_Action
+     */
+    protected function _initWindowFormLayout(
+        $formHandle,
+        $errorHandle,
+        $errorBlockName,
+        $permissions = null,
+        $anyPermission = true,
+        array $handles = array('blcg_empty')
+    ) {
+        $error = false;
+        
+        try {
+            $gridModel = $this->_initGridModel();
+            $this->_initGridProfile();
+            
+            if (!is_null($permissions)) {
+                if (!$gridModel->checkUserPermissions($permissions, null, $anyPermission)) {
+                    Mage::throwException($this->__('You are not allowed to use this action'));
+                }
+            }
+            
+            $handles[] = $formHandle;
+        } catch (Mage_Core_Exception $e) {
+            $handles[] = $errorHandle;
+            $error = $e->getMessage();
+        }
+        
+        $this->loadLayout($handles);
+        
+        if ($error !== false) {
+            if ($errorBlock = $this->getLayout()->getBlock($errorBlockName)) {
+                /** @var $errorBlock Mage_Adminhtml_Block_Template */
+                $errorBlock->setErrorText($error);
+            }
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Initialize the current grid model and profile, check the given permissions,
+     * then prepare the layout for the given window grid form type
+     *
+     * @param string $formType Form type
+     * @param array $formData Form data
+     * @param string|array $permissions Required user permission(s)
+     * @param bool $anyPermission Whether all the given permissions are required, or just any of them
+     * @param array $handles Layout handles
+     * @return BL_CustomGrid_Blcg_GridController
+     */
+    protected function _prepareWindowGridFormLayout(
+        $formType,
+        array $formData,
+        $permissions = null,
+        $anyPermission = true,
+        array $handles = array('blcg_empty')
+    ) {
+        $this->_initWindowFormLayout(
+            'adminhtml_blcg_grid_form_window_action',
+            'adminhtml_blcg_grid_form_window_error',
+            'blcg.grid.form_error',
+            $permissions,
+            $anyPermission,
+            $handles
+        );
+        
+        if ($containerBlock = $this->getLayout()->getBlock('blcg.grid.form_container')) {
+            /** @var $containerBlock BL_CustomGrid_Block_Grid_Form_Container */
+            $containerBlock->setFormData($formData)->setFormType($formType);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Initialize the current grid model and profile, check the given permissions,
+     * then prepare the layout for the given profile action
+     *
+     * @param string $actionCode Profile action
+     * @param string|array $permissions Required user permission(s)
+     * @param bool $anyPermission Whether all the given permissions are required, or just one of them
+     * @return BL_CustomGrid_Blcg_Grid_ProfileController
+     */
+    protected function _prepareWindowProfileFormLayout($actionCode, $permissions = null, $anyPermission = true)
+    {
+        $this->_initWindowFormLayout(
+            'adminhtml_blcg_grid_profile_form_window_action',
+            'adminhtml_blcg_grid_profile_form_window_error',
+            'blcg.grid_profile.form_error',
+            $permissions,
+            $anyPermission
+        );
+        
+        if (($gridProfile = Mage::registry('blcg_grid_profile'))
+            && ($containerBlock = $this->getLayout()->getBlock('blcg.grid_profile.form_container'))) {
+            /**
+             * @var BL_CustomGrid_Model_Grid_Profile $gridProfile
+             * @var BL_CustomGrid_Block_Grid_Profile_Form_Container $containerBlock
+             */
+            $containerBlock->setProfileId($gridProfile->getId())->setActionCode($actionCode);
+        }
+        
+        return $this;
+    }
+    
+    /**
+     * Validate that one or more values were selected for a mass-action,
+     * otherwise force a redirect to the index action
+     *
+     * @param string $requestKey Values request key
+     * @return bool
+     */
+    protected function _validateMassActionValues($requestKey)
+    {
+        if (!is_array($this->getRequest()->getParam($requestKey, null))) {
+            $this->_getSession()->addError($this->__('Please select values to update'));
+            $this->_redirect('*/*/', array('_current' => true));
+            return false;
+        }
+        return true;
     }
 }

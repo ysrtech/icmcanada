@@ -1,70 +1,53 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Sales module base helper
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
  */
 class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
 {
     /**
      * Maximum available number
      */
-    const MAXIMUM_AVAILABLE_NUMBER = 99999999;
+    public const MAXIMUM_AVAILABLE_NUMBER = 99999999;
 
     /**
      * Default precision for price calculations
      */
-    const PRECISION_VALUE = 0.0001;
+    public const PRECISION_VALUE = 0.0001;
+
+    protected $_moduleName = 'Mage_Sales';
 
     /**
      * Check quote amount
      *
-     * @param Mage_Sales_Model_Quote $quote
-     * @param decimal $amount
-     * @return Mage_Sales_Helper_Data
+     * @param  float $amount
+     * @return $this
      */
     public function checkQuoteAmount(Mage_Sales_Model_Quote $quote, $amount)
     {
-        if (!$quote->getHasError() && ($amount>=self::MAXIMUM_AVAILABLE_NUMBER)) {
+        if (!$quote->getHasError() && ($amount >= self::MAXIMUM_AVAILABLE_NUMBER)) {
             $quote->setHasError(true);
             $quote->addMessage(
-                $this->__('Items maximum quantity or price do not allow checkout.')
+                $this->__('Items maximum quantity or price do not allow checkout.'),
             );
         }
+
         return $this;
     }
 
     /**
      * Check allow to send new order confirmation email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendNewOrderConfirmationEmail($store = null)
@@ -75,7 +58,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send new order email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendNewOrderEmail($store = null)
@@ -86,7 +69,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send order comment email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendOrderCommentEmail($store = null)
@@ -97,7 +80,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send new shipment email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendNewShipmentEmail($store = null)
@@ -108,7 +91,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send shipment comment email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendShipmentCommentEmail($store = null)
@@ -119,7 +102,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send new invoice email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendNewInvoiceEmail($store = null)
@@ -130,7 +113,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send invoice comment email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendInvoiceCommentEmail($store = null)
@@ -141,7 +124,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send new creditmemo email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendNewCreditmemoEmail($store = null)
@@ -152,7 +135,7 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Check allow to send creditmemo comment email
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function canSendCreditmemoCommentEmail($store = null)
@@ -163,15 +146,16 @@ class Mage_Sales_Helper_Data extends Mage_Core_Helper_Data
     /**
      * Get old field map
      *
-     * @param string $entityId
+     * @param  string $entityId
      * @return array
      */
     public function getOldFieldMap($entityId)
     {
         $node = Mage::getConfig()->getNode('global/sales/old_fields_map/' . $entityId);
         if ($node === false) {
-            return array();
+            return [];
         }
+
         return (array) $node;
     }
 }

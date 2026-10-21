@@ -1,58 +1,41 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Dataflow
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+declare(strict_types=1);
+
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Dataflow
+ */
 
 /**
  * DataFlow Session Model
  *
- * @method Mage_Dataflow_Model_Resource_Session _getResource()
- * @method Mage_Dataflow_Model_Resource_Session getResource()
- * @method int getUserId()
- * @method Mage_Dataflow_Model_Session setUserId(int $value)
- * @method string getCreatedDate()
- * @method Mage_Dataflow_Model_Session setCreatedDate(string $value)
- * @method string getFile()
- * @method Mage_Dataflow_Model_Session setFile(string $value)
- * @method string getType()
- * @method Mage_Dataflow_Model_Session setType(string $value)
- * @method string getDirection()
- * @method Mage_Dataflow_Model_Session setDirection(string $value)
- * @method string getComment()
- * @method Mage_Dataflow_Model_Session setComment(string $value)
+ * @package    Mage_Dataflow
  *
- * @category    Mage
- * @package     Mage_Dataflow
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Dataflow_Model_Resource_Session _getResource()
+ * @method string                               getComment()
+ * @method string                               getCreatedDate()
+ * @method string                               getDirection()
+ * @method string                               getFile()
+ * @method Mage_Dataflow_Model_Resource_Session getResource()
+ * @method string                               getType()
+ * @method int                                  getUserId()
+ * @method $this                                setComment(string $value)
+ * @method $this                                setCreatedDate(string $value)
+ * @method $this                                setDirection(string $value)
+ * @method $this                                setFile(string $value)
+ * @method $this                                setType(string $value)
+ * @method $this                                setUserId(int $value)
  */
 class Mage_Dataflow_Model_Session extends Mage_Core_Model_Abstract
 {
-
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('dataflow/session');
     }
-
 }

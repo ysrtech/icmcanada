@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogInventory
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogInventory
+ */
 
 /**
  * Stock item collection resource model
  *
- * @category    Mage
- * @package     Mage_CatalogInventory
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_CatalogInventory
  */
 class Mage_CatalogInventory_Model_Resource_Stock_Item_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -46,8 +25,8 @@ class Mage_CatalogInventory_Model_Resource_Stock_Item_Collection extends Mage_Co
     /**
      * Add stock filter to collection
      *
-     * @param mixed $stock
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @param  mixed $stock
+     * @return $this
      */
     public function addStockFilter($stock)
     {
@@ -56,48 +35,47 @@ class Mage_CatalogInventory_Model_Resource_Stock_Item_Collection extends Mage_Co
         } else {
             $this->addFieldToFilter('main_table.stock_id', $stock);
         }
+
         return $this;
     }
 
     /**
      * Add product filter to collection
      *
-     * @param array $products
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @param  array|Mage_Catalog_Model_Resource_Product_Collection $products
+     * @return $this
      */
     public function addProductsFilter($products)
     {
-        $productIds = array();
+        $productIds = [];
         foreach ($products as $product) {
-            if ($product instanceof Mage_Catalog_Model_Product) {
-                $productIds[] = $product->getId();
-            } else {
-                $productIds[] = $product;
-            }
+            $productIds[] = $product instanceof Mage_Catalog_Model_Product ? $product->getId() : $product;
         }
-        if (empty($productIds)) {
+
+        if ($productIds === []) {
             $productIds[] = false;
             $this->_setIsLoaded(true);
         }
-        $this->addFieldToFilter('main_table.product_id', array('in' => $productIds));
+
+        $this->addFieldToFilter('main_table.product_id', ['in' => $productIds]);
         return $this;
     }
 
     /**
      * Join Stock Status to collection
      *
-     * @param int $storeId
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @param  int   $storeId
+     * @return $this
      */
     public function joinStockStatus($storeId = null)
     {
         $websiteId = Mage::app()->getStore($storeId)->getWebsiteId();
         $this->getSelect()->joinLeft(
-            array('status_table' => $this->getTable('cataloginventory/stock_status')),
-                'main_table.product_id=status_table.product_id'
+            ['status_table' => $this->getTable('cataloginventory/stock_status')],
+            'main_table.product_id=status_table.product_id'
                 . ' AND main_table.stock_id=status_table.stock_id'
                 . $this->getConnection()->quoteInto(' AND status_table.website_id=?', $websiteId),
-            array('stock_status')
+            ['stock_status'],
         );
 
         return $this;
@@ -106,8 +84,8 @@ class Mage_CatalogInventory_Model_Resource_Stock_Item_Collection extends Mage_Co
     /**
      * Add Managed Stock products filter to collection
      *
-     * @param boolean $isStockManagedInConfig
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @param  bool  $isStockManagedInConfig
+     * @return $this
      */
     public function addManagedFilter($isStockManagedInConfig)
     {
@@ -123,41 +101,40 @@ class Mage_CatalogInventory_Model_Resource_Stock_Item_Collection extends Mage_Co
     /**
      * Add filter by quantity to collection
      *
-     * @param string $comparsionMethod
-     * @param float $qty
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @param  string $comparsionMethod
+     * @param  float  $qty
+     * @return $this
      */
     public function addQtyFilter($comparsionMethod, $qty)
     {
-        $methods = array(
+        $methods = [
             '<'  => 'lt',
             '>'  => 'gt',
             '='  => 'eq',
             '<=' => 'lteq',
             '>=' => 'gteq',
-            '<>' => 'neq'
-        );
+            '<>' => 'neq',
+        ];
         if (!isset($methods[$comparsionMethod])) {
             Mage::throwException(
-                Mage::helper('cataloginventory')->__('%s is not a correct comparsion method.', $comparsionMethod)
+                Mage::helper('cataloginventory')->__('%s is not a correct comparsion method.', $comparsionMethod),
             );
         }
 
-        return $this->addFieldToFilter('main_table.qty', array($methods[$comparsionMethod] => $qty));
+        return $this->addFieldToFilter('main_table.qty', [$methods[$comparsionMethod] => $qty]);
     }
 
     /**
-     * Initialize select object
-     *
-     * @return Mage_CatalogInventory_Model_Resource_Stock_Item_Collection
+     * @inheritDoc
      */
+    #[Override]
     protected function _initSelect()
     {
         return parent::_initSelect()->getSelect()
             ->join(
-                array('cp_table' => $this->getTable('catalog/product')),
+                ['cp_table' => $this->getTable('catalog/product')],
                 'main_table.product_id = cp_table.entity_id',
-                array('type_id')
+                ['type_id'],
             );
     }
 }

@@ -143,7 +143,7 @@ abstract class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Sales_Items_Custo
      * Return the items collection for the given renderable value
      * 
      * @param Varien_Object $value Renderable value
-     * @return Mage_Core_Model_Mysql4_Collection_Abstract
+     * @return Mage_Core_Model_Resource_Db_Collection_Abstract
      */
     protected function _getItemsCollection(Varien_Object $value)
     {

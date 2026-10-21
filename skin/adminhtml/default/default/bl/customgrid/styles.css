@@ -11,7 +11,9 @@
  */
 
 /* GLOBAL STYLES */
-
+#blcg_window_content {
+    height: 100% !important;
+}
 .blcg-clearer { clear:both; }
 .blcg-tooltip { padding:4px 8px; background:#fff; border:1px solid #000; }
 .blcg-no-display { display:none !important; }
@@ -156,6 +158,20 @@ div.blcg-collapseable a.open { background:url(images/collapse_arrow_up.png) 100%
 
 .blcg-grid-profiles-bar-button.blcg-disabled:hover,
 .blcg-grid-profiles-bar-button.blcg-disabled:active { color:#ddd; background:none; }
+
+/* The profile bar buttons draw their icons as Font Awesome codepoints (see the
+   content: "\fXXX" rules below). The font used to come from
+   //maxcdn.bootstrapcdn.com, which no longer serves it, leaving every button
+   blank. It is vendored under fonts/ now - see fonts/README.md. Only the font
+   is needed, not Font Awesome's stylesheet. */
+@font-face {
+    font-family:FontAwesome;
+    src:url(fonts/fontawesome-webfont.woff2) format("woff2"),
+        url(fonts/fontawesome-webfont.woff) format("woff");
+    font-weight:normal;
+    font-style:normal;
+    font-display:block;
+}
 
 .blcg-grid-profiles-bar-button > span:before {
     display:inline-block;
@@ -340,8 +356,8 @@ div.blcg-collapseable a.open { background:url(images/collapse_arrow_up.png) 100%
 .blcg-column-editor-editing .blcg-editor-required-marker { display:none; }
 .grid table td.blcg-column-editor-editing-required { background:#ffdcdc !important; }
 .blcg-editor-scope-label { font-size:0.9em; }
-.customgrid-custom-grid-editor-edit { background:#fff; }
-.customgrid-custom-grid-editor-edit .middle { min-height:0; background:none; }
+.adminhtml-blcg-grid-editor-form { background:#fff; }
+.adminhtml-blcg-grid-editor-form .middle { min-height:0; background:none; }
 
 /* COLUMNS RENDERERS */
 
@@ -437,6 +453,100 @@ div.blcg-collapseable a.open { background:url(images/collapse_arrow_up.png) 100%
 .entry-edit .fieldset.blcg-editor-fieldset { border-top:0; border-color:#666; }
 .blcg-popup-window .blcg_message .messages { margin:12px 0 0; }
 
+.dialog.blcg-maximized-popup-window {
+    position:fixed !important;
+    left:0 !important;
+    right:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+    width:auto !important;
+    height:auto !important;
+}
+
+/* The remaining height is the one left by the title bar (28px) and the status bar (15px) */
+.dialog.blcg-maximized-popup-window table.table_window.mid {
+    width:100% !important;
+    height:100% !important;
+    height:-moz-calc(100% - 43px) !important;
+    height:-o-calc(100% - 43px) !important;
+    height:-webkit-calc(100% - 43px) !important;
+    height:calc(100% - 43px) !important;
+}
+
+.dialog.blcg-maximized-popup-window td.blcg_content { overflow:hidden !important; height:100% !important; }
+.dialog.blcg-maximized-popup-window td.blcg_content > iframe { width:100% !important; height:100% !important; }
+.dialog.blcg-maximized-popup-window td.blcg_content > div.blcg_content { height:100% !important; overflow:auto !important; }
+.adminhtml-blcg-grid-columnslistform { background:#fff; }
+
+/**
+ * Form pages displayed inside a window : their content must use the whole height of the window.
+ * Those pages are matched through the body class that Mage_Adminhtml_Block_Page adds by itself,
+ * so that no layout action is needed to mark them.
+ */
+.adminhtml-blcg-grid-columnslistform,
+.adminhtml-blcg-grid-columnslistform .wrapper,
+.adminhtml-blcg-grid-columnslistform .wrapper-popup,
+.adminhtml-blcg-grid-columnslistform .middle,
+.adminhtml-blcg-grid-editor-form,
+.adminhtml-blcg-grid-editor-form .wrapper,
+.adminhtml-blcg-grid-editor-form .wrapper-popup,
+.adminhtml-blcg-grid-editor-form .middle {
+    box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    min-height:100vh;
+}
+
+.adminhtml-blcg-grid-columnslistform,
+.adminhtml-blcg-grid-editor-form { margin:0; }
+
+/* SEARCHABLE DROPDOWNS */
+
+.blcg-searchable-select { position:relative; }
+.blcg-searchable-select-block { display:block; }
+.blcg-searchable-select-inline { display:inline-block; vertical-align:top; min-width:130px; }
+
+.blcg-searchable-select .blcg-searchable-select-search {
+    position:relative;
+    display:block;
+    margin:0 0 2px;
+}
+
+.blcg-searchable-select input.blcg-searchable-select-input {
+    width:100%;
+    height:18px;
+    margin:0;
+    padding:1px 32px 1px 4px;
+    box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    border:1px solid #b6b6b6;
+    background:#fff;
+    color:#2f2f2f;
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:11px;
+    line-height:14px;
+}
+
+.blcg-searchable-select input.blcg-searchable-select-input:focus { border-color:#5b8bbd; }
+
+.blcg-searchable-select .blcg-searchable-select-counter {
+    position:absolute;
+    right:4px;
+    top:0;
+    line-height:18px;
+    color:#888;
+    font-size:10px;
+    pointer-events:none;
+}
+
+.blcg-searchable-select-no-result input.blcg-searchable-select-input { border-color:#d40707; background:#fff7f7; }
+.blcg-searchable-select-no-result .blcg-searchable-select-counter { color:#d40707; }
+.blcg-searchable-select option.blcg-searchable-select-no-result-option { color:#888; font-style:italic; }
+
+tr.filter .blcg-searchable-select select.blcg-searchable-select-enhanced { width:100%; }
+.blcg-searchable-select-inline select.blcg-searchable-select-enhanced { min-width:100%; }
+
 /* SPECIFIC STYLES */
 
 #sales_order_grid .grid .order-tables tr.headings,
@@ -450,3 +560,105 @@ div.blcg-collapseable a.open { background:url(images/collapse_arrow_up.png) 100%
 
 #customgrid_global.config .note { width:100%; min-width:268px; }
 #customgrid_rewriters_file.config .comment span { font-family:Courier New,Courier,Arial,Helvetica,sans-serif; }
+/* Searchable dropdown - see js/bl/customgrid/select-widget.js. One control that
+   opens a panel holding the search field and the options, used for both
+   single-value and multiple-selection fields, in the grid filter row and in the
+   admin forms named in the module's configuration. */
+.blcg-select { position:relative; display:inline-block; vertical-align:top; min-width:260px; max-width:100%; }
+
+.blcg-select-control {
+    box-sizing:border-box; position:relative; width:100%; min-height:26px;
+    padding:3px 20px 3px 6px; border:1px solid #ccc; background:#fff; cursor:pointer;
+    font-size:12px; line-height:18px; color:#333;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* A dropdown holding no value reads as a prompt rather than as a choice */
+.blcg-select.blcg-select-is-empty .blcg-select-control { color:#8f8f8f; font-style:italic; }
+
+/* The caret, drawn rather than fetched: half a border box, turned 45 degrees.
+   Absolute, so an empty control keeps the height of the inputs beside it
+   instead of collapsing to its padding. */
+.blcg-select-arrow {
+    position:absolute; top:50%; right:7px; margin-top:-4px;
+    width:4px; height:4px; border:solid grey; border-width:0 2px 2px 0;
+    transform:rotate(45deg); pointer-events:none;
+}
+.blcg-select-open .blcg-select-arrow { margin-top:-1px; transform:rotate(-135deg); }
+
+.blcg-select-panel {
+    display:none; position:absolute; top:100%; left:0; z-index:500;
+    min-width:100%; max-width:460px; margin-top:1px;
+    background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.blcg-select-open .blcg-select-panel { display:block; }
+
+.blcg-select-search {
+    display:flex; align-items:center;
+    border-bottom:1px solid #e1e1e1; background:#fafafa;
+}
+.blcg-select-search input {
+    flex:1 1 auto; box-sizing:border-box; width:100%; min-width:0;
+    padding:5px 8px; border:0; background:transparent;
+    font-family:inherit; font-size:12px;
+}
+/* Offered only once the typed term has ruled every option out */
+.blcg-select-add {
+    flex:0 0 auto; padding:0 8px; font-size:11px; line-height:16px;
+    white-space:nowrap; text-decoration:underline;
+}
+
+.blcg-select-actions { padding:4px 9px; border-bottom:1px solid #e1e1e1; font-size:11px; }
+.blcg-select-options { max-height:280px; overflow-y:auto; margin:0; padding:0; list-style:none; }
+
+.blcg-select-option { margin:0; padding:0; }
+.blcg-select-option > span,
+.blcg-select-option label {
+    display:block; padding:4px 9px;
+    font-family:inherit; font-size:12px; font-weight:normal; line-height:16px;
+    white-space:nowrap; cursor:pointer;
+}
+.blcg-select-option > span:hover,
+.blcg-select-option label:hover { background:#eee; }
+.blcg-select-option input { margin:0 6px 0 0; vertical-align:middle; }
+/* Single-value fields have no tick to show which row is the current one */
+.blcg-select:not(.blcg-select-multiple) .blcg-select-is-selected > span { font-weight:bold; background:#f4f4f4; }
+
+/* Form context: the admin's own selects in a form row are 330px wide, and a
+   widget beside them at its default width reads as a different kind of field. */
+.blcg-select-form { min-width:330px; }
+
+/* Filter row context: size to the cell, and sit above the grid header, which
+   carries its own stacking context. */
+tr.filter .blcg-select { min-width:0; width:100%; }
+tr.filter .blcg-select-control { border-radius:3px; }
+tr.filter .blcg-select-panel { border-radius:3px; }
+
+/* Prototype's Validation.isVisible() walks up from a field and treats a
+   display:none one as absent, skipping every rule on it - which would silently
+   switch off required-entry validation for any form field replaced here. So
+   this cannot be display:none, but it can be taken out of the flow: that test
+   is Element.visible(), which reads display and nothing else, so an absolutely
+   positioned select still validates.
+
+   Out of flow rather than one transparent pixel: an inline pixel still sits in
+   the line box beside the widget and pushes the row it is in down. With no
+   offsets given it stays at its static position, so it takes no space and
+   moves nothing, and the validator still finds it where it expects to anchor
+   its advice. */
+select.blcg-select-source {
+    display:inline-block !important;
+    position:absolute !important;
+    width:1px !important; height:1px !important; min-width:0 !important;
+    padding:0 !important; margin:0 !important; border:0 !important;
+    opacity:0; pointer-events:none;
+}
+
+/* In a grid filter it can go altogether. Nothing validates a filter row - the
+   only Validation the grid builds is over the massaction form below it, which
+   is outside tr.filter - and the widget is only ever applied here through the
+   "tr.filter select" selector in config.js. display:none is the one value no
+   theme's own button or select rules can put back into the flow, so the filter
+   row gets it and the forms keep the rule above. */
+tr.filter select.blcg-select-source {
+    display:none !important;
+}

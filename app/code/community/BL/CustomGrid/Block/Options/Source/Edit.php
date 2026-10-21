@@ -61,7 +61,7 @@ function setSettings(urlTemplate, typeElement)
         $optionsSource = $this->getOptionsSource();
         
         if ($optionsSource->getId()) {
-            $headerText = $this->htmlEscape($optionsSource->getName());
+            $headerText = $this->escapeHtml($optionsSource->getName());
         } else {
             $headerText = $this->__('New Options Source');
         }

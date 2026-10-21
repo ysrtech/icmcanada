@@ -1,39 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * List of customers tagged a product
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method int getProductId()
  */
-
 class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Tag_Customer extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_catalog_product_edit_tab_tag_customer';
+
     public function __construct()
     {
         parent::__construct();
@@ -43,9 +27,13 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Tag_Customer extends Mage_Ad
         $this->setUseAjax(true);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        if (Mage::helper('catalog')->isModuleEnabled('Mage_Tag')) {
+        if ($this->isModuleEnabled('Mage_Tag', 'catalog')) {
             $collection = Mage::getModel('tag/tag')
                 ->getCustomerCollection()
                 ->addProductFilter($this->getProductId())
@@ -54,55 +42,61 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Tag_Customer extends Mage_Ad
 
             $this->setCollection($collection);
         }
+
         return parent::_prepareCollection();
     }
 
-    protected function _afterLoadCollection()
-    {
-        return parent::_afterLoadCollection();
-    }
-
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('firstname', array(
+        $this->addColumn('firstname', [
             'header'    => Mage::helper('catalog')->__('First Name'),
             'index'     => 'firstname',
-        ));
+        ]);
 
-        $this->addColumn('middlename', array(
+        $this->addColumn('middlename', [
             'header'        => Mage::helper('catalog')->__('Middle Name'),
             'index'         => 'middlename',
-        ));
+        ]);
 
-        $this->addColumn('lastname', array(
+        $this->addColumn('lastname', [
             'header'        => Mage::helper('catalog')->__('Last Name'),
             'index'         => 'lastname',
-        ));
+        ]);
 
-        $this->addColumn('email', array(
+        $this->addColumn('email', [
             'header'        => Mage::helper('catalog')->__('Email'),
             'index'         => 'email',
-        ));
+        ]);
 
-        $this->addColumn('name', array(
+        $this->addColumn('name', [
             'header'        => Mage::helper('catalog')->__('Tag Name'),
             'index'         => 'name',
-        ));
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/customer/edit', array('id' => $row->getCustomerId()));
+        return $this->getUrl('*/customer/edit', ['id' => $row->getEntityId()]);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/catalog_product/tagCustomerGrid', array(
+        return $this->getUrl('*/catalog_product/tagCustomerGrid', [
             '_current' => true,
             'id'       => $this->getProductId(),
             'product_id' => $this->getProductId(),
-        ));
+        ]);
     }
 }

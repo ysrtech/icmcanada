@@ -1,42 +1,29 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
- *
  * PayPal Standard Checkout Module
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
 class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
 {
     protected $_code  = Mage_Paypal_Model_Config::METHOD_WPS;
+
     protected $_formBlockType = 'paypal/standard_form';
+
     protected $_infoBlockType = 'paypal/payment_info';
+
     protected $_isInitializeNeeded      = true;
+
     protected $_canUseInternal          = false;
+
     protected $_canUseForMultishipping  = false;
 
     /**
@@ -48,15 +35,16 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
     /**
      * Whether method is available for specified currency
      *
-     * @param string $currencyCode
+     * @param  string $currencyCode
      * @return bool
      */
+    #[Override]
     public function canUseForCurrency($currencyCode)
     {
         return $this->getConfig()->isCurrencyCodeSupported($currencyCode);
     }
 
-     /**
+    /**
      * Get paypal session namespace
      *
      * @return Mage_Paypal_Model_Session
@@ -88,16 +76,13 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
 
     /**
      * Create main block for standard form
-     *
      */
     public function createFormBlock($name)
     {
-        $block = $this->getLayout()->createBlock('paypal/standard_form', $name)
+        return $this->getLayout()->createBlock('paypal/standard_form', $name)
             ->setMethod('paypal_standard')
             ->setPayment($this->getPayment())
             ->setTemplate('paypal/standard/form.phtml');
-
-        return $block;
     }
 
     /**
@@ -107,7 +92,7 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
      */
     public function getOrderPlaceRedirectUrl()
     {
-          return Mage::getUrl('paypal/standard/redirect', array('_secure' => true));
+        return Mage::getUrl('paypal/standard/redirect', ['_secure' => true]);
     }
 
     /**
@@ -119,7 +104,7 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
     {
         $orderIncrementId = $this->getCheckout()->getLastRealOrderId();
         $order = Mage::getModel('sales/order')->loadByIncrementId($orderIncrementId);
-        /* @var $api Mage_Paypal_Model_Api_Standard */
+        /** @var Mage_Paypal_Model_Api_Standard $api */
         $api = Mage::getModel('paypal/api_standard')->setConfigObject($this->getConfig());
         $api->setOrderId($orderIncrementId)
             ->setCurrencyCode($order->getBaseCurrencyCode())
@@ -139,26 +124,28 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
         }
 
         // add cart totals and line items
-        $api->setPaypalCart(Mage::getModel('paypal/cart', array($order)))
+        $api->setPaypalCart(Mage::getModel('paypal/cart', [$order]))
             ->setIsLineItemsEnabled($this->_config->lineItemsEnabled)
         ;
         $api->setCartSummary($this->_getAggregatedCartSummary());
         $api->setLocale($api->getLocaleCode());
-        $result = $api->getStandardCheckoutRequest();
-        return $result;
+        return $api->getStandardCheckoutRequest();
     }
 
     /**
      * Instantiate state and set it to state object
-     * @param string $paymentAction
-     * @param Varien_Object
+     * @param string        $paymentAction
+     * @param Varien_Object $stateObject
      */
+    #[Override]
     public function initialize($paymentAction, $stateObject)
     {
         $state = Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
         $stateObject->setState($state);
         $stateObject->setStatus('pending_payment');
         $stateObject->setIsNotified(false);
+
+        return $this;
     }
 
     /**
@@ -167,36 +154,34 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
      */
     public function getConfig()
     {
-        if (null === $this->_config) {
-            $params = array($this->_code);
+        if ($this->_config === null) {
+            $params = [$this->_code];
             if ($store = $this->getStore()) {
                 $params[] = is_object($store) ? $store->getId() : $store;
             }
+
             $this->_config = Mage::getModel('paypal/config', $params);
         }
+
         return $this->_config;
     }
 
     /**
      * Check whether payment method can be used
-     * @param Mage_Sales_Model_Quote
+     * @param  null|Mage_Sales_Model_Quote $quote
      * @return bool
      */
+    #[Override]
     public function isAvailable($quote = null)
     {
-        if (parent::isAvailable($quote) && $this->getConfig()->isMethodAvailable()) {
-            return true;
-        }
-        return false;
+        return parent::isAvailable($quote) && $this->getConfig()->isMethodAvailable();
     }
 
     /**
-     * Custom getter for payment configuration
-     *
-     * @param string $field
-     * @param int $storeId
-     * @return mixed
+     * @inheritDoc
+     * @SuppressWarnings("PHPMD.UnusedFormalParameter")
      */
+    #[Override]
     public function getConfigData($field, $storeId = null)
     {
         return $this->getConfig()->$field;
@@ -212,6 +197,7 @@ class Mage_Paypal_Model_Standard extends Mage_Payment_Model_Method_Abstract
         if ($this->_config->lineItemsSummary) {
             return $this->_config->lineItemsSummary;
         }
+
         return Mage::app()->getStore($this->getStore())->getFrontendName();
     }
 }

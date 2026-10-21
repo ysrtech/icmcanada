@@ -1,51 +1,39 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogSearch
  */
 
 /**
  * Catalog advanced search model
  *
- * @method Mage_CatalogSearch_Model_Resource_Fulltext _getResource()
- * @method Mage_CatalogSearch_Model_Resource_Fulltext getResource()
- * @method int getProductId()
- * @method Mage_CatalogSearch_Model_Fulltext setProductId(int $value)
- * @method int getStoreId()
- * @method Mage_CatalogSearch_Model_Fulltext setStoreId(int $value)
- * @method string getDataIndex()
- * @method Mage_CatalogSearch_Model_Fulltext setDataIndex(string $value)
+ * @package    Mage_CatalogSearch
  *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_CatalogSearch_Model_Resource_Fulltext            _getResource()
+ * @method Mage_CatalogSearch_Model_Resource_Fulltext_Collection getCollection()
+ * @method string                                                getDataIndex()
+ * @method int                                                   getProductId()
+ * @method Mage_CatalogSearch_Model_Resource_Fulltext            getResource()
+ * @method Mage_CatalogSearch_Model_Resource_Fulltext_Collection getResourceCollection()
+ * @method int                                                   getStoreId()
+ * @method $this                                                 setDataIndex(string $value)
+ * @method $this                                                 setProductId(int $value)
+ * @method $this                                                 setStoreId(int $value)
  */
 class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
 {
-    const SEARCH_TYPE_LIKE              = 1;
-    const SEARCH_TYPE_FULLTEXT          = 2;
-    const SEARCH_TYPE_COMBINE           = 3;
-    const XML_PATH_CATALOG_SEARCH_TYPE  = 'catalog/search/search_type';
+    public const SEARCH_TYPE_LIKE              = 1;
+
+    public const SEARCH_TYPE_FULLTEXT          = 2;
+
+    public const SEARCH_TYPE_COMBINE           = 3;
+
+    public const XML_PATH_CATALOG_SEARCH_TYPE  = 'catalog/search/search_type';
+
+    public const XML_PATH_CATALOG_SEARCH_SEPARATOR  = 'catalog/search/search_separator';
 
     /**
      * Whether table changes are allowed
@@ -55,6 +43,9 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
      */
     protected $_allowTableChanges = true;
 
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('catalogsearch/fulltext');
@@ -69,21 +60,21 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
      * (1, 2)       => Regenerate index for product Id=2 and its store view Id=1
      * (null, 2)    => Regenerate index for all store views of product Id=2
      *
-     * @param int|null $storeId Store View Id
-     * @param int|array|null $productIds Product Entity Id
+     * @param null|int       $storeId    Store View Id
+     * @param null|array|int $productIds Product Entity Id
      *
-     * @return Mage_CatalogSearch_Model_Fulltext
+     * @return $this
      */
     public function rebuildIndex($storeId = null, $productIds = null)
     {
-        Mage::dispatchEvent('catalogsearch_index_process_start', array(
+        Mage::dispatchEvent('catalogsearch_index_process_start', [
             'store_id'      => $storeId,
-            'product_ids'   => $productIds
-        ));
+            'product_ids'   => $productIds,
+        ]);
 
         $this->getResource()->rebuildIndex($storeId, $productIds);
 
-        Mage::dispatchEvent('catalogsearch_index_process_complete', array());
+        Mage::dispatchEvent('catalogsearch_index_process_complete', []);
 
         return $this;
     }
@@ -97,9 +88,9 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
      * (1, 2)       => Clean index of product Id=2 and its store view Id=1
      * (null, 2)    => Clean index of all store views of product Id=2
      *
-     * @param int $storeId Store View Id
-     * @param int $productId Product Entity Id
-     * @return Mage_CatalogSearch_Model_Fulltext
+     * @param  int   $storeId   Store View Id
+     * @param  int   $productId Product Entity Id
+     * @return $this
      */
     public function cleanIndex($storeId = null, $productId = null)
     {
@@ -110,7 +101,7 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
     /**
      * Reset search results cache
      *
-     * @return Mage_CatalogSearch_Model_Fulltext
+     * @return $this
      */
     public function resetSearchResults()
     {
@@ -121,18 +112,20 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
     /**
      * Prepare results for query
      *
-     * @param Mage_CatalogSearch_Model_Query $query
-     * @return Mage_CatalogSearch_Model_Fulltext
+     * @param  Mage_CatalogSearch_Model_Query $query
+     * @return $this
      */
     public function prepareResult($query = null)
     {
         if (!$query instanceof Mage_CatalogSearch_Model_Query) {
             $query = Mage::helper('catalogsearch')->getQuery();
         }
+
         $queryText = Mage::helper('catalogsearch')->getQueryText();
         if ($query->getSynonymFor()) {
             $queryText = $query->getSynonymFor();
         }
+
         $this->getResource()->prepareResult($this, $queryText, $query);
         return $this;
     }
@@ -140,7 +133,7 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
     /**
      * Retrieve search type
      *
-     * @param int $storeId
+     * @param  int $storeId
      * @return int
      */
     public function getSearchType($storeId = null)
@@ -148,19 +141,14 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
         return Mage::getStoreConfig(self::XML_PATH_CATALOG_SEARCH_TYPE, $storeId);
     }
 
-
-
-
-
     // Deprecated methods
 
     /**
      * Set whether table changes are allowed
      *
+     * @param  bool  $value
+     * @return $this
      * @deprecated after 1.6.1.0
-     *
-     * @param bool $value
-     * @return Mage_CatalogSearch_Model_Fulltext
      */
     public function setAllowTableChanges($value = true)
     {
@@ -171,12 +159,11 @@ class Mage_CatalogSearch_Model_Fulltext extends Mage_Core_Model_Abstract
     /**
      * Update category products indexes
      *
-     * @deprecated after 1.6.2.0
-     *
      * @param array $productIds
      * @param array $categoryIds
      *
-     * @return Mage_CatalogSearch_Model_Fulltext
+     * @return $this
+     * @deprecated after 1.6.2.0
      */
     public function updateCategoryIndex($productIds, $categoryIds)
     {

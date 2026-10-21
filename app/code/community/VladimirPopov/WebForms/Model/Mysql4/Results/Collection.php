@@ -5,7 +5,7 @@
  */
 
 class VladimirPopov_WebForms_Model_Mysql4_Results_Collection
-	extends Mage_Core_Model_Mysql4_Collection_Abstract
+	extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
 	
 	protected $filtered_values;

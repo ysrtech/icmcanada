@@ -58,8 +58,8 @@
 					</fieldset>
 					<div class="button-set">
 						<input name="post_id" type="hidden" value="<?php echo $post->getPostId();?>" />
-						<input name="email" type="hidden" value="<?php echo $this->htmlEscape($this->helper('blog')->getUserEmail()) ?>"/>
-						<input name="user" type="hidden" value="<?php echo $this->htmlEscape($this->helper('blog')->getUserName()) ?>"/>
+						<input name="email" type="hidden" value="<?php echo $this->escapeHtml($this->helper('blog')->getUserEmail()) ?>"/>
+						<input name="user" type="hidden" value="<?php echo $this->escapeHtml($this->helper('blog')->getUserName()) ?>"/>
 						<p class="required"><?php echo $this->__('* Required Fields') ?></p>
 						<button class="form-button" type="submit"><span><?php echo Mage::helper('blog')->__('Submit Comment') ?></span></button>
 					</div>
@@ -83,12 +83,12 @@
 						<li>
 							<div class="input-box">
 								<label for="name"><?php echo Mage::helper('blog')->__('Name') ?> <span class="required">*</span></label><br />
-								<input name="user" id="user" value="<?php echo $this->getCommentName(); ?>" title="<?php echo $this->__('Name') ?>" value="<?php echo $this->htmlEscape($this->helper('blog')->getUserName()) ?>" class="required-entry input-text" type="text" />
+								<input name="user" id="user" value="<?php echo $this->getCommentName(); ?>" title="<?php echo $this->__('Name') ?>" value="<?php echo $this->escapeHtml($this->helper('blog')->getUserName()) ?>" class="required-entry input-text" type="text" />
 							</div>
 						
 							<div class="input-box">
 								<label for="email"><?php echo Mage::helper('blog')->__('Email') ?> <span class="required">*</span></label><br />
-								<input name="email" id="email" value="<?php echo $this->getCommentEmail(); ?>" title="<?php echo $this->__('Email') ?>" value="<?php echo $this->htmlEscape($this->helper('blog')->getUserEmail()) ?>" class="required-entry input-text validate-email" type="text" />
+								<input name="email" id="email" value="<?php echo $this->getCommentEmail(); ?>" title="<?php echo $this->__('Email') ?>" value="<?php echo $this->escapeHtml($this->helper('blog')->getUserEmail()) ?>" class="required-entry input-text validate-email" type="text" />
 							</div>
 						
 							<div class="clear"></div>

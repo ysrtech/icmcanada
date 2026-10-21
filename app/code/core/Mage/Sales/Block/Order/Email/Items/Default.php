@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
+ */
 
 /**
  * Sales Order Email items default renderer
  *
- * @category   Mage
  * @package    Mage_Sales
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Sales_Block_Order_Email_Items_Default extends Mage_Core_Block_Template
 {
@@ -44,16 +24,21 @@ class Mage_Sales_Block_Order_Email_Items_Default extends Mage_Core_Block_Templat
         return $this->getItem()->getOrder();
     }
 
+    /**
+     * @return array
+     */
     public function getItemOptions()
     {
-        $result = array();
+        $result = [];
         if ($options = $this->getItem()->getOrderItem()->getProductOptions()) {
             if (isset($options['options'])) {
                 $result = array_merge($result, $options['options']);
             }
+
             if (isset($options['additional_options'])) {
                 $result = array_merge($result, $options['additional_options']);
             }
+
             if (isset($options['attributes_info'])) {
                 $result = array_merge($result, $options['attributes_info']);
             }
@@ -62,28 +47,37 @@ class Mage_Sales_Block_Order_Email_Items_Default extends Mage_Core_Block_Templat
         return $result;
     }
 
+    /**
+     * @param  array|string $value
+     * @return string
+     */
     public function getValueHtml($value)
     {
         if (is_array($value)) {
-            return sprintf('%d', $value['qty']) . ' x ' . $this->escapeHtml($value['title']) . " "
+            return sprintf('%d', $value['qty']) . ' x ' . $this->escapeHtml($value['title']) . ' '
                 . $this->getItem()->getOrder()->formatPrice($value['price']);
-        } else {
-            return $this->escapeHtml($value);
         }
+
+        return $this->escapeHtml($value);
     }
 
+    /**
+     * @param  Mage_Core_Model_Abstract|Mage_Sales_Model_Order_Creditmemo_Item|Mage_Sales_Model_Order_Invoice_Item $item
+     * @return array|string
+     */
     public function getSku($item)
     {
-        if ($item->getOrderItem()->getProductOptionByCode('simple_sku'))
+        if ($item->getOrderItem()->getProductOptionByCode('simple_sku')) {
             return $item->getOrderItem()->getProductOptionByCode('simple_sku');
-        else
-            return $item->getSku();
+        }
+
+        return $item->getSku();
     }
 
     /**
      * Return product additional information block
      *
-     * @return Mage_Core_Block_Abstract
+     * @return Mage_Core_Block_Abstract|Mage_Core_Block_Text_List
      */
     public function getProductAdditionalInformationBlock()
     {

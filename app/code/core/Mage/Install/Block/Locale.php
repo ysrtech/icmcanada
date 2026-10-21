@@ -1,39 +1,19 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Install
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Install
  */
 
 /**
  * Install localization block
  *
- * @category   Mage
  * @package    Mage_Install
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
 {
-
     public function __construct()
     {
         parent::__construct();
@@ -47,11 +27,12 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
      */
     public function getLocale()
     {
-        $locale = $this->getData('locale');
+        $locale = $this->getDataByKey('locale');
         if (is_null($locale)) {
             $locale = Mage::app()->getLocale()->getLocale();
             $this->setData('locale', $locale);
         }
+
         return $locale;
     }
 
@@ -83,7 +64,7 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
      */
     public function getLocaleSelect()
     {
-        $html = $this->getLayout()->createBlock('core/html_select')
+        return $this->getLayout()->createBlock('core/html_select')
             ->setName('config[locale]')
             ->setId('locale')
             ->setTitle(Mage::helper('install')->__('Locale'))
@@ -91,7 +72,6 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
             ->setValue($this->getLocale()->__toString())
             ->setOptions(Mage::app()->getLocale()->getTranslatedOptionLocales())
             ->getHtml();
-        return $html;
     }
 
     /**
@@ -101,7 +81,7 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
      */
     public function getTimezoneSelect()
     {
-        $html = $this->getLayout()->createBlock('core/html_select')
+        return $this->getLayout()->createBlock('core/html_select')
             ->setName('config[timezone]')
             ->setId('timezone')
             ->setTitle(Mage::helper('install')->__('Time Zone'))
@@ -109,7 +89,6 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
             ->setValue($this->getTimezone())
             ->setOptions(Mage::app()->getLocale()->getOptionTimezones())
             ->getHtml();
-        return $html;
     }
 
     /**
@@ -123,8 +102,9 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
             ? Mage::getSingleton('install/session')->getTimezone()
             : Mage::app()->getLocale()->getTimezone();
         if ($timezone == Mage_Core_Model_Locale::DEFAULT_TIMEZONE) {
-            $timezone = 'America/Los_Angeles';
+            return 'America/Los_Angeles';
         }
+
         return $timezone;
     }
 
@@ -135,7 +115,7 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
      */
     public function getCurrencySelect()
     {
-        $html = $this->getLayout()->createBlock('core/html_select')
+        return $this->getLayout()->createBlock('core/html_select')
             ->setName('config[currency]')
             ->setId('currency')
             ->setTitle(Mage::helper('install')->__('Default Currency'))
@@ -143,7 +123,6 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
             ->setValue($this->getCurrency())
             ->setOptions(Mage::app()->getLocale()->getOptionCurrencies())
             ->getHtml();
-        return $html;
     }
 
     /**
@@ -160,12 +139,12 @@ class Mage_Install_Block_Locale extends Mage_Install_Block_Abstract
 
     public function getFormData()
     {
-        $data = $this->getData('form_data');
+        $data = $this->getDataByKey('form_data');
         if (is_null($data)) {
             $data = new Varien_Object();
             $this->setData('form_data', $data);
         }
+
         return $data;
     }
-
 }

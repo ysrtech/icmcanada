@@ -1,26 +1,15 @@
 /**
- * Magento
- *
- * NOTICE OF LICENSE
+ * OpenMage
  *
  * This source file is subject to the Academic Free License (AFL 3.0)
  * that is bundled with this package in the file LICENSE_AFL.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
+ * It is also available at https://opensource.org/license/afl-3-0-php
  *
  * @category    Mage
  * @package     Mage_Adminhtml
- * @copyright   Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @copyright   Copyright (c) 2006-2020 Magento, Inc. (https://www.magento.com)
+ * @copyright   Copyright (c) 2017-2024 The OpenMage Contributors (https://www.openmage.org)
+ * @license     https://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
 var varienForm = new Class.create();
 
@@ -228,6 +217,10 @@ RegionUpdater.prototype = {
             label = $$('label[for="' + currentElement.id + '"]')[0];
             if (label) {
                 wildCard = label.down('em') || label.down('span.required');
+                if (!wildCard) {
+                    label.insert(' <span class="required">*</span>');
+                    wildCard = label.down('span.required');
+                }
                 var topElement = label.up('tr') || label.up('li');
                 if (!that.config.show_all_regions && topElement) {
                     if (regionRequired) {
@@ -392,26 +385,6 @@ RegionUpdater.prototype = {
 
 regionUpdater = RegionUpdater;
 
-/**
- * Fix errorrs in IE
- */
-Event.pointerX = function(event){
-    try{
-        return event.pageX || (event.clientX +(document.documentElement.scrollLeft || document.body.scrollLeft));
-    }
-    catch(e){
-
-    }
-};
-Event.pointerY = function(event){
-    try{
-        return event.pageY || (event.clientY +(document.documentElement.scrollTop || document.body.scrollTop));
-    }
-    catch(e){
-
-    }
-};
-
 SelectUpdater = Class.create();
 SelectUpdater.prototype = {
     initialize: function (firstSelect, secondSelect, selectFirstMessage, noValuesMessage, values, selected)
@@ -507,10 +480,26 @@ FormElementDependenceController.prototype = {
      * Misc. config options
      * Keys are underscored intentionally
      */
-    _config : {
-        levels_up : 1 // how many levels up to travel when toggling element
-    },
+    _config : {},
 
+    getSelectValues : function(select) {
+        var result = [];
+        var options = select && select.options;
+        var opt;
+        for (var i = 0, iLen = options.length; i < iLen; i++) {
+            opt = options[i];
+            if (opt.selected) {
+                result.push(opt.value);
+            }
+        }
+        return result;
+    },
+    hideElem : function(ele) {
+        ele.hide();
+    },
+    showElem : function(ele) {
+        ele.show();
+    },
     /**
      * Define whether target element should be toggled and show/hide its row
      *
@@ -521,44 +510,100 @@ FormElementDependenceController.prototype = {
      */
     trackChange : function(e, idTo, valuesFrom)
     {
-        if (!$(idTo)) {
-            return;
+        var ele = document.getElementById(idTo), cnf = this._config;
+        if (!ele) {
+            idTo = 'row_' + idTo;
+            ele = $(idTo);
+            if (!ele) {
+                return;
+            }
+        } else {
+            var closest = cnf.levels_up; // @deprecated
+            if ((typeof closest == 'number') && (closest > 1)) {
+                ele = ele.up(closest);
+            } else {
+                ele = ele.closest('tr');
+            }
         }
 
         // define whether the target should show up
         var shouldShowUp = true;
         for (var idFrom in valuesFrom) {
             var from = $(idFrom);
-            if (valuesFrom[idFrom] instanceof Array) {
-                if (!from || valuesFrom[idFrom].indexOf(from.value) == -1) {
+            if (from.tagName === 'SELECT' && from.className.indexOf('multiselect') > -1) {
+                var elementValues = this.getSelectValues(from);
+                if (!from || elementValues.indexOf(valuesFrom[idFrom]) <= -1) {
                     shouldShowUp = false;
                 }
             } else {
-                if (!from || from.value != valuesFrom[idFrom]) {
-                    shouldShowUp = false;
+                if (valuesFrom[idFrom] instanceof Array) {
+                    if (!from || valuesFrom[idFrom].indexOf(from.value) == -1) {
+                        shouldShowUp = false;
+                    }
+                } else {
+                    if (!from || from.value != valuesFrom[idFrom]) {
+                        shouldShowUp = false;
+                    }
                 }
             }
         }
 
         // toggle target row
         if (shouldShowUp) {
-            var currentConfig = this._config;
-            $(idTo).up(this._config.levels_up).select('input', 'select', 'td').each(function (item) {
+            ele.select('input', 'select', 'td').each(function (item) {
                 // don't touch hidden inputs (and Use Default inputs too), bc they may have custom logic
+                // don't touch ENV-locked fields
                 if ((!item.type || item.type != 'hidden') && !($(item.id+'_inherit') && $(item.id+'_inherit').checked)
-                    && !(currentConfig.can_edit_price != undefined && !currentConfig.can_edit_price)) {
+                    && !(cnf.can_edit_price != undefined && !cnf.can_edit_price)
+                    && !item.hasClassName('env-locked')) {
                     item.disabled = false;
                 }
             });
-            $(idTo).up(this._config.levels_up).show();
+            this.showElem(ele);
         } else {
-            $(idTo).up(this._config.levels_up).select('input', 'select', 'td').each(function (item){
+            ele.select('input', 'select', 'td', 'div').each(function (item){
                 // don't touch hidden inputs (and Use Default inputs too), bc they may have custom logic
-                if ((!item.type || item.type != 'hidden') && !($(item.id+'_inherit') && $(item.id+'_inherit').checked)) {
+                // don't touch ENV-locked fields
+                if ((!item.type || item.type != 'hidden') && !($(item.id+'_inherit') && $(item.id+'_inherit').checked)
+                    && !item.hasClassName('env-locked')) {
                     item.disabled = true;
                 }
             });
-            $(idTo).up(this._config.levels_up).hide();
+            this.hideElem(ele);
         }
     }
 };
+
+// optional_zip_countries.phtml
+function onAddressCountryChanged(countryElement) {
+    var zipElementId = countryElement.id.replace(/country_id/, 'postcode');
+    // Ajax-request and normal content load compatibility
+    if ($(zipElementId) != undefined) {
+        setPostcodeOptional($(zipElementId), countryElement.value);
+    } else {
+        Event.observe(window, "load", function () {
+            setPostcodeOptional($(zipElementId), countryElement.value);
+        });
+    }
+}
+
+function setPostcodeOptional(zipElement, country) {
+    var spanElement = zipElement.up(1).down('label > span.required');
+    if (!spanElement || (typeof optionalZipCountries == 'undefined')) {
+        return; // nothing to do (for example in system config)
+    }
+    if (optionalZipCountries.indexOf(country) != -1) {
+        Validation.reset(zipElement);
+        while (zipElement.hasClassName('required-entry')) {
+            zipElement.removeClassName('required-entry');
+        }
+        spanElement.hide();
+    } else {
+        zipElement.addClassName('required-entry');
+        spanElement.show();
+    }
+}
+
+if (typeof varienGlobalEvents != 'undefined') {
+    varienGlobalEvents.attachEventHandler("address_country_changed", onAddressCountryChanged);
+}

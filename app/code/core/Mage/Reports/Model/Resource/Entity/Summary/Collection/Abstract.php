@@ -1,88 +1,72 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
  */
 
+use Carbon\Carbon;
 
 /**
  * Reports summary collection
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 class Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract extends Varien_Data_Collection
 {
     /**
      * Entity collection for summaries
      *
-     * @var Mage_Entity_Model_Entity_Collection_Abstract
+     * @var Mage_Eav_Model_Entity_Collection_Abstract
      */
     protected $_entityCollection;
 
     /**
      * Filters the summaries by some period
      *
-     * @param string $periodType
-     * @param string|int|null $customStart
-     * @param string|int|null $customEnd
-     * @return Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract
+     * @param  string          $periodType
+     * @param  null|int|string $customStart
+     * @param  null|int|string $customEnd
+     * @return $this
      */
     public function setSelectPeriod($periodType, $customStart = null, $customEnd = null)
     {
         switch ($periodType) {
-            case "24h":
+            case '24h':
                 $customStart = Varien_Date::toTimestamp(true) - 86400;
                 $customEnd   = Varien_Date::toTimestamp(true);
                 break;
 
-            case "7d":
+            case '7d':
                 $customStart = Varien_Date::toTimestamp(true) - 604800;
                 $customEnd   = Varien_Date::toTimestamp(true);
                 break;
 
-            case "30d":
+            case '30d':
                 $customStart = Varien_Date::toTimestamp(true) - 2592000;
                 $customEnd   = Varien_Date::toTimestamp(true);
                 break;
 
-            case "1y":
+            case '1y':
                 $customStart = Varien_Date::toTimestamp(true) - 31536000;
                 $customEnd   = Varien_Date::toTimestamp(true);
                 break;
 
             default:
                 if (is_string($customStart)) {
-                    $customStart = strtotime($customStart);
+                    $customStart = Carbon::parse($customStart)->getTimestamp();
                 }
+
                 if (is_string($customEnd)) {
-                    $customEnd = strtotime($customEnd);
+                    $customEnd = Carbon::parse($customEnd)->getTimestamp();
                 }
+
                 break;
-
         }
-
 
         return $this;
     }
@@ -90,8 +74,8 @@ class Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract extends Var
     /**
      * Set date period
      *
-     * @param int $period
-     * @return Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract
+     * @param  int   $period
+     * @return $this
      */
     public function setDatePeriod($period)
     {
@@ -101,8 +85,8 @@ class Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract extends Var
     /**
      * Set store filter
      *
-     * @param int $storeId
-     * @return Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract
+     * @param  int   $storeId
+     * @return $this
      */
     public function setStoreFilter($storeId)
     {
@@ -116,16 +100,17 @@ class Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract extends Var
      */
     public function getCollection()
     {
-        if (empty($this->_entityCollection)) {
+        if (is_null($this->_entityCollection)) {
             $this->_initCollection();
         }
+
         return $this->_entityCollection;
     }
 
     /**
      * Init collection
      *
-     * @return Mage_Reports_Model_Resource_Entity_Summary_Collection_Abstract
+     * @return $this
      */
     protected function _initCollection()
     {

@@ -1,45 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml help url mapper
  *
- * @category   Mage
  * @package    Mage_Adminhtml
  */
-
 abstract class Mage_Adminhtml_Helper_Help_Mapping extends Mage_Core_Helper_Abstract
 {
+    protected $_moduleName = 'Mage_Adminhtml';
+
     /**
      * Mapping of help page urls depending on module and page route
      *
      * @var array
      */
-    protected $_moduleMappings = array(
-        'Mage_Adminhtml' => array(
+    protected $_moduleMappings = [
+        'Mage_Adminhtml' => [
             /* Dashboard */
             'dashboard' => 'store-operations/reports-dashboard.html',
             /* Sales */
@@ -91,35 +74,35 @@ abstract class Mage_Adminhtml_Helper_Help_Mapping extends Mage_Core_Helper_Abstr
             'poll' => 'marketing/polls.html',
             /* Reports → Sales */
             'report_sales/sales' => 'store-operations/reports-generating.html',
-            'report_sales/tax' =>'store-operations/reports-available.html',
-            'report_sales/invoiced' =>'store-operations/reports-available.html',
-            'report_sales/shipping' =>'store-operations/reports-available.html',
-            'report_sales/refunded' =>'store-operations/reports-available.html',
-            'report_sales/coupons' =>'store-operations/reports-available.html',
+            'report_sales/tax' => 'store-operations/reports-available.html',
+            'report_sales/invoiced' => 'store-operations/reports-available.html',
+            'report_sales/shipping' => 'store-operations/reports-available.html',
+            'report_sales/refunded' => 'store-operations/reports-available.html',
+            'report_sales/coupons' => 'store-operations/reports-available.html',
             /* Reports → Shopping Cart */
-            'report_shopcart/product' =>'store-operations/reports-available.html',
-            'report_shopcart/abandoned' =>'store-operations/reports-available.html',
+            'report_shopcart/product' => 'store-operations/reports-available.html',
+            'report_shopcart/abandoned' => 'store-operations/reports-available.html',
             /* Reports → Products */
-            'report_sales/bestsellers' =>'store-operations/reports-available.html',
-            'report_product/sold' =>'store-operations/reports-available.html',
-            'report_product/viewed' =>'store-operations/reports-available.html',
-            'report_product/lowstock' =>'store-operations/reports-available.html',
-            'report_product/downloads' =>'store-operations/reports-available.html',
+            'report_sales/bestsellers' => 'store-operations/reports-available.html',
+            'report_product/sold' => 'store-operations/reports-available.html',
+            'report_product/viewed' => 'store-operations/reports-available.html',
+            'report_product/lowstock' => 'store-operations/reports-available.html',
+            'report_product/downloads' => 'store-operations/reports-available.html',
             /* Reports → Customers */
-            'report_customer/accounts' =>'store-operations/reports-available.html',
-            'report_customer/totals' =>'store-operations/reports-available.html',
-            'report_customer/orders' =>'store-operations/reports-available.html',
+            'report_customer/accounts' => 'store-operations/reports-available.html',
+            'report_customer/totals' => 'store-operations/reports-available.html',
+            'report_customer/orders' => 'store-operations/reports-available.html',
             /* Reports → Tags */
-            'report_tag/customer' =>'store-operations/reports-available.html',
-            'report_tag/product' =>'store-operations/reports-available.html',
-            'report_tag/popular' =>'store-operations/reports-available.html',
+            'report_tag/customer' => 'store-operations/reports-available.html',
+            'report_tag/product' => 'store-operations/reports-available.html',
+            'report_tag/popular' => 'store-operations/reports-available.html',
             /* Reports → Reviews */
-            'report_review/customer' =>'store-operations/reports-available.html',
-            'report_review/product' =>'store-operations/reports-available.html',
+            'report_review/customer' => 'store-operations/reports-available.html',
+            'report_review/product' => 'store-operations/reports-available.html',
             /* Search Terms */
-            'report/search' =>'store-operations/reports-available.html',
+            'report/search' => 'store-operations/reports-available.html',
             /* Refresh statistics */
-            'report_statistics' =>'store-operations/reports-refresh.html',
+            'report_statistics' => 'store-operations/reports-refresh.html',
             /* My Account */
             'system_account' => 'store-operations/admin-my-account.html',
             /* Notifications */
@@ -181,58 +164,51 @@ abstract class Mage_Adminhtml_Helper_Help_Mapping extends Mage_Core_Helper_Abstr
             'system_config/edit/section/google' => 'configuration/sales/google-api.html',
             'system_config/edit/section/payment' => 'configuration/sales/payment-methods.html',
             'system_config/edit/section/payment_services' => 'configuration/sales/payment-services.html',
-            'system_config/edit/section/moneybookers' => 'payment/gateways.html',
             'system_config/edit/section/api' => 'configuration/services/magento-core-api.html',
             'system_config/edit/section/oauth' => 'configuration/services/oauth.html',
             'system_config/edit/section/admin' => 'configuration/advanced/admin.html',
             'system_config/edit/section/system' => 'configuration/advanced/system.html',
             'system_config/edit/section/advanced' => 'configuration/advanced/advanced.html',
             'system_config/edit/section/dev' => 'configuration/advanced/developer.html',
-        ),
-        'Mage_Widget_Adminhtml' => array(
+        ],
+        'Mage_Widget_Adminhtml' => [
             'widget_instance' => 'cms/widgets.html',
-        ),
-        'Mage_Paypal_Adminhtml' => array(
+        ],
+        'Mage_Paypal_Adminhtml' => [
             'paypal_reports' => 'store-operations/reports-available.html',
-        ),
-        'Mage_Compiler_Adminhtml' => array(
-            'compiler_process' => 'system-operations/system-tools-compilation.html',
-        ),
-        'Mage_Api2_Adminhtml' => array(
+        ],
+        'Mage_Api2_Adminhtml' => [
             'api2_attribute' => 'system-operations/web-services.html',
-        ),
-        'Mage_Oauth_Adminhtml' => array(
+        ],
+        'Mage_Oauth_Adminhtml' => [
             'oauth_consumer' => 'system-operations/web-services.html',
             'oauth_authorizedTokens' => 'system-operations/web-services.html',
             'oauth_admin_token' => 'system-operations/web-services.html',
-        ),
-        'Mage_ImportExport_Adminhtml' => array(
+        ],
+        'Mage_ImportExport_Adminhtml' => [
             'import' => 'store-operations/data-import.html',
             'export' => 'store-operations/data-export.html',
-        ),
-        'Mage_Connect_Adminhtml' => array(
-            'extension_custom/edit' => 'magento/magento-connect.html'
-        ),
-        'Mage_Index_Adminhtml' => array(
-            'process/list' => 'system-operations/index-management.html'
-        ),
-    );
+        ],
+        'Mage_Connect_Adminhtml' => [
+            'extension_custom/edit' => 'magento/magento-connect.html',
+        ],
+        'Mage_Index_Adminhtml' => [
+            'process/list' => 'system-operations/index-management.html',
+        ],
+    ];
 
     /**
      * Compose reconstructed URL using mapping
      *
-     * @param string $frontModule
-     * @param string $controllerName
-     * @param string $actionName
-     * @return string|bool
+     * @param  string      $frontModule
+     * @param  string      $controllerName
+     * @param  string      $actionName
+     * @return bool|string
      */
     protected function findInMapping($frontModule, $controllerName, $actionName)
     {
-        if ($actionName === 'index' ) {
-            $targetToFind = $controllerName;
-        } else {
-            $targetToFind = $controllerName . '/' . $actionName;
-        }
+        $targetToFind = $actionName === 'index' ? $controllerName : $controllerName . '/' . $actionName;
+
         if (isset($this->_moduleMappings[$frontModule])
             && isset($this->_moduleMappings[$frontModule][$targetToFind])
         ) {
@@ -245,11 +221,10 @@ abstract class Mage_Adminhtml_Helper_Help_Mapping extends Mage_Core_Helper_Abstr
     /**
      * Determine which version of docs should target onto
      *
-     * @return string
+     * @return false|Mage_Core_Model_Config_Element|Varien_Simplexml_Element
      */
     protected function getHelpTargetVersion()
     {
         return Mage::getConfig()->getNode('default/help/target_version');
     }
-
 }

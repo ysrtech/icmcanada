@@ -1,38 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Renderer for Payflow Link information
  *
- * @category   Mage
  * @package    Mage_Paypal
- * @author     Magento Core Team <core@magentocommerce.com>
  */
- class Mage_Paypal_Block_Adminhtml_System_Config_Payflowlink_Info
-    extends Mage_Adminhtml_Block_System_Config_Form_Field
+class Mage_Paypal_Block_Adminhtml_System_Config_Payflowlink_Info extends Mage_Adminhtml_Block_System_Config_Form_Field
 {
     /**
      * Template path
@@ -44,22 +24,21 @@
     /**
      * Render fieldset html
      *
-     * @param Varien_Data_Form_Element_Abstract $element
      * @return string
      */
+    #[Override]
     public function render(Varien_Data_Form_Element_Abstract $element)
     {
         $columns = ($this->getRequest()->getParam('website') || $this->getRequest()->getParam('store')) ? 5 : 4;
-        return $this->_decorateRowHtml($element, "<td colspan='$columns'>" . $this->toHtml() . '</td>');
+        return $this->_decorateRowHtml($element, "<td colspan='{$columns}'>" . $this->toHtml() . '</td>');
     }
-
 
     /**
      * Get frontend url
      *
+     * @param  string $routePath
+     * @return string
      * @deprecated since 1.7.0.1
-     * @param string $routePath
-     * @return strting
      */
     public function getFrontendUrl($routePath)
     {
@@ -67,15 +46,15 @@
             $website = Mage::getModel('core/website')->load($this->getRequest()->getParam('website'));
             $secure = Mage::getStoreConfigFlag(
                 Mage_Core_Model_Url::XML_PATH_SECURE_IN_FRONT,
-                $website->getDefaultStore()
+                $website->getDefaultStore(),
             );
-            $path = $secure ?
-                Mage_Core_Model_Store::XML_PATH_SECURE_BASE_LINK_URL :
-                Mage_Core_Model_Store::XML_PATH_UNSECURE_BASE_LINK_URL;
+            $path = $secure
+                ? Mage_Core_Model_Store::XML_PATH_SECURE_BASE_LINK_URL
+                : Mage_Core_Model_Store::XML_PATH_UNSECURE_BASE_LINK_URL;
             $websiteUrl = Mage::getStoreConfig($path, $website->getDefaultStore());
         } else {
             $secure = Mage::getStoreConfigFlag(
-                Mage_Core_Model_Url::XML_PATH_SECURE_IN_FRONT
+                Mage_Core_Model_Url::XML_PATH_SECURE_IN_FRONT,
             );
             $websiteUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_LINK, $secure);
         }

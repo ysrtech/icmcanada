@@ -1,42 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Oauth
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Oauth
  */
+
+use Carbon\Carbon;
 
 /**
  * OAuth token resource model
  *
- * @category    Mage
- * @package     Mage_Oauth
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Oauth
  */
 class Mage_Oauth_Model_Resource_Token extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Initialize resource model
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -46,17 +27,21 @@ class Mage_Oauth_Model_Resource_Token extends Mage_Core_Model_Resource_Db_Abstra
     /**
      * Clean up old authorized tokens for specified consumer-user pairs
      *
-     * @param Mage_Oauth_Model_Token $exceptToken Token just created to exclude from delete
-     * @return int The number of affected rows
+     * @param  Mage_Oauth_Model_Token $exceptToken Token just created to exclude from delete
+     * @return int                    The number of affected rows
+     * @throws Mage_Core_Exception
      */
     public function cleanOldAuthorizedTokensExcept(Mage_Oauth_Model_Token $exceptToken)
     {
         if (!$exceptToken->getId() || !$exceptToken->getAuthorized()) {
             Mage::throwException('Invalid token to except');
         }
+
         $adapter = $this->_getWriteAdapter();
         $where   = $adapter->quoteInto(
-            'authorized = 1 AND consumer_id = ?', $exceptToken->getConsumerId(), Zend_Db::INT_TYPE
+            'authorized = 1 AND consumer_id = ?',
+            $exceptToken->getConsumerId(),
+            Zend_Db::INT_TYPE,
         );
         $where .= $adapter->quoteInto(' AND entity_id <> ?', $exceptToken->getId(), Zend_Db::INT_TYPE);
 
@@ -67,14 +52,16 @@ class Mage_Oauth_Model_Resource_Token extends Mage_Core_Model_Resource_Db_Abstra
         } else {
             Mage::throwException('Invalid token to except');
         }
+
         return $adapter->delete($this->getMainTable(), $where);
     }
 
     /**
      * Delete old entries
      *
-     * @param int $minutes
+     * @param  int                 $minutes
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function deleteOldEntries($minutes)
     {
@@ -85,11 +72,11 @@ class Mage_Oauth_Model_Resource_Token extends Mage_Core_Model_Resource_Db_Abstra
                 $this->getMainTable(),
                 $adapter->quoteInto(
                     'type = "' . Mage_Oauth_Model_Token::TYPE_REQUEST . '" AND created_at <= ?',
-                    Varien_Date::formatDate(time() - $minutes * 60)
-                )
+                    Varien_Date::formatDate(Carbon::now()->subMinutes($minutes)->getTimestamp()),
+                ),
             );
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 }

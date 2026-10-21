@@ -62,11 +62,11 @@ $currentCategory = Mage::registry('current_category');
     <ul class="products-grid largeview">
     <?php foreach ($_productCollection as $_product):?>
             <li class="item">
-                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->htmlEscape($this->getImageLabel($_product, 'small_image')) ?>" class="product-image">
+                <a href="<?php echo $_product->getProductUrl() ?>" title="<?php echo $this->escapeHtml($this->getImageLabel($_product, 'small_image')) ?>" class="product-image">
                 <img src="<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->constrainOnly(TRUE)->keepAspectRatio(TRUE)->keepFrame(TRUE)->resize(200,200)->setQuality(100); ?>" width="200" height="200"
-                alt="<?php echo $this->htmlEscape($this->getImageLabel($_product, 'small_image')) ?>" /></a>
+                alt="<?php echo $this->escapeHtml($this->getImageLabel($_product, 'small_image')) ?>" /></a>
                 <div class="product-name"><a href="<?php echo $_product->getProductUrl() ?>"
-                title="<?php echo $this->htmlEscape($_product->getName()) ?>"><?php echo $this->htmlEscape($_product->getName()) ?></a></div>
+                title="<?php echo $this->escapeHtml($_product->getName()) ?>"><?php echo $this->escapeHtml($_product->getName()) ?></a></div>
                 <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>
                 <?php echo $this->getPriceHtml($_product, false) ?>
                 <?php endif; ?>

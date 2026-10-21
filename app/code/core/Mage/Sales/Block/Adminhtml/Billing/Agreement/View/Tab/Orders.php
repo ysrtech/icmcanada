@@ -1,41 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Adminhtml billing agreement related orders tab
  *
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
  */
-class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_Adminhtml_Block_Sales_Order_Grid
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_Adminhtml_Block_Sales_Order_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
-    /**
-     * Initialize grid params
-     *
-     */
+    protected string $_eventPrefix = 'sales_adminhtml_billing_agreement_view_tab_orders';
+
     public function __construct()
     {
         parent::__construct();
@@ -45,8 +25,9 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     /**
      * Prepare related orders collection
      *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @return $this|Mage_Adminhtml_Block_Widget_Grid
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('sales/order_grid_collection');
@@ -56,9 +37,7 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     }
 
     /**
-     * Return Tab label
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getTabLabel()
     {
@@ -66,9 +45,7 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     }
 
     /**
-     * Return Tab title
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getTabTitle()
     {
@@ -76,9 +53,7 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     }
 
     /**
-     * Can show tab in tabs
-     *
-     * @return boolean
+     * @inheritDoc
      */
     public function canShowTab()
     {
@@ -86,9 +61,7 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     }
 
     /**
-     * Tab is hidden
-     *
-     * @return boolean
+     * @inheritDoc
      */
     public function isHidden()
     {
@@ -96,20 +69,20 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     }
 
     /**
-     * Retrieve grid url
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/ordersGrid', array('_current'=>true));
+        return $this->getUrl('*/*/ordersGrid', ['_current' => true]);
     }
 
     /**
      * Remove import/export field from grid
      *
-     * @return bool
+     * @inheritDoc
      */
+    #[Override]
     public function getExportTypes()
     {
         return false;
@@ -118,8 +91,9 @@ class Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders extends Mage_
     /**
      * Disable massaction in grid
      *
-     * @return Mage_Sales_Block_Adminhtml_Billing_Agreement_View_Tab_Orders
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareMassaction()
     {
         return $this;

@@ -1,84 +1,67 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Customers by totals Report collection
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 class Mage_Reports_Model_Resource_Customer_Totals_Collection extends Mage_Reports_Model_Resource_Order_Collection
 {
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
         $this->_useAnalyticFunction = true;
     }
+
     /**
      * Join fields
      *
-     * @param string $from
-     * @param string $to
-     * @return Mage_Reports_Model_Resource_Customer_Totals_Collection
+     * @param  null|string $dateFrom
+     * @param  null|string $dateTo
+     * @return $this
      */
-    protected function _joinFields($from = '', $to = '')
+    protected function _joinFields($dateFrom = '', $dateTo = '')
     {
         $this->joinCustomerName()
             ->groupByCustomer()
             ->addOrdersCount()
-            ->addAttributeToFilter('created_at', array('from' => $from, 'to' => $to, 'datetime' => true));
+            ->addAttributeToFilter('created_at', ['from' => $dateFrom, 'to' => $dateTo, 'datetime' => true]);
         return $this;
     }
 
     /**
-     * Set date range
-     *
-     * @param string $from
-     * @param string $to
-     * @return Mage_Reports_Model_Resource_Customer_Totals_Collection
+     * @inheritDoc
      */
-    public function setDateRange($from, $to)
+    #[Override]
+    public function setDateRange($dateFrom, $dateTo)
     {
         $this->_reset()
-            ->_joinFields($from, $to);
+            ->_joinFields($dateFrom, $dateTo);
         return $this;
     }
 
     /**
      * Set store filter collection
      *
-     * @param array $storeIds
-     * @return Mage_Reports_Model_Resource_Customer_Totals_Collection
+     * @param  array $storeIds
+     * @return $this
      */
+    #[Override]
     public function setStoreIds($storeIds)
     {
         if ($storeIds) {
-            $this->addAttributeToFilter('store_id', array('in' => (array)$storeIds));
+            $this->addAttributeToFilter('store_id', ['in' => (array) $storeIds]);
             $this->addSumAvgTotals(1)
                 ->orderByTotalAmount();
         } else {

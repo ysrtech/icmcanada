@@ -1,90 +1,86 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Date grid column filter
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
- * @todo        date format
+ * @todo       date format
  */
-class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
-    extends Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract
+class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date extends Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract
 {
     protected $_locale;
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareLayout()
     {
         if ($head = $this->getLayout()->getBlock('head')) {
             $head->setCanLoadCalendarJs(true);
         }
-        return $this;
+
+        return parent::_prepareLayout();
     }
 
+    /**
+     * @return string
+     * @throws Exception
+     */
+    #[Override]
     public function getHtml()
     {
+        $fromLabel = Mage::helper('adminhtml')->__('From');
+        $toLabel = Mage::helper('adminhtml')->__('To');
+
         $htmlId = $this->_getHtmlId() . microtime(true);
         $format = $this->getLocale()->getDateStrFormat(Mage_Core_Model_Locale::FORMAT_TYPE_SHORT);
+
         $html = '<div class="range"><div class="range-line date">'
-            . '<span class="label">' . Mage::helper('adminhtml')->__('From').':</span>'
-            . '<input type="text" name="'.$this->_getHtmlName().'[from]" id="'.$htmlId.'_from"'
-                . ' value="'.$this->getEscapedValue('from').'" class="input-text no-changes"/>'
+            . '<span class="label">' . $fromLabel . '</span>'
+            . '<input type="text" name="' . $this->_getHtmlName() . '[from]" id="' . $htmlId . '_from"'
+                . ' placeholder="' . $fromLabel . '"'
+                . ' value="' . $this->getEscapedValue('from') . '" class="input-text no-changes"/>'
             . '<img src="' . Mage::getDesign()->getSkinUrl('images/grid-cal.gif') . '" alt="" class="v-middle"'
-                . ' id="'.$htmlId.'_from_trig"'
+                . ' id="' . $htmlId . '_from_trig"'
                 . ' title="' . $this->escapeHtml(Mage::helper('adminhtml')->__('Date selector')) . '"/>'
             . '</div>';
-        $html.= '<div class="range-line date">'
-            . '<span class="label">' . Mage::helper('adminhtml')->__('To').' :</span>'
-            . '<input type="text" name="'.$this->_getHtmlName().'[to]" id="'.$htmlId.'_to"'
-                . ' value="'.$this->getEscapedValue('to').'" class="input-text no-changes"/>'
+        $html .= '<div class="range-line date">'
+            . '<span class="label">' . $toLabel . '</span>'
+            . '<input type="text" name="' . $this->_getHtmlName() . '[to]" id="' . $htmlId . '_to"'
+                . ' placeholder="' . $toLabel . '"'
+                . ' value="' . $this->getEscapedValue('to') . '" class="input-text no-changes"/>'
             . '<img src="' . Mage::getDesign()->getSkinUrl('images/grid-cal.gif') . '" alt="" class="v-middle"'
-                . ' id="'.$htmlId.'_to_trig"'
-                . ' title="'.$this->escapeHtml(Mage::helper('adminhtml')->__('Date selector')).'"/>'
+                . ' id="' . $htmlId . '_to_trig"'
+                . ' title="' . $this->escapeHtml(Mage::helper('adminhtml')->__('Date selector')) . '"/>'
             . '</div></div>';
-        $html.= '<input type="hidden" name="'.$this->_getHtmlName().'[locale]"'
-            . 'value="'.$this->getLocale()->getLocaleCode().'"/>';
-        $html.= '<script type="text/javascript">
+        $html .= '<input type="hidden" name="' . $this->_getHtmlName() . '[locale]"'
+            . 'value="' . $this->getLocale()->getLocaleCode() . '"/>';
+        return $html . ('<script type="text/javascript">
             Calendar.setup({
-                inputField : "'.$htmlId.'_from",
-                ifFormat : "'.$format.'",
-                button : "'.$htmlId.'_from_trig",
+                inputField : "' . $htmlId . '_from",
+                ifFormat : "' . $format . '",
+                button : "' . $htmlId . '_from_trig",
                 align : "Bl",
                 singleClick : true
             });
             Calendar.setup({
-                inputField : "'.$htmlId.'_to",
-                ifFormat : "'.$format.'",
-                button : "'.$htmlId.'_to_trig",
+                inputField : "' . $htmlId . '_to",
+                ifFormat : "' . $format . '",
+                button : "' . $htmlId . '_to_trig",
                 align : "Bl",
                 singleClick : true
             });
 
-            $("'.$htmlId.'_to_trig").observe("click", showCalendar);
-            $("'.$htmlId.'_from_trig").observe("click", showCalendar);
+            $("' . $htmlId . '_to_trig").observe("click", showCalendar);
+            $("' . $htmlId . '_from_trig").observe("click", showCalendar);
 
             function showCalendar(event){
                 var element = event.element(event);
@@ -106,39 +102,45 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
                     };
                 });
             };
-        </script>';
-        return $html;
+        </script>');
     }
 
-    public function getEscapedValue($index=null)
+    #[Override]
+    public function getEscapedValue($index = null)
     {
         $value = $this->getValue($index);
         if ($value instanceof Zend_Date) {
             return $value->toString($this->getLocale()->getDateFormat(Mage_Core_Model_Locale::FORMAT_TYPE_SHORT));
         }
+
         return $value;
     }
 
-    public function getValue($index=null)
+    public function getValue($index = null)
     {
         if ($index) {
             if ($data = $this->getData('value', 'orig_' . $index)) {
                 return $data;//date('Y-m-d', strtotime($data));
             }
+
             return null;
         }
-        $value = $this->getData('value');
+
+        $value = $this->getDataByKey('value');
         if (is_array($value)) {
             $value['date'] = true;
         }
+
         return $value;
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getCondition()
     {
-        $value = $this->getValue();
-
-        return $value;
+        return $this->getValue();
     }
 
     public function setValue($value)
@@ -148,14 +150,17 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
                 $value['orig_from'] = $value['from'];
                 $value['from'] = $this->_convertDate($this->stripTags($value['from']), $value['locale']);
             }
+
             if (!empty($value['to'])) {
                 $value['orig_to'] = $value['to'];
                 $value['to'] = $this->_convertDate($this->stripTags($value['to']), $value['locale']);
             }
         }
+
         if (empty($value['from']) && empty($value['to'])) {
             $value = null;
         }
+
         $this->setData('value', $value);
         return $this;
     }
@@ -170,15 +175,16 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
         if (!$this->_locale) {
             $this->_locale = Mage::app()->getLocale();
         }
+
         return $this->_locale;
     }
 
     /**
      * Convert given date to default (UTC) timezone
      *
-     * @param string $date
-     * @param string $locale
-     * @return Zend_Date
+     * @param  string         $date
+     * @param  string         $locale
+     * @return null|Zend_Date
      */
     protected function _convertDate($date, $locale)
     {
@@ -187,10 +193,10 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
 
             //set default timezone for store (admin)
             $dateObj->setTimezone(
-                Mage::app()->getStore()->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE)
+                Mage::app()->getStore()->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE),
             );
 
-            //set begining of day
+            //set beginning of day
             $dateObj->setHour(00);
             $dateObj->setMinute(00);
             $dateObj->setSecond(00);
@@ -202,8 +208,7 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Date
             $dateObj->setTimezone(Mage_Core_Model_Locale::DEFAULT_TIMEZONE);
 
             return $dateObj;
-        }
-        catch (Exception $e) {
+        } catch (Exception) {
             return null;
         }
     }

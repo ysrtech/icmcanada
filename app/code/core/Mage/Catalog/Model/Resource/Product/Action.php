@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Product Mass processing resource model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Product_Action extends Mage_Catalog_Model_Resource_Abstract
 {
     /**
-     * Intialize connection
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -44,22 +23,22 @@ class Mage_Catalog_Model_Resource_Product_Action extends Mage_Catalog_Model_Reso
         $this->setType(Mage_Catalog_Model_Product::ENTITY)
             ->setConnection(
                 $resource->getConnection('catalog_read'),
-                $resource->getConnection('catalog_write')
+                $resource->getConnection('catalog_write'),
             );
     }
 
     /**
      * Update attribute values for entity list per store
      *
-     * @param array $entityIds
-     * @param array $attrData
-     * @param int $storeId
-     * @return Mage_Catalog_Model_Resource_Product_Action
+     * @param  array $entityIds
+     * @param  array $attrData
+     * @param  int   $storeId
+     * @return $this
      */
     public function updateAttributes($entityIds, $attrData, $storeId)
     {
-        $this->_attributeValuesToSave   = array();
-        $this->_attributeValuesToDelete = array();
+        $this->_attributeValuesToSave   = [];
+        $this->_attributeValuesToDelete = [];
 
         $object = new Varien_Object();
         $object->setIdFieldName('entity_id')
@@ -84,14 +63,36 @@ class Mage_Catalog_Model_Resource_Product_Action extends Mage_Catalog_Model_Reso
                         $this->_processAttributeValues();
                     }
                 }
+
                 $this->_processAttributeValues();
             }
+
+            $this->_updateUpdatedAt($entityIds);
             $this->_getWriteAdapter()->commit();
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->_getWriteAdapter()->rollBack();
-            throw $e;
+            throw $exception;
         }
 
         return $this;
+    }
+
+    /**
+     * Update the "updated_at" field for all entity_ids passed
+     *
+     * @throws Zend_Db_Adapter_Exception
+     */
+    protected function _updateUpdatedAt(array $entityIds): void
+    {
+        $updatedAt = Varien_Date::now();
+        $catalogProductTable = $this->getTable('catalog/product');
+        $adapter = $this->_getWriteAdapter();
+
+        $entityIdsChunks = array_chunk($entityIds, 1000);
+        foreach ($entityIdsChunks as $entityIdsChunk) {
+            $adapter->update($catalogProductTable, [
+                'updated_at' => $updatedAt,
+            ], $adapter->quoteInto('entity_id IN (?)', $entityIdsChunk));
+        }
     }
 }

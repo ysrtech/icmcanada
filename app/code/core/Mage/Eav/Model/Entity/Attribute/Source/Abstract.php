@@ -1,39 +1,20 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+use Monolog\Level;
+
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
+ */
 
 /**
  * Entity/Attribute/Model - attribute selection source abstract
  *
- * @category   Mage
  * @package    Mage_Eav
- * @author     Magento Core Team <core@magentocommerce.com>
  */
-abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract
-    implements Mage_Eav_Model_Entity_Attribute_Source_Interface
+abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract implements Mage_Eav_Model_Entity_Attribute_Source_Interface
 {
     /**
      * Reference to the attribute instance
@@ -45,15 +26,15 @@ abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract
     /**
      * Options array
      *
-     * @var array
+     * @var null|array
      */
-    protected $_options                 = null;
+    protected $_options = null;
 
     /**
      * Set attribute instance
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @return Mage_Eav_Model_Entity_Attribute_Frontend_Abstract
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @return $this
      */
     public function setAttribute($attribute)
     {
@@ -74,70 +55,97 @@ abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract
     /**
      * Get a text for option value
      *
-     * @param  string|int $value
-     * @return string|bool
+     * @param  int|string  $value
+     * @return bool|string
      */
     public function getOptionText($value)
     {
         $options = $this->getAllOptions();
         // Fixed for tax_class_id and custom_design
-        if (sizeof($options) > 0) foreach($options as $option) {
-            if (isset($option['value']) && $option['value'] == $value) {
-                return isset($option['label']) ? $option['label'] : $option['value'];
-            }
-        } // End
-        if (isset($options[$value])) {
-            return $options[$value];
+        if (count($options)) {
+            foreach ($options as $option) {
+                if (isset($option['value']) && $option['value'] == $value) {
+                    return $option['label'] ?? $option['value'];
+                }
+            } // End
         }
-        return false;
+
+        return $options[$value] ?? false;
     }
 
+    /**
+     * @param  string      $value
+     * @return null|string
+     */
     public function getOptionId($value)
     {
+        $bcWarning = false;
         foreach ($this->getAllOptions() as $option) {
-            if (strcasecmp($option['label'], $value)==0 || $option['value'] == $value) {
+            if (strcasecmp($option['label'], $value) == 0) {
                 return $option['value'];
             }
+
+            if ($option['value'] == $value) {
+                $bcWarning = true;
+            }
         }
+
+        if ($bcWarning) {
+            Mage::log(
+                'Mage_Eav_Model_Entity_Attribute_Source_Abstract::getOptionId() no longer accepts option_id as param',
+                Level::Warning,
+            );
+        }
+
         return null;
     }
 
     /**
      * Add Value Sort To Collection Select
      *
-     * @param Mage_Eav_Model_Entity_Collection_Abstract $collection
-     * @param string $dir direction
-     * @return Mage_Eav_Model_Entity_Attribute_Source_Abstract
+     * @param  Mage_Eav_Model_Entity_Collection_Abstract $collection
+     * @param  string                                    $dir        direction
+     * @return $this
      */
-    public function addValueSortToCollection($collection, $dir = Varien_Data_Collection::SORT_ORDER_DESC) {
+    public function addValueSortToCollection($collection, $dir = Varien_Data_Collection::SORT_ORDER_DESC)
+    {
         return $this;
     }
 
     /**
      * Retrieve flat column definition
      *
-     * @return array
+     * @return array<string, array{
+     *     unsigned: bool,
+     *     default: null|string,
+     *     extra: null|string,
+     *     type: string,
+     *     is_null?: bool,
+     *     nullable?: bool,
+     *     comment?: string,
+     *     length?: int
+     * }>|array<void>
      */
     public function getFlatColums()
     {
-        return array();
+        return [];
     }
 
     /**
      * Retrieve Indexes(s) for Flat
      *
-     * @return array
+     * @return array<string, array{type: string, fields: array<int, string>}>|array<void>
      */
     public function getFlatIndexes()
     {
-        return array();
+        return [];
     }
 
     /**
      * Retrieve Select For Flat Attribute update
      *
-     * @param int $store
-     * @return Varien_Db_Select|null
+     * @param  int                   $store
+     * @return null|Varien_Db_Select
      */
     public function getFlatUpdateSelect($store)
     {
@@ -147,8 +155,8 @@ abstract class Mage_Eav_Model_Entity_Attribute_Source_Abstract
     /**
      * Get a text for index option value
      *
-     * @param string|int $value
-     * @return string|bool
+     * @param  int|string  $value
+     * @return bool|string
      */
     public function getIndexOptionText($value)
     {

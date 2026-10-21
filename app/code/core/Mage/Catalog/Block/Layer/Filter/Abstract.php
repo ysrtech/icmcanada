@@ -1,35 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog layer filter abstract
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method string getAttributeModel()
  */
 abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_Template
 {
@@ -55,7 +38,6 @@ abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_
 
     /**
      * Initialize filter template
-     *
      */
     public function __construct()
     {
@@ -66,7 +48,7 @@ abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_
     /**
      * Initialize filter model object
      *
-     * @return Mage_Catalog_Block_Layer_Filter_Abstract
+     * @return $this
      */
     public function init()
     {
@@ -77,13 +59,14 @@ abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_
     /**
      * Init filter model object
      *
-     * @return Mage_Catalog_Block_Layer_Filter_Abstract
+     * @return $this
      */
     protected function _initFilter()
     {
         if (!$this->_filterModelName) {
             Mage::throwException(Mage::helper('catalog')->__('Filter model name must be declared.'));
         }
+
         $this->_filter = Mage::getModel($this->_filterModelName)
             ->setLayer($this->getLayer());
         $this->_prepareFilter();
@@ -95,7 +78,7 @@ abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_
     /**
      * Prepare filter process
      *
-     * @return Mage_Catalog_Block_Layer_Filter_Abstract
+     * @return $this
      */
     protected function _prepareFilter()
     {
@@ -141,6 +124,7 @@ abstract class Mage_Catalog_Block_Layer_Filter_Abstract extends Mage_Core_Block_
         if ($this->_displayProductCount === null) {
             $this->_displayProductCount = Mage::helper('catalog')->shouldDisplayProductCountOnLayer();
         }
+
         return $this->_displayProductCount;
     }
 

@@ -1,40 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Customer
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Customer
  */
 
 /**
  * Customer address model
  *
- * @category   Mage
  * @package    Mage_Customer
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Customer_Model_Resource_Customer            _getResource()
+ * @method Mage_Customer_Model_Resource_Customer_Collection getCollection()
+ * @method string                                           getEmail()
+ * @method int                                              getPostIndex()
+ * @method Mage_Customer_Model_Resource_Customer            getResource()
+ * @method Mage_Customer_Model_Resource_Customer_Collection getResourceCollection()
+ * @method bool                                             hasEmail()
  */
 class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
 {
     protected $_customer;
 
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('customer/address');
@@ -43,7 +35,7 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
     /**
      * Retrieve address customer identifier
      *
-     * @return integer
+     * @return int
      */
     public function getCustomerId()
     {
@@ -53,8 +45,8 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
     /**
      * Declare address customer identifier
      *
-     * @param integer $id
-     * @return Mage_Customer_Model_Address
+     * @param  int   $id
+     * @return $this
      */
     public function setCustomerId($id)
     {
@@ -66,41 +58,47 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
     /**
      * Retrieve address customer
      *
-     * @return Mage_Customer_Model_Customer | false
+     * @return false|Mage_Customer_Model_Customer
      */
     public function getCustomer()
     {
         if (!$this->getCustomerId()) {
             return false;
         }
+
         if (empty($this->_customer)) {
             $this->_customer = Mage::getModel('customer/customer')
                 ->load($this->getCustomerId());
         }
+
         return $this->_customer;
     }
 
     /**
      * Specify address customer
      *
-     * @param Mage_Customer_Model_Customer $customer
+     * @return $this
      */
     public function setCustomer(Mage_Customer_Model_Customer $customer)
     {
         $this->_customer = $customer;
-        $this->setCustomerId($customer->getId());
+        if ($this->getCustomerId() != $customer->getId()) {
+            $this->setCustomerId($customer->getId());
+        }
+
         return $this;
     }
 
     /**
      * Delete customer address
      *
-     * @return Mage_Customer_Model_Address
+     * @return $this
      */
+    #[Override]
     public function delete()
     {
         parent::delete();
-        $this->setData(array());
+        $this->setData([]);
         return $this;
     }
 
@@ -111,13 +109,14 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
      */
     public function getAttributes()
     {
-        $attributes = $this->getData('attributes');
+        $attributes = $this->getDataByKey('attributes');
         if (is_null($attributes)) {
             $attributes = $this->_getResource()
                 ->loadAllAttributes($this)
                 ->getSortedAttributes();
             $this->setData('attributes', $attributes);
         }
+
         return $attributes;
     }
 
@@ -143,11 +142,12 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
      */
     public function getEntityTypeId()
     {
-        $entityTypeId = $this->getData('entity_type_id');
+        $entityTypeId = $this->getDataByKey('entity_type_id');
         if (!$entityTypeId) {
             $entityTypeId = $this->getEntityType()->getId();
             $this->setData('entity_type_id', $entityTypeId);
         }
+
         return $entityTypeId;
     }
 
@@ -156,20 +156,21 @@ class Mage_Customer_Model_Address extends Mage_Customer_Model_Address_Abstract
      *
      * @return int
      */
+    #[Override]
     public function getRegionId()
     {
-        return (int)$this->getData('region_id');
+        return (int) $this->getDataByKey('region_id');
     }
 
     /**
      * Set Region ID. $regionId is automatically converted to integer
      *
-     * @param int $regionId
-     * @return Mage_Customer_Model_Address
+     * @param  int   $regionId
+     * @return $this
      */
     public function setRegionId($regionId)
     {
-        $this->setData('region_id', (int)$regionId);
+        $this->setData('region_id', (int) $regionId);
         return $this;
     }
 }

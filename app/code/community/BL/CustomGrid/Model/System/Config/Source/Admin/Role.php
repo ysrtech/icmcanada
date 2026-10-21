@@ -31,7 +31,7 @@ class BL_CustomGrid_Model_System_Config_Source_Admin_Role
     public function toOptionArray($includeCreatorRole = true)
     {
         if (is_null($this->_optionArray)) {
-            /** @var $collection Mage_Admin_Model_Mysql4_Role_Collection */
+            /** @var $collection Mage_Admin_Model_Resource_Role_Collection */
             $collection = Mage::getModel('admin/role')->getCollection();
             $collection->setRolesFilter();
             

@@ -1,78 +1,57 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tag
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Tag
+ */
 
 /**
  * Tag Indexer Model
  *
- * @method Mage_Tag_Model_Resource_Indexer_Summary _getResource()
- * @method Mage_Tag_Model_Resource_Indexer_Summary getResource()
- * @method int getTagId()
- * @method Mage_Tag_Model_Indexer_Summary setTagId(int $value)
- * @method int getStoreId()
- * @method Mage_Tag_Model_Indexer_Summary setStoreId(int $value)
- * @method int getCustomers()
- * @method Mage_Tag_Model_Indexer_Summary setCustomers(int $value)
- * @method int getProducts()
- * @method Mage_Tag_Model_Indexer_Summary setProducts(int $value)
- * @method int getUses()
- * @method Mage_Tag_Model_Indexer_Summary setUses(int $value)
- * @method int getHistoricalUses()
- * @method Mage_Tag_Model_Indexer_Summary setHistoricalUses(int $value)
- * @method int getPopularity()
- * @method Mage_Tag_Model_Indexer_Summary setPopularity(int $value)
- * @method int getBasePopularity()
- * @method Mage_Tag_Model_Indexer_Summary setBasePopularity(int $value)
+ * @package    Mage_Tag
  *
- * @category    Mage
- * @package     Mage_Tag
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Tag_Model_Resource_Indexer_Summary _getResource()
+ * @method int                                     getBasePopularity()
+ * @method int                                     getCustomers()
+ * @method int                                     getHistoricalUses()
+ * @method int                                     getPopularity()
+ * @method int                                     getProducts()
+ * @method Mage_Tag_Model_Resource_Indexer_Summary getResource()
+ * @method int                                     getStoreId()
+ * @method int                                     getTagId()
+ * @method int                                     getUses()
+ * @method $this                                   setBasePopularity(int $value)
+ * @method $this                                   setCustomers(int $value)
+ * @method $this                                   setHistoricalUses(int $value)
+ * @method $this                                   setPopularity(int $value)
+ * @method $this                                   setProducts(int $value)
+ * @method $this                                   setStoreId(int $value)
+ * @method $this                                   setTagId(int $value)
+ * @method $this                                   setUses(int $value)
  */
 class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
 {
     /**
      * @var array
      */
-    protected $_matchedEntities = array(
-        Mage_Catalog_Model_Product::ENTITY => array(
+    protected $_matchedEntities = [
+        Mage_Catalog_Model_Product::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
             Mage_Index_Model_Event::TYPE_MASS_ACTION,
-        ),
-        Mage_Tag_Model_Tag::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        ),
-        Mage_Tag_Model_Tag_Relation::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        )
-    );
+        ],
+        Mage_Tag_Model_Tag::ENTITY => [
+            Mage_Index_Model_Event::TYPE_SAVE,
+        ],
+        Mage_Tag_Model_Tag_Relation::ENTITY => [
+            Mage_Index_Model_Event::TYPE_SAVE,
+        ],
+    ];
 
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -94,6 +73,7 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
      *
      * @return string
      */
+    #[Override]
     public function getDescription()
     {
         return Mage::helper('tag')->__('Rebuild Tag aggregation data');
@@ -102,21 +82,19 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
     /**
      * Retrieve attribute list that has an effect on tags
      *
-     * @return array
+     * @return array<int, string>
      */
     protected function _getProductAttributesDependOn()
     {
-        return array(
+        return [
             'visibility',
             'status',
-            'website_ids'
-        );
+            'website_ids',
+        ];
     }
 
     /**
      * Register data required by process in event object
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _registerEvent(Mage_Index_Model_Event $event)
     {
@@ -131,12 +109,10 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
 
     /**
      * Register data required by catalog product save process
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _registerCatalogProductSaveEvent(Mage_Index_Model_Event $event)
     {
-        /* @var $product Mage_Catalog_Model_Product */
+        /** @var Mage_Catalog_Model_Product $product */
         $product = $event->getDataObject();
         $reindexTag = $product->getForceReindexRequired();
 
@@ -151,8 +127,6 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
 
     /**
      * Register data required by catalog product delete process
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _registerCatalogProductDeleteEvent(Mage_Index_Model_Event $event)
     {
@@ -166,12 +140,9 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
 
     /**
      * Register data required by catalog product massaction process
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _registerCatalogProductMassActionEvent(Mage_Index_Model_Event $event)
     {
-        /* @var $actionObject Varien_Object */
         $actionObject = $event->getDataObject();
         $attributes   = $this->_getProductAttributesDependOn();
         $reindexTags  = false;
@@ -236,8 +207,6 @@ class Mage_Tag_Model_Indexer_Summary extends Mage_Index_Model_Indexer_Abstract
 
     /**
      * Process event
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _processEvent(Mage_Index_Model_Event $event)
     {

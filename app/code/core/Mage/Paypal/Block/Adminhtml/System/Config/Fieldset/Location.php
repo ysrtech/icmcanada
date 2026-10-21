@@ -1,49 +1,30 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Fieldset renderer for PayPal Merchant Location fieldset
  *
- * @category    Mage
- * @package     Mage_Paypal
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
-class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Location
-    extends Mage_Adminhtml_Block_System_Config_Form_Fieldset
+class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Location extends Mage_Adminhtml_Block_System_Config_Form_Fieldset
 {
     /**
      * Add conflicts resolution js code to the fieldset
      *
-     * @param Varien_Data_Form_Element_Abstract $element
-     * @param bool $tooltipsExist Init tooltips observer or not
+     * @param  Varien_Data_Form_Element_Abstract $element
+     * @param  bool                              $tooltipsExist Init tooltips observer or not
      * @return string
      */
+    #[Override]
     protected function _getExtraJs($element, $tooltipsExist = false)
     {
-        $js = '
+        $str = '
             document.observe("dom:loaded", function() {
                 $$(".with-button button.button").each(function(configureButton) {
                     togglePaypalSolutionConfigureButton(configureButton, true);
@@ -204,7 +185,7 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Location
 
                             if (conflict && !confirmationShowed && anotherEnabler.value == 1) {
                                 if (isEvent) {
-                                    confirmationApproved = confirm(\'' .  $this->helper('core')->jsQuoteEscape($this->__('There is already another PayPal solution enabled. Enable this solution instead?')) . '\');
+                                    confirmationApproved = confirm(\'' . $this->helper('core')->jsQuoteEscape($this->__('There is already another PayPal solution enabled. Enable this solution instead?')) . '\');
                                 } else {
                                     paypalConflictsObject.isConflict = true;
                                 }
@@ -333,14 +314,14 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Location
                     paypalConflictsObject.toggleBmlEnabler(enablerElement);
                 });
                 if (paypalConflictsObject.isConflict || paypalConflictsObject.ecMissed) {
-                    var notification = \'' .  $this->helper('core')->jsQuoteEscape($this->__('The following error(s) occured:')) . '\';
+                    var notification = \'' . $this->helper('core')->jsQuoteEscape($this->__('The following error(s) occured:')) . '\';
                     if (paypalConflictsObject.isConflict) {
-                        notification += "\\n  " + \'' .  $this->helper('core')->jsQuoteEscape($this->__('Some PayPal solutions conflict.')) . '\';
+                        notification += "\\n  " + \'' . $this->helper('core')->jsQuoteEscape($this->__('Some PayPal solutions conflict.')) . '\';
                     }
                     if (paypalConflictsObject.ecMissed) {
-                        notification += "\\n  " + \'' .  $this->helper('core')->jsQuoteEscape($this->__('PayPal Express Checkout is not enabled.')) . '\';
+                        notification += "\\n  " + \'' . $this->helper('core')->jsQuoteEscape($this->__('PayPal Express Checkout is not enabled.')) . '\';
                     }
-                    notification += "\\n" + \'' .  $this->helper('core')->jsQuoteEscape($this->__('Please re-enable the previously enabled payment solutions.')) . '\';
+                    notification += "\\n" + \'' . $this->helper('core')->jsQuoteEscape($this->__('Please re-enable the previously enabled payment solutions.')) . '\';
                     setTimeout(function() {
                         alert(notification);
                     }, 1);
@@ -380,6 +361,9 @@ class Mage_Paypal_Block_Adminhtml_System_Config_Fieldset_Location
                 }
             });
         ';
-        return parent::_getExtraJs($element, $tooltipsExist) . $this->helper('adminhtml/js')->getScript($js);
+
+        /** @var Mage_Adminhtml_Helper_Js $helper */
+        $helper = $this->helper('adminhtml/js');
+        return parent::_getExtraJs($element, $tooltipsExist) . $helper->getScript($str);
     }
 }

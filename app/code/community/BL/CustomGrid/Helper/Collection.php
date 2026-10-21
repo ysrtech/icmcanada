@@ -186,8 +186,10 @@ class BL_CustomGrid_Helper_Collection extends Mage_Core_Helper_Abstract
         
         if (!isset($this->_quoteIdentifierCallbacks[$adapterHash])) {
             $index = ++$this->_qiCallbacksCount;
-            $code  = 'return Mage::helper(\'customgrid/collection\')->callQuoteIdentifier($v, ' . $index . ');';
-            $callback = create_function('$v', $code);
+            $helper = $this;
+            $callback = function($v) use ($helper, $index) {
+                return $helper->callQuoteIdentifier($v, $index);
+            };
             
             $this->_quoteIdentifierCallbacks[$adapterHash] = array(
                 'adapter'  => $adapter,
@@ -279,7 +281,7 @@ class BL_CustomGrid_Helper_Collection extends Mage_Core_Helper_Abstract
             $select->setPart(Zend_Db_Select::WHERE, $newWherePart);
         } else {
             $select->setPart(Zend_Db_Select::WHERE, $previousWherePart);
-            Mage::throwException(Mage::helper('customgrid')->__('Could not inject the multiple conditions'));
+            Mage::throwException('Could not inject the multiple conditions into the select object');
         }
         
         return $this;
@@ -346,7 +348,7 @@ class BL_CustomGrid_Helper_Collection extends Mage_Core_Helper_Abstract
                 $select->setPart(Zend_Db_Select::WHERE, $newWherePart);
             } else {
                 $select->setPart(Zend_Db_Select::WHERE, $previousWherePart);
-                Mage::throwException(Mage::helper('customgrid')->__('Could not inject regex'));
+                Mage::throwException('Could not inject the regex into the select object');
             }
         }
         
@@ -367,7 +369,7 @@ class BL_CustomGrid_Helper_Collection extends Mage_Core_Helper_Abstract
         
         foreach ($fields as $index => $field) {
             if (is_string($index)) {
-                $filtersMap[$index] = $tableAlias . '.' . $field;;
+                $filtersMap[$index] = $tableAlias . '.' . $field;
             } else {
                 $filtersMap[$field] = $tableAlias . '.' . $field;
             }
@@ -555,23 +557,18 @@ class BL_CustomGrid_Helper_Collection extends Mage_Core_Helper_Abstract
         Mage_Adminhtml_Block_Widget_Grid $gridBlock,
         array $filters
     ) {
+        /** @var BL_CustomGrid_Helper_Grid $gridHelper */
+        $gridHelper = Mage::helper('customgrid/grid');
         $unmappedFields = array();
         
         if (is_array($filtersMap = $this->_getCollectionFiltersMap($collection))) {
             // Search for "potentially dangerous" unmapped fields in applied filters
             $filtersMap = (isset($filtersMap['fields']) ? $filtersMap['fields'] : array());
+            $filtersIndexes = $gridHelper->getGridBlockActiveFiltersIndexes($gridBlock, $filters);
             
-            foreach ($gridBlock->getColumns() as $columnBlockId => $columnBlock) {
-                if (isset($filters[$columnBlockId])
-                    && (!empty($filters[$columnBlockId]) || strlen($filters[$columnBlockId]) > 0)
-                    && $columnBlock->getFilter()) {
-                    $field = $columnBlock->getFilterIndex()
-                        ? $columnBlock->getFilterIndex()
-                        : $columnBlock->getIndex();
-                    
-                    if ($this->_isUnmappedFilterFied($field, $filtersMap)) {
-                        $unmappedFields[] = $field;
-                    }
+            foreach ($filtersIndexes as $filterIndex) {
+                if ($this->_isUnmappedFilterFied($filterIndex, $filtersMap)) {
+                    $unmappedFields[] = $filterIndex;
                 }
             }
         }

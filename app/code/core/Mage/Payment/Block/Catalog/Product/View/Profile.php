@@ -1,38 +1,25 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Payment
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Payment
  */
 
 /**
  * Recurring profile info/options product view block
+ *
+ * @package    Mage_Payment
+ *
+ * @method $this setDateHtmlId(string $string)
  */
 class Mage_Payment_Block_Catalog_Product_View_Profile extends Mage_Core_Block_Template
 {
     /**
      * Recurring profile instance
      *
-     * @var Mage_Payment_Model_Recurring_Profile
+     * @var false|Mage_Payment_Model_Recurring_Profile
      */
     protected $_profile = false;
 
@@ -46,10 +33,11 @@ class Mage_Payment_Block_Catalog_Product_View_Profile extends Mage_Core_Block_Te
      */
     public function getScheduleInfo()
     {
-        $scheduleInfo = array();
+        $scheduleInfo = [];
         foreach ($this->_profile->exportScheduleInfo() as $info) {
             $scheduleInfo[$info->getTitle()] = $info->getSchedule();
         }
+
         return $scheduleInfo;
     }
 
@@ -57,6 +45,8 @@ class Mage_Payment_Block_Catalog_Product_View_Profile extends Mage_Core_Block_Te
      * Render date input element
      *
      * @return string
+     * @throws Exception
+     * @throws Zend_Locale_Exception
      */
     public function getDateHtml()
     {
@@ -73,19 +63,23 @@ class Mage_Payment_Block_Catalog_Product_View_Profile extends Mage_Core_Block_Te
                 ->setTime(true);
             return $calendar->getHtml();
         }
+
+        return '';
     }
 
     /**
      * Determine current product and initialize its recurring profile model
      *
-     * @return Mage_Payment_Block_Catalog_Product_View_Profile
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareLayout()
     {
         $product = Mage::registry('current_product');
         if ($product) {
             $this->_profile = Mage::getModel('payment/recurring_profile')->importProduct($product);
         }
+
         return parent::_prepareLayout();
     }
 
@@ -94,11 +88,13 @@ class Mage_Payment_Block_Catalog_Product_View_Profile extends Mage_Core_Block_Te
      *
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
         if (!$this->_profile) {
-            $this->_template = null;
+            $this->_template = '';
         }
+
         return parent::_toHtml();
     }
 }

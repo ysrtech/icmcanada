@@ -1,38 +1,22 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Product in category grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Catalog_Model_Resource_Product_Collection getCollection()
  */
 class Mage_Adminhtml_Block_Catalog_Category_Tab_Product extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_catalog_category_tab_product';
 
     public function __construct()
     {
@@ -42,48 +26,67 @@ class Mage_Adminhtml_Block_Catalog_Category_Tab_Product extends Mage_Adminhtml_B
         $this->setUseAjax(true);
     }
 
+    /**
+     * @return Mage_Catalog_Model_Category
+     */
     public function getCategory()
     {
         return Mage::registry('category');
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     protected function _addColumnFilterToCollection($column)
     {
         // Set custom filter for in category flag
-        if ($column->getId() == 'in_category') {
+        if ($column->getId() === 'in_category') {
             $productIds = $this->_getSelectedProducts();
             if (empty($productIds)) {
                 $productIds = 0;
             }
+
             if ($column->getFilter()->getValue()) {
-                $this->getCollection()->addFieldToFilter('entity_id', array('in'=>$productIds));
+                $this->getCollection()->addFieldToFilter('entity_id', ['in' => $productIds]);
+            } elseif (!empty($productIds)) {
+                $this->getCollection()->addFieldToFilter('entity_id', ['nin' => $productIds]);
             }
-            elseif(!empty($productIds)) {
-                $this->getCollection()->addFieldToFilter('entity_id', array('nin'=>$productIds));
-            }
-        }
-        else {
+        } else {
             parent::_addColumnFilterToCollection($column);
         }
+
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     protected function _prepareCollection()
     {
         if ($this->getCategory()->getId()) {
-            $this->setDefaultFilter(array('in_category'=>1));
+            $this->setDefaultFilter(['in_category' => 1]);
         }
+
         $collection = Mage::getModel('catalog/product')->getCollection()
             ->addAttributeToSelect('name')
             ->addAttributeToSelect('sku')
             ->addAttributeToSelect('price')
             ->addStoreFilter($this->getRequest()->getParam('store'))
-            ->joinField('position',
+            ->joinField(
+                'position',
                 'catalog/category_product',
                 'position',
                 'product_id=entity_id',
-                'category_id='.(int) $this->getRequest()->getParam('id', 0),
-                'left');
+                'category_id=' . (int) $this->getRequest()->getParam('id', 0),
+                'left',
+            )
+            ->joinAttribute('status', 'catalog_product/status', 'entity_id', null, 'inner')
+            ->joinAttribute('visibility', 'catalog_product/visibility', 'entity_id', null, 'inner');
         $this->setCollection($collection);
 
         if ($this->getCategory()->getProductsReadonly()) {
@@ -91,63 +94,134 @@ class Mage_Adminhtml_Block_Catalog_Category_Tab_Product extends Mage_Adminhtml_B
             if (empty($productIds)) {
                 $productIds = 0;
             }
-            $this->getCollection()->addFieldToFilter('entity_id', array('in'=>$productIds));
+
+            $this->getCollection()->addFieldToFilter('entity_id', ['in' => $productIds]);
         }
 
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
         if (!$this->getCategory()->getProductsReadonly()) {
-            $this->addColumn('in_category', array(
+            $this->addColumn('in_category', [
                 'header_css_class' => 'a-center',
                 'type'      => 'checkbox',
                 'name'      => 'in_category',
                 'values'    => $this->_getSelectedProducts(),
                 'align'     => 'center',
-                'index'     => 'entity_id'
-            ));
+                'index'     => 'entity_id',
+            ]);
         }
-        $this->addColumn('entity_id', array(
+
+        $this->addColumn('entity_id', [
             'header'    => Mage::helper('catalog')->__('ID'),
-            'sortable'  => true,
-            'width'     => '60',
-            'index'     => 'entity_id'
-        ));
-        $this->addColumn('name', array(
+            'index'     => 'entity_id',
+        ]);
+
+        $this->addColumn('name', [
             'header'    => Mage::helper('catalog')->__('Name'),
-            'index'     => 'name'
-        ));
-        $this->addColumn('sku', array(
+            'index'     => 'name',
+        ]);
+
+        $this->addColumn('type', [
+            'header'    => Mage::helper('catalog')->__('Type'),
+            'width'     => 100,
+            'index'     => 'type_id',
+            'type'      => 'options',
+            'options'   => Mage::getSingleton('catalog/product_type')::getOptionArray(),
+        ]);
+
+        $sets = Mage::getResourceModel('eav/entity_attribute_set_collection')
+            ->setEntityTypeFilter(Mage::getModel('catalog/product')->getResource()->getTypeId())
+            ->load()
+            ->toOptionHash();
+
+        $this->addColumn('set_name', [
+            'header'    => Mage::helper('catalog')->__('Attrib. Set Name'),
+            'width'     => 130,
+            'index'     => 'attribute_set_id',
+            'type'      => 'options',
+            'options'   => $sets,
+        ]);
+
+        $this->addColumn('status', [
+            'header'    => Mage::helper('catalog')->__('Status'),
+            'width'     => 90,
+            'index'     => 'status',
+            'type'      => 'options',
+            'options'   => Mage::getSingleton('catalog/product_status')::getOptionArray(),
+        ]);
+
+        $this->addColumn('visibility', [
+            'header'    => Mage::helper('catalog')->__('Visibility'),
+            'width'     => 90,
+            'index'     => 'visibility',
+            'type'      => 'options',
+            'options'   => Mage::getSingleton('catalog/product_visibility')::getOptionArray(),
+        ]);
+
+        $this->addColumn('sku', [
             'header'    => Mage::helper('catalog')->__('SKU'),
             'width'     => '80',
-            'index'     => 'sku'
-        ));
-        $this->addColumn('price', array(
-            'header'    => Mage::helper('catalog')->__('Price'),
-            'type'  => 'currency',
-            'width'     => '1',
-            'currency_code' => (string) Mage::getStoreConfig(Mage_Directory_Model_Currency::XML_PATH_CURRENCY_BASE),
-            'index'     => 'price'
-        ));
-        $this->addColumn('position', array(
+            'index'     => 'sku',
+        ]);
+
+        $this->addColumn('price', [
+            'type'      => 'currency',
+            'currency_code' => Mage_Directory_Helper_Data::getConfigCurrencyBase(),
+        ]);
+
+        $this->addColumn('position', [
             'header'    => Mage::helper('catalog')->__('Position'),
             'width'     => '1',
             'type'      => 'number',
             'index'     => 'position',
-            'editable'  => !$this->getCategory()->getProductsReadonly()
-            //'renderer'  => 'adminhtml/widget_grid_column_renderer_input'
-        ));
+            'editable'  => !$this->getCategory()->getProductsReadonly(),
+        ]);
+
+        $this->addColumn('action', [
+            'type'      => 'action',
+            'getter'    => 'getId',
+            'actions'   => [
+                [
+                    'caption' => Mage::helper('catalog')->__('Edit'),
+                    'id'      => 'editlink',
+                    'field'   => 'id',
+                    'onclick' => "popWin(this.href,'win','width=1000,height=700,resizable=1,scrollbars=1');return false;",
+                    'url'     => [
+                        'base'   => 'adminhtml/catalog_product/edit',
+                        'params' => [
+                            'store' => $this->getRequest()->getParam('store'),
+                            'popup' => 1,
+                        ],
+                    ],
+                ],
+            ],
+            'index' => 'stores',
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/grid', array('_current'=>true));
+        return $this->getUrl('*/*/grid', ['_current' => true]);
     }
 
+    /**
+     * @return array
+     * @throws Exception
+     */
     protected function _getSelectedProducts()
     {
         $products = $this->getRequest()->getPost('selected_products');
@@ -155,8 +229,7 @@ class Mage_Adminhtml_Block_Catalog_Category_Tab_Product extends Mage_Adminhtml_B
             $products = $this->getCategory()->getProductsPosition();
             return array_keys($products);
         }
+
         return $products;
     }
-
 }
-

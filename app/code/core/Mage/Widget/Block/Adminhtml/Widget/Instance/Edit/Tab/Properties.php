@@ -1,39 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Widget
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Widget
  */
 
 /**
  * Widget Instance Properties tab block
  *
- * @category    Mage
- * @package     Mage_Widget
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Widget
+ *
+ * @method $this setWidgetType(string $value)
+ * @method $this setWidgetValues(array $value)
  */
-class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
-    extends Mage_Widget_Block_Adminhtml_Widget_Options
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties extends Mage_Widget_Block_Adminhtml_Widget_Options implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
     /**
      * Prepare label for tab
@@ -58,7 +40,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
     /**
      * Returns status flag about this tab can be showen or not
      *
-     * @return true
+     * @return bool
      */
     public function canShowTab()
     {
@@ -68,7 +50,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
     /**
      * Returns status flag about this tab hidden or not
      *
-     * @return true
+     * @return false
      */
     public function isHidden()
     {
@@ -78,7 +60,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
     /**
      * Getter
      *
-     * @return age_Widget_Model_Widget_Instance
+     * @return Mage_Widget_Model_Widget_Instance
      */
     public function getWidgetInstance()
     {
@@ -89,9 +71,10 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
      * Prepare block children and data.
      * Set widget type and widget parameters if available
      *
-     * @return Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
+     * @inheritDoc
      */
-    protected function _preparelayout()
+    #[Override]
+    protected function _prepareLayout()
     {
         $this->setWidgetType($this->getWidgetInstance()->getType())
             ->setWidgetValues($this->getWidgetInstance()->getWidgetParameters());
@@ -101,14 +84,16 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Properties
     /**
      * Add field to Options form based on option configuration
      *
-     * @param Varien_Object $parameter
-     * @return Varien_Data_Form_Element_Abstract
+     * @param  Varien_Object                           $parameter
+     * @return false|Varien_Data_Form_Element_Abstract
      */
+    #[Override]
     protected function _addField($parameter)
     {
         if ($parameter->getKey() != 'template') {
             return parent::_addField($parameter);
         }
+
         return false;
     }
 }

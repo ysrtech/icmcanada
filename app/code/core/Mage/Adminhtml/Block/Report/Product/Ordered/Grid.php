@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
@@ -31,6 +14,7 @@
  */
 class Mage_Adminhtml_Block_Report_Product_Ordered_Grid extends Mage_Adminhtml_Block_Report_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_report_product_ordered_grid';
 
     public function __construct()
     {
@@ -38,38 +22,46 @@ class Mage_Adminhtml_Block_Report_Product_Ordered_Grid extends Mage_Adminhtml_Bl
         $this->setId('gridOrderedProducts');
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
         parent::_prepareCollection();
         $this->getCollection()->initReport('reports/product_ordered_collection');
+        return $this;
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('name', array(
-            'header'    =>Mage::helper('reports')->__('Product Name'),
-            'index'     =>'name'
-        ));
+        $this->addColumn('name', [
+            'header'    => Mage::helper('reports')->__('Product Name'),
+            'index'     => 'name',
+        ]);
 
         $baseCurrencyCode = $this->getCurrentCurrencyCode();
 
-        $this->addColumn('price', array(
-            'header'        => Mage::helper('reports')->__('Price'),
+        $this->addColumn('price', [
             'width'         => '120px',
             'type'          => 'currency',
             'currency_code' => $baseCurrencyCode,
-            'index'         => 'price',
             'rate'          => $this->getRate($baseCurrencyCode),
-        ));
+        ]);
 
-        $this->addColumn('ordered_qty', array(
-            'header'    =>Mage::helper('reports')->__('Quantity Ordered'),
-            'width'     =>'120px',
-            'align'     =>'right',
-            'index'     =>'ordered_qty',
-            'total'     =>'sum',
-            'type'      =>'number'
-        ));
+        $this->addColumn('ordered_qty', [
+            'header'    => Mage::helper('reports')->__('Quantity Ordered'),
+            'width'     => '120px',
+            'index'     => 'ordered_qty',
+            'total'     => 'sum',
+            'type'      => 'number',
+        ]);
 
         $this->addExportType('*/*/exportOrderedCsv', Mage::helper('reports')->__('CSV'));
         $this->addExportType('*/*/exportOrderedExcel', Mage::helper('reports')->__('Excel XML'));

@@ -1,44 +1,27 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml Catalog helper
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Helper_Catalog extends Mage_Core_Helper_Abstract
 {
-    const XML_PATH_SITEMAP_VALID_PATHS = 'general/file/sitemap_generate_valid_paths';
+    public const XML_PATH_SITEMAP_VALID_PATHS = 'general/file/sitemap_generate_valid_paths';
+
+    protected $_moduleName = 'Mage_Adminhtml';
 
     /**
      * Attribute Tab block name for product edit
      *
-     * @var string
+     * @var null|string
      */
     protected $_attributeTabBlock = null;
 
@@ -52,7 +35,7 @@ class Mage_Adminhtml_Helper_Catalog extends Mage_Core_Helper_Abstract
     /**
      * Retrieve Attribute Tab Block Name for Product Edit
      *
-     * @return string
+     * @return null|string
      */
     public function getAttributeTabBlock()
     {
@@ -62,8 +45,8 @@ class Mage_Adminhtml_Helper_Catalog extends Mage_Core_Helper_Abstract
     /**
      * Set Custom Attribute Tab Block Name for Product Edit
      *
-     * @param string $attributeTabBlock
-     * @return Mage_Adminhtml_Helper_Catalog
+     * @param  string $attributeTabBlock
+     * @return $this
      */
     public function setAttributeTabBlock($attributeTabBlock)
     {
@@ -84,8 +67,8 @@ class Mage_Adminhtml_Helper_Catalog extends Mage_Core_Helper_Abstract
     /**
      * Set Custom Attribute Tab Block Name for Category Edit
      *
-     * @param string $attributeTabBlock
-     * @return Mage_Adminhtml_Helper_Catalog
+     * @param  string $attributeTabBlock
+     * @return $this
      */
     public function setCategoryAttributeTabBlock($attributeTabBlock)
     {
@@ -101,9 +84,8 @@ class Mage_Adminhtml_Helper_Catalog extends Mage_Core_Helper_Abstract
     public function getSitemapValidPaths()
     {
         $path = Mage::getStoreConfig(self::XML_PATH_SITEMAP_VALID_PATHS);
-        /** @var $helper Mage_Core_Helper_Data */
+        /** @var Mage_Core_Helper_Data $helper */
         $helper = Mage::helper('core');
-        $path = array_merge($path, $helper->getPublicFilesValidPath());
-        return $path;
+        return array_merge($path, $helper->getPublicFilesValidPath());
     }
 }

@@ -37,7 +37,7 @@ class VladimirPopov_WebForms_Block_Adminhtml_Fieldsets_Edit
 	public function getHeaderText()
 	{
 		if(!is_null(Mage::registry('fieldsets_data')->getId())) {
-			return Mage::helper('webforms')->__("Edit Field Set '%s'", $this->htmlEscape(Mage::registry('fieldsets_data')->getName()));
+			return Mage::helper('webforms')->__("Edit Field Set '%s'", $this->escapeHtml(Mage::registry('fieldsets_data')->getName()));
 		} else {
 			return Mage::helper('webforms')->__('New Field Set');
 		}

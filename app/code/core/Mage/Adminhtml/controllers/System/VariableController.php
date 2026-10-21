@@ -1,42 +1,29 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Custom Variables admin controller
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller_Action
 {
     /**
+     * ACL resource
+     * @see Mage_Adminhtml_Controller_Action::_isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'system/variable';
+
+    /**
      * Initialize Layout and set breadcrumbs
      *
-     * @return Mage_Adminhtml_System_VariableController
+     * @return $this
      */
     protected function _initLayout()
     {
@@ -50,26 +37,28 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
      * Initialize Variable object
      *
      * @return Mage_Core_Model_Variable
+     * @throws Mage_Core_Exception
      */
     protected function _initVariable()
     {
         $this->_title($this->__('System'))->_title($this->__('Custom Variables'));
 
-        $variableId = $this->getRequest()->getParam('variable_id', null);
-        $storeId = (int)$this->getRequest()->getParam('store', 0);
-        /* @var $emailVariable Mage_Core_Model_Variable */
+        $variableId = $this->getRequest()->getParam('variable_id');
+        $storeId = (int) $this->getRequest()->getParam('store', 0);
+        /** @var Mage_Core_Model_Variable $variable */
         $variable = Mage::getModel('core/variable');
         if ($variableId) {
             $variable->setStoreId($storeId)
                 ->load($variableId);
         }
+
         Mage::register('current_variable', $variable);
         return $variable;
     }
 
     /**
      * Index Action
-     *
+     * @return void
      */
     public function indexAction()
     {
@@ -82,7 +71,7 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
 
     /**
      * New Action (forward to edit action)
-     *
+     * @return void
      */
     public function newAction()
     {
@@ -91,7 +80,8 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
 
     /**
      * Edit Action
-     *
+     * @return void
+     * @throws Mage_Core_Exception
      */
     public function editAction()
     {
@@ -101,21 +91,23 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
 
         $this->_initLayout()
             ->_addContent($this->getLayout()->createBlock('adminhtml/system_variable_edit'))
-            ->_addJs($this->getLayout()->createBlock('core/template', '', array(
-                'template' => 'system/variable/js.phtml'
-            )))
+            ->_addJs($this->getLayout()->createBlock('core/template', '', [
+                'template' => 'system/variable/js.phtml',
+            ]))
             ->renderLayout();
     }
 
     /**
      * Validate Action
-     *
+     * @return void
+     * @throws Mage_Core_Exception
      */
     public function validateAction()
     {
-        $response = new Varien_Object(array('error' => false));
+        $response = new Varien_Object(['error' => false]);
         $variable = $this->_initVariable();
         $variable->addData($this->getRequest()->getPost('variable'));
+
         $result = $variable->validate();
         if ($result !== true && is_string($result)) {
             $this->_getSession()->addError($result);
@@ -123,12 +115,14 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
             $response->setError(true);
             $response->setMessage($this->getLayout()->getMessagesBlock()->getGroupedHtml());
         }
+
         $this->getResponse()->setBody($response->toJson());
     }
 
     /**
      * Save Action
-     *
+     * @return void
+     * @throws Mage_Core_Exception|Throwable
      */
     public function saveAction()
     {
@@ -141,27 +135,29 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
             try {
                 $variable->save();
                 $this->_getSession()->addSuccess(
-                    Mage::helper('adminhtml')->__('The custom variable has been saved.')
+                    Mage::helper('adminhtml')->__('The custom variable has been saved.'),
                 );
                 if ($back) {
-                    $this->_redirect('*/*/edit', array('_current' => true, 'variable_id' => $variable->getId()));
+                    $this->_redirect('*/*/edit', ['_current' => true, 'variable_id' => $variable->getId()]);
                 } else {
-                    $this->_redirect('*/*/', array());
+                    $this->_redirect('*/*/', []);
                 }
+
                 return;
-            } catch (Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-                $this->_redirect('*/*/edit', array('_current' => true, ));
+            } catch (Exception $exception) {
+                $this->_getSession()->addError($exception->getMessage());
+                $this->_redirect('*/*/edit', ['_current' => true,]);
                 return;
             }
         }
-        $this->_redirect('*/*/', array());
-        return;
+
+        $this->_redirect('*/*/', []);
     }
 
     /**
      * Delete Action
-     *
+     * @return void
+     * @throws Mage_Core_Exception|Throwable
      */
     public function deleteAction()
     {
@@ -170,37 +166,27 @@ class Mage_Adminhtml_System_VariableController extends Mage_Adminhtml_Controller
             try {
                 $variable->delete();
                 $this->_getSession()->addSuccess(
-                    Mage::helper('adminhtml')->__('The custom variable has been deleted.')
+                    Mage::helper('adminhtml')->__('The custom variable has been deleted.'),
                 );
-            } catch (Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-                $this->_redirect('*/*/edit', array('_current' => true, ));
+            } catch (Exception $exception) {
+                $this->_getSession()->addError($exception->getMessage());
+                $this->_redirect('*/*/edit', ['_current' => true,]);
                 return;
             }
         }
-        $this->_redirect('*/*/', array());
-        return;
+
+        $this->_redirect('*/*/', []);
     }
 
     /**
      * WYSIWYG Plugin Action
-     *
+     * @return void
      */
     public function wysiwygPluginAction()
     {
         $customVariables = Mage::getModel('core/variable')->getVariablesOptionArray(true);
         $storeContactVariabls = Mage::getModel('core/source_email_variables')->toOptionArray(true);
-        $variables = array($storeContactVariabls, $customVariables);
+        $variables = [$storeContactVariabls, $customVariables];
         $this->getResponse()->setBody(Zend_Json::encode($variables));
-    }
-
-    /**
-     * Check current user permission
-     *
-     * @return boolean
-     */
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed('system/variable');
     }
 }

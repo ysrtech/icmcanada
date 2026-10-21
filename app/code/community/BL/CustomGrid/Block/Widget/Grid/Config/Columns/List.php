@@ -27,9 +27,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
     
     protected function _toHtml()
     {
-        return $this->getGridModel()
-            ? parent::_toHtml()
-            : '';
+        return ($this->getGridModel() ? parent::_toHtml() : '');
     }
     
     /**
@@ -275,7 +273,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
      */
     public function getSaveUrl()
     {
-        return $this->getUrl('customgrid/grid/saveColumns');
+        return $this->getUrl('adminhtml/blcg_grid/saveColumns');
     }
     
     /**
@@ -285,7 +283,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
      */
     public function getCustomColumnConfigUrl()
     {
-        return $this->getUrl('customgrid/custom_column_config/index');
+        return $this->getUrl('adminhtml/blcg_custom_column_config/index');
     }
     
     /**
@@ -360,6 +358,16 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
     protected function _getGlobalHtmlId($suffix)
     {
         return $this->getHtmlId() . '-' . $suffix;
+    }
+    
+    /**
+     * Return the HTML ID of the columns form
+     *
+     * @return string
+     */
+    public function getFormId()
+    {
+        return $this->_getGlobalHtmlId('form');
     }
     
     /**
@@ -515,7 +523,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
      * @param BL_CustomGrid_Model_Grid_Column $column Grid column
      * @return string
      */
-    protected function getStoreSelectHtml(BL_CustomGrid_Model_Grid_Column $column = null)
+    protected function getStoreSelectHtml(?BL_CustomGrid_Model_Grid_Column $column = null)
     {
         $jsOutput  = is_null($column);
         $columnId  = ($jsOutput ? $this->getIdPlaceholder() : $column->getId());
@@ -679,7 +687,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_List extends Mage_Adminhtml
      * @param BL_CustomGrid_Model_Grid_Column $column Grid column
      * @return string
      */
-    public function getAttributesSelectHtml(BL_CustomGrid_Model_Grid_Column $column = null)
+    public function getAttributesSelectHtml(?BL_CustomGrid_Model_Grid_Column $column = null)
     {
         $htmlId = $this->getHtmlId();
         $jsOutput  = is_null($column);

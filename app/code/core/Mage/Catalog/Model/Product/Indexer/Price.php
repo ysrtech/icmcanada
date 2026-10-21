@@ -1,98 +1,77 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
+
 /**
- * Enter description here ...
+ * @package    Mage_Catalog
  *
  * @method Mage_Catalog_Model_Resource_Product_Indexer_Price _getResource()
+ * @method int                                               getCustomerGroupId()
+ * @method float                                             getFinalPrice()
+ * @method float                                             getMaxPrice()
+ * @method float                                             getMinPrice()
+ * @method float                                             getPrice()
  * @method Mage_Catalog_Model_Resource_Product_Indexer_Price getResource()
- * @method Mage_Catalog_Model_Product_Indexer_Price setEntityId(int $value)
- * @method int getCustomerGroupId()
- * @method Mage_Catalog_Model_Product_Indexer_Price setCustomerGroupId(int $value)
- * @method int getWebsiteId()
- * @method Mage_Catalog_Model_Product_Indexer_Price setWebsiteId(int $value)
- * @method int getTaxClassId()
- * @method Mage_Catalog_Model_Product_Indexer_Price setTaxClassId(int $value)
- * @method float getPrice()
- * @method Mage_Catalog_Model_Product_Indexer_Price setPrice(float $value)
- * @method float getFinalPrice()
- * @method Mage_Catalog_Model_Product_Indexer_Price setFinalPrice(float $value)
- * @method float getMinPrice()
- * @method Mage_Catalog_Model_Product_Indexer_Price setMinPrice(float $value)
- * @method float getMaxPrice()
- * @method Mage_Catalog_Model_Product_Indexer_Price setMaxPrice(float $value)
- * @method float getTierPrice()
- * @method Mage_Catalog_Model_Product_Indexer_Price setTierPrice(float $value)
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method int                                               getTaxClassId()
+ * @method float                                             getTierPrice()
+ * @method int                                               getWebsiteId()
+ * @method $this                                             setCustomerGroupId(int $value)
+ * @method $this                                             setEntityId(int $value)
+ * @method $this                                             setFinalPrice(float $value)
+ * @method $this                                             setMaxPrice(float $value)
+ * @method $this                                             setMinPrice(float $value)
+ * @method $this                                             setPrice(float $value)
+ * @method $this                                             setTaxClassId(int $value)
+ * @method $this                                             setTierPrice(float $value)
+ * @method $this                                             setWebsiteId(int $value)
  */
 class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_Abstract
 {
     /**
      * Data key for matching result to be saved in
      */
-    const EVENT_MATCH_RESULT_KEY = 'catalog_product_price_match_result';
+    public const EVENT_MATCH_RESULT_KEY = 'catalog_product_price_match_result';
 
     /**
      * Reindex price event type
      */
-    const EVENT_TYPE_REINDEX_PRICE = 'catalog_reindex_price';
+    public const EVENT_TYPE_REINDEX_PRICE = 'catalog_reindex_price';
 
     /**
      * Matched Entities instruction array
      *
      * @var array
      */
-    protected $_matchedEntities = array(
-        Mage_Catalog_Model_Product::ENTITY => array(
+    protected $_matchedEntities = [
+        Mage_Catalog_Model_Product::ENTITY => [
             Mage_Index_Model_Event::TYPE_SAVE,
             Mage_Index_Model_Event::TYPE_DELETE,
             Mage_Index_Model_Event::TYPE_MASS_ACTION,
             self::EVENT_TYPE_REINDEX_PRICE,
-        ),
-        Mage_Core_Model_Config_Data::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        ),
-        Mage_Catalog_Model_Convert_Adapter_Product::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        ),
-        Mage_Customer_Model_Group::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        )
-    );
+        ],
+        Mage_Core_Model_Config_Data::ENTITY => [
+            Mage_Index_Model_Event::TYPE_SAVE,
+        ],
+        Mage_Catalog_Model_Convert_Adapter_Product::ENTITY => [
+            Mage_Index_Model_Event::TYPE_SAVE,
+        ],
+        Mage_Customer_Model_Group::ENTITY => [
+            Mage_Index_Model_Event::TYPE_SAVE,
+        ],
+    ];
 
-    protected $_relatedConfigSettings = array(
+    protected $_relatedConfigSettings = [
         Mage_Catalog_Helper_Data::XML_PATH_PRICE_SCOPE,
-        Mage_CatalogInventory_Model_Stock_Item::XML_PATH_MANAGE_STOCK
-    );
+        Mage_CatalogInventory_Model_Stock_Item::XML_PATH_MANAGE_STOCK,
+    ];
 
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -114,6 +93,7 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
      *
      * @return string
      */
+    #[Override]
     public function getDescription()
     {
         return Mage::helper('catalog')->__('Index product prices');
@@ -122,11 +102,11 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
     /**
      * Retrieve attribute list has an effect on product price
      *
-     * @return array
+     * @return array<int, string>
      */
     protected function _getDependentAttributes()
     {
-        return array(
+        return [
             'price',
             'special_price',
             'special_from_date',
@@ -134,17 +114,17 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
             'tax_class_id',
             'status',
             'required_options',
-            'force_reindex_required'
-        );
+            'force_reindex_required',
+        ];
     }
 
     /**
      * Check if event can be matched by process.
-     * Rewrited for checking configuration settings save (like price scope).
+     * Rewritten for checking configuration settings save (like price scope).
      *
-     * @param Mage_Index_Model_Event $event
      * @return bool
      */
+    #[Override]
     public function matchEvent(Mage_Index_Model_Event $event)
     {
         $data       = $event->getNewData();
@@ -154,11 +134,7 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
 
         if ($event->getEntity() == Mage_Core_Model_Config_Data::ENTITY) {
             $data = $event->getDataObject();
-            if ($data && in_array($data->getPath(), $this->_relatedConfigSettings)) {
-                $result = $data->isValueChanged();
-            } else {
-                $result = false;
-            }
+            $result = $data && in_array($data->getPath(), $this->_relatedConfigSettings) ? $data->isValueChanged() : false;
         } elseif ($event->getEntity() == Mage_Customer_Model_Group::ENTITY) {
             $result = $event->getDataObject() && $event->getDataObject()->isObjectNew();
         } else {
@@ -173,11 +149,11 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
     /**
      * Register data required by catalog product delete process
      *
-     * @param Mage_Index_Model_Event $event
+     * @throws Mage_Core_Exception
      */
     protected function _registerCatalogProductDeleteEvent(Mage_Index_Model_Event $event)
     {
-        /* @var $product Mage_Catalog_Model_Product */
+        /** @var Mage_Catalog_Model_Product $product */
         $product = $event->getDataObject();
 
         $parentIds = $this->_getResource()->getProductParentsByChild($product->getId());
@@ -188,12 +164,10 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
 
     /**
      * Register data required by catalog product save process
-     *
-     * @param Mage_Index_Model_Event $event
      */
     protected function _registerCatalogProductSaveEvent(Mage_Index_Model_Event $event)
     {
-        /* @var $product Mage_Catalog_Model_Product */
+        /** @var Mage_Catalog_Model_Product $product */
         $product      = $event->getDataObject();
         $attributes   = $this->_getDependentAttributes();
         $reindexPrice = $product->getIsRelationsChanged() || $product->getIsCustomOptionChanged()
@@ -213,7 +187,6 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
 
     protected function _registerCatalogProductMassActionEvent(Mage_Index_Model_Event $event)
     {
-        /* @var $actionObject Varien_Object */
         $actionObject = $event->getDataObject();
         $attributes   = $this->_getDependentAttributes();
         $reindexPrice = false;
@@ -243,7 +216,7 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
     /**
      * Register data required by process in event object
      *
-     * @param Mage_Index_Model_Event $event
+     * @throws Mage_Core_Exception
      */
     protected function _registerEvent(Mage_Index_Model_Event $event)
     {
@@ -253,9 +226,9 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
         if ($entity == Mage_Core_Model_Config_Data::ENTITY || $entity == Mage_Customer_Model_Group::ENTITY) {
             $process = $event->getProcess();
             $process->changeStatus(Mage_Index_Model_Process::STATUS_REQUIRE_REINDEX);
-        } else if ($entity == Mage_Catalog_Model_Convert_Adapter_Product::ENTITY) {
+        } elseif ($entity == Mage_Catalog_Model_Convert_Adapter_Product::ENTITY) {
             $event->addNewData('catalog_product_price_reindex_all', true);
-        } else if ($entity == Mage_Catalog_Model_Product::ENTITY) {
+        } elseif ($entity == Mage_Catalog_Model_Product::ENTITY) {
             switch ($event->getType()) {
                 case Mage_Index_Model_Event::TYPE_DELETE:
                     $this->_registerCatalogProductDeleteEvent($event);
@@ -284,7 +257,7 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
     /**
      * Process event
      *
-     * @param Mage_Index_Model_Event $event
+     * @throws Mage_Core_Exception
      */
     protected function _processEvent(Mage_Index_Model_Event $event)
     {
@@ -293,9 +266,11 @@ class Mage_Catalog_Model_Product_Indexer_Price extends Mage_Index_Model_Indexer_
             $this->_getResource()->reindexProductIds($data['id']);
             return;
         }
+
         if (!empty($data['catalog_product_price_reindex_all'])) {
             $this->reindexAll();
         }
+
         if (empty($data['catalog_product_price_skip_call_event_handler'])) {
             $this->callEventHandler($event);
         }

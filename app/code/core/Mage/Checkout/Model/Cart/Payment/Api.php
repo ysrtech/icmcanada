@@ -1,57 +1,40 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Shopping cart api
  *
- * @category    Mage
- * @package     Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Checkout
  */
-
 class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resource
 {
-
+    /**
+     * @param  array $data
+     * @return array
+     */
     protected function _preparePaymentData($data)
     {
         if (!(is_array($data) && is_null($data[0]))) {
-            return array();
+            return [];
         }
 
         return $data;
     }
 
     /**
-     * @param  $method
-     * @param  $quote
+     * @param  Mage_Payment_Model_Method_Abstract $method
+     * @param  Mage_Sales_Model_Quote             $quote
      * @return bool
      */
     protected function _canUsePaymentMethod($method, $quote)
     {
-        if (!($method->isGateway() || $method->canUseInternal())) {
+        if (!$method->isGateway() && !$method->canUseInternal()) {
             return false;
         }
 
@@ -69,24 +52,24 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
         $total = $quote->getBaseGrandTotal();
         $minTotal = $method->getConfigData('min_order_total');
         $maxTotal = $method->getConfigData('max_order_total');
-
-        if ((!empty($minTotal) && ($total < $minTotal)) || (!empty($maxTotal) && ($total > $maxTotal))) {
-            return false;
-        }
-
-        return true;
+        return !(!empty($minTotal) && $total < $minTotal) && !(!empty($maxTotal) && $total > $maxTotal);
     }
 
+    /**
+     * @param  Mage_Payment_Model_Method_Abstract $method
+     * @return null|array
+     */
     protected function _getPaymentMethodAvailableCcTypes($method)
     {
         $ccTypes = Mage::getSingleton('payment/config')->getCcTypes();
         $methodCcTypes = explode(',', $method->getConfigData('cctypes'));
-        foreach ($ccTypes as $code => $title) {
-            if (!in_array($code, $methodCcTypes)) {
+        foreach (array_keys($ccTypes) as $code) {
+            if (!in_array($code, $methodCcTypes, true)) {
                 unset($ccTypes[$code]);
             }
         }
-        if (empty($ccTypes)) {
+
+        if ($ccTypes === []) {
             return null;
         }
 
@@ -96,8 +79,8 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
     /**
      * Retrieve available payment methods for a quote
      *
-     * @param int $quoteId
-     * @param int $store
+     * @param  int   $quoteId
+     * @param  int   $store
      * @return array
      */
     public function getPaymentMethodsList($quoteId, $store = null)
@@ -107,20 +90,20 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
 
         $total = $quote->getBaseSubtotal();
 
-        $methodsResult = array();
+        $methodsResult = [];
         $methods = Mage::helper('payment')->getStoreMethods($store, $quote);
 
         foreach ($methods as $method) {
-            /** @var $method Mage_Payment_Model_Method_Abstract */
+            /** @var Mage_Payment_Model_Method_Abstract $method */
             if ($this->_canUsePaymentMethod($method, $quote)) {
                 $isRecurring = $quote->hasRecurringItems() && $method->canManageRecurringProfiles();
 
                 if ($total != 0 || $method->getCode() == 'free' || $isRecurring) {
-                    $methodsResult[] = array(
+                    $methodsResult[] = [
                         'code' => $method->getCode(),
                         'title' => $method->getTitle(),
                         'cc_types' => $this->_getPaymentMethodAvailableCcTypes($method),
-                    );
+                    ];
                 }
             }
         }
@@ -129,9 +112,9 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
     }
 
     /**
-     * @param  $quoteId
-     * @param  $paymentData
-     * @param  $store
+     * @param  int        $quoteId
+     * @param  array      $paymentData
+     * @param  int|string $store
      * @return bool
      */
     public function setPaymentMethod($quoteId, $paymentData, $store = null)
@@ -142,7 +125,7 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
         $paymentData = $this->_preparePaymentData($paymentData);
 
         if (empty($paymentData)) {
-            $this->_fault("payment_method_empty");
+            $this->_fault('payment_method_empty');
         }
 
         if ($quote->isVirtual()) {
@@ -150,16 +133,18 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
             if (is_null($quote->getBillingAddress()->getId())) {
                 $this->_fault('billing_address_is_not_set');
             }
+
             $quote->getBillingAddress()->setPaymentMethod(
-                isset($paymentData['method']) ? $paymentData['method'] : null
+                $paymentData['method'] ?? null,
             );
         } else {
             // check if shipping address is set
             if (is_null($quote->getShippingAddress()->getId())) {
                 $this->_fault('shipping_address_is_not_set');
             }
+
             $quote->getShippingAddress()->setPaymentMethod(
-                isset($paymentData['method']) ? $paymentData['method'] : null
+                $paymentData['method'] ?? null,
             );
         }
 
@@ -171,13 +156,13 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
         $methods = Mage::helper('payment')->getStoreMethods($store, $quote);
         foreach ($methods as $method) {
             if ($method->getCode() == $paymentData['method']) {
-                /** @var $method Mage_Payment_Model_Method_Abstract */
+                /** @var Mage_Payment_Model_Method_Abstract $method */
                 if (!($this->_canUsePaymentMethod($method, $quote)
                     && ($total != 0
                         || $method->getCode() == 'free'
                         || ($quote->hasRecurringItems() && $method->canManageRecurringProfiles())))
                 ) {
-                    $this->_fault("method_not_allowed");
+                    $this->_fault('method_not_allowed');
                 }
             }
         }
@@ -186,14 +171,13 @@ class Mage_Checkout_Model_Cart_Payment_Api extends Mage_Checkout_Model_Api_Resou
             $payment = $quote->getPayment();
             $payment->importData($paymentData);
 
-
             $quote->setTotalsCollectedFlag(false)
                 ->collectTotals()
                 ->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('payment_method_is_not_set', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('payment_method_is_not_set', $mageCoreException->getMessage());
         }
+
         return true;
     }
-
 }

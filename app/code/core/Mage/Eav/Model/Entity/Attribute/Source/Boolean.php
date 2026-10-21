@@ -1,38 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
  */
 
-
+/**
+ * @package    Mage_Eav
+ */
 class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Entity_Attribute_Source_Abstract
 {
     /**
      * Option values
      */
-    const VALUE_YES = 1;
-    const VALUE_NO = 0;
+    public const VALUE_YES = 1;
 
+    public const VALUE_NO = 0;
 
     /**
      * Retrieve all options array
@@ -42,17 +27,18 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
     public function getAllOptions()
     {
         if (is_null($this->_options)) {
-            $this->_options = array(
-                array(
+            $this->_options = [
+                [
                     'label' => Mage::helper('eav')->__('Yes'),
-                    'value' => self::VALUE_YES
-                ),
-                array(
+                    'value' => self::VALUE_YES,
+                ],
+                [
                     'label' => Mage::helper('eav')->__('No'),
-                    'value' => self::VALUE_NO
-                ),
-            );
+                    'value' => self::VALUE_NO,
+                ],
+            ];
         }
+
         return $this->_options;
     }
 
@@ -63,19 +49,31 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
      */
     public function getOptionArray()
     {
-        $_options = array();
+        $_options = [];
         foreach ($this->getAllOptions() as $option) {
             $_options[$option['value']] = $option['label'];
         }
+
         return $_options;
+    }
+
+    /**
+     * Retrieve option array
+     *
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        return $this->getOptionArray();
     }
 
     /**
      * Get a text for option value
      *
-     * @param string|integer $value
-     * @return string
+     * @param  int|string   $value
+     * @return false|string
      */
+    #[Override]
     public function getOptionText($value)
     {
         $options = $this->getAllOptions();
@@ -84,22 +82,22 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
                 return $option['label'];
             }
         }
+
         return false;
     }
 
     /**
-     * Retrieve flat column definition
-     *
-     * @return array
+     * @inheritDoc
      */
+    #[Override]
     public function getFlatColums()
     {
         $attributeCode = $this->getAttribute()->getAttributeCode();
-        $column = array(
+        $column = [
             'unsigned'  => false,
             'default'   => null,
-            'extra'     => null
-        );
+            'extra'     => null,
+        ];
 
         if (Mage::helper('core')->useDbCompatibleMode()) {
             $column['type']     = 'tinyint(1)';
@@ -111,23 +109,22 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
             $column['comment']  = $attributeCode . ' column';
         }
 
-        return array($attributeCode => $column);
+        return [$attributeCode => $column];
     }
 
     /**
-     * Retrieve Indexes(s) for Flat
-     *
-     * @return array
+     * @inheritDoc
      */
+    #[Override]
     public function getFlatIndexes()
     {
-        $indexes = array();
+        $indexes = [];
 
         $index = 'IDX_' . strtoupper($this->getAttribute()->getAttributeCode());
-        $indexes[$index] = array(
+        $indexes[$index] = [
             'type'      => 'index',
-            'fields'    => array($this->getAttribute()->getAttributeCode())
-        );
+            'fields'    => [$this->getAttribute()->getAttributeCode()],
+        ];
 
         return $indexes;
     }
@@ -135,8 +132,8 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
     /**
      * Retrieve Select For Flat Attribute update
      *
-     * @param int $store
-     * @return Varien_Db_Select|null
+     * @param  int                   $store
+     * @return null|Varien_Db_Select
      */
     public function getFlatUpdateSelect($store)
     {
@@ -147,9 +144,10 @@ class Mage_Eav_Model_Entity_Attribute_Source_Boolean extends Mage_Eav_Model_Enti
     /**
      * Get a text for index option value
      *
-     * @param  string|int $value
-     * @return string|bool
+     * @param  int|string  $value
+     * @return bool|string
      */
+    #[Override]
     public function getIndexOptionText($value)
     {
         switch ($value) {

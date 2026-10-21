@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
+ */
 
 /**
  * Customer Widget Form File Element Block
  *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
  */
 class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_Element_Abstract
 {
@@ -39,7 +19,7 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
      *
      * @param array $attributes
      */
-    public function __construct($attributes = array())
+    public function __construct($attributes = [])
     {
         parent::__construct($attributes);
         $this->setType('file');
@@ -50,6 +30,7 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
      *
      * @return string
      */
+    #[Override]
     public function getElementHtml()
     {
         $this->addClass('input-file');
@@ -58,12 +39,13 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
             $this->addClass('required-file');
         }
 
-        $element = sprintf('<input id="%s" name="%s" %s />%s%s',
+        $element = sprintf(
+            '<input id="%s" name="%s" %s />%s%s',
             $this->getHtmlId(),
             $this->getName(),
             $this->serialize($this->getHtmlAttributes()),
             $this->getAfterElementHtml(),
-            $this->_getHiddenInput()
+            $this->_getHiddenInput(),
         );
 
         return $this->_getPreviewHtml() . $element . $this->_getDeleteCheckboxHtml();
@@ -79,16 +61,16 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
         $html = '';
         if ($this->getValue() && !$this->getRequired() && !is_array($this->getValue())) {
             $checkboxId = sprintf('%s_delete', $this->getHtmlId());
-            $checkbox   = array(
+            $checkbox   = [
                 'type'  => 'checkbox',
                 'name'  => sprintf('%s[delete]', $this->getName()),
                 'value' => '1',
                 'class' => 'checkbox',
-                'id'    => $checkboxId
-            );
-            $label      = array(
-                'for'   => $checkboxId
-            );
+                'id'    => $checkboxId,
+            ];
+            $label      = [
+                'for'   => $checkboxId,
+            ];
             if ($this->getDisabled()) {
                 $checkbox['disabled'] = 'disabled';
                 $label['class'] = 'disabled';
@@ -99,6 +81,7 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
             $html .= $this->_drawElementHtml('label', $label, false) . $this->_getDeleteCheckboxLabel() . '</label>';
             $html .= '</span>';
         }
+
         return $html;
     }
 
@@ -131,18 +114,19 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
     {
         $html = '';
         if ($this->getValue() && !is_array($this->getValue())) {
-            $image = array(
+            $image = [
                 'alt'   => Mage::helper('adminhtml')->__('Download'),
                 'title' => Mage::helper('adminhtml')->__('Download'),
                 'src'   => Mage::getDesign()->getSkinUrl('images/fam_bullet_disk.gif'),
-                'class' => 'v-middle'
-            );
+                'class' => 'v-middle',
+            ];
             $url = $this->_getPreviewUrl();
             $html .= '<span>';
             $html .= '<a href="' . $url . '">' . $this->_drawElementHtml('img', $image) . '</a> ';
             $html .= '<a href="' . $url . '">' . Mage::helper('adminhtml')->__('Download') . '</a>';
             $html .= '</span>';
         }
+
         return $html;
     }
 
@@ -153,12 +137,12 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
      */
     protected function _getHiddenInput()
     {
-        return $this->_drawElementHtml('input', array(
+        return $this->_drawElementHtml('input', [
             'type'  => 'hidden',
             'name'  => sprintf('%s[value]', $this->getName()),
             'id'    => sprintf('%s_value', $this->getHtmlId()),
-            'value' => $this->getEscapedValue()
-        ));
+            'value' => $this->getEscapedValue(),
+        ]);
     }
 
     /**
@@ -168,24 +152,24 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
      */
     protected function _getPreviewUrl()
     {
-        return Mage::helper('adminhtml')->getUrl('adminhtml/customer/viewfile', array(
+        return Mage::helper('adminhtml')::getUrl('adminhtml/customer/viewfile', [
             'file'      => Mage::helper('core')->urlEncode($this->getValue()),
-        ));
+        ]);
     }
 
     /**
      * Return Element HTML
      *
-     * @param string $element
-     * @param array $attributes
-     * @param boolean $closed
+     * @param  string                          $element
+     * @param  array<string, false|int|string> $attributes
+     * @param  bool                            $closed
      * @return string
      */
     protected function _drawElementHtml($element, array $attributes, $closed = true)
     {
-        $parts = array();
-        foreach ($attributes as $k => $v) {
-            $parts[] = sprintf('%s="%s"', $k, $v);
+        $parts = [];
+        foreach ($attributes as $key => $value) {
+            $parts[] = sprintf('%s="%s"', $key, $value);
         }
 
         return sprintf('<%s %s%s>', $element, implode(' ', $parts), $closed ? ' /' : '');
@@ -194,16 +178,18 @@ class Mage_Adminhtml_Block_Customer_Form_Element_File extends Varien_Data_Form_E
     /**
      * Return escaped value
      *
-     * @param int $index
-     * @return string
+     * @param  null|string  $index
+     * @return false|string
      */
+    #[Override]
     public function getEscapedValue($index = null)
     {
-        if (is_array($this->getValue())) {
+        $value = $this->getValue();
+        if (is_array($value)) {
             return false;
         }
-        $value = $this->getValue();
-        if (is_array($value) && is_null($index)) {
+
+        if (is_null($index)) {
             $index = 'value';
         }
 

@@ -51,7 +51,7 @@
                             <?php // if($_category->getChildren()){ $grcount = count($grandchildren_ids);}?>
                             <?php $categoryUrl = $this->getCategoryUrl($_category)?>
 
-                        <li class="category-item item <?php echo $grcount > 10 ? "two-columns" : ""; ?><?php if($i%3==0){echo ' last';} ?>">
+                        <li class="category-item item <?php echo ($grcount ?? 0) > 10 ? "two-columns" : ""; ?><?php if($i%3==0){echo ' last';} ?>">
                             <div class="item-box">
                             <a href="<?php echo $categoryUrl ?>">
                             <div class="image">
@@ -79,11 +79,11 @@
                             </div>
                             </a>
                             <a href="<?php echo $categoryUrl ?>">
-                                <p class="cat-name"><?php echo $this->htmlEscape($_category->getName());?> </p>
+                                <p class="cat-name"><?php echo $this->escapeHtml($_category->getName());?> </p>
                             </a>
                             <?php //if(!$_category->getIsAnchor()):?>
 
-                            <?php if($grcount > 0) :?>
+                            <?php if(($grcount ?? 0) > 0) :?>
                             <ul class="grandchildren " >
 	                            <?php $gr=0; foreach ($grandchildren_ids as $grandChild): $gr++?>
                                     <?php

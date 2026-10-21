@@ -1,39 +1,19 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_SalesRule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_SalesRule
  */
 
 /**
  * SalesRule Model Observer
  *
- * @category    Mage
- * @package     Mage_SalesRule
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_SalesRule
  */
 class Mage_SalesRule_Model_Observer
 {
-
     /**
      * Sales Rule Validator
      *
@@ -44,9 +24,9 @@ class Mage_SalesRule_Model_Observer
     /**
      * Get quote item validator/processor object
      *
+     * @param  Varien_Event                   $event
+     * @return Mage_SalesRule_Model_Validator
      * @deprecated
-     * @param   Varien_Event $event
-     * @return  Mage_SalesRule_Model_Validator
      */
     public function getValidator($event)
     {
@@ -54,15 +34,19 @@ class Mage_SalesRule_Model_Observer
             $this->_validator = Mage::getModel('salesrule/validator')
                 ->init($event->getWebsiteId(), $event->getCustomerGroupId(), $event->getCouponCode());
         }
+
         return $this->_validator;
     }
 
     /**
      * Process quote item (apply discount to item)
      *
-     * @deprecated process call movet to total model
-     * @param Varien_Event_Observer $observer
+     * @param  Varien_Event_Observer $observer
+     * @throws Mage_Core_Exception
+     * @deprecated process call moved to total model
+     * @SuppressWarnings("PHPMD.CamelCaseMethodName")
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function sales_quote_address_discount_item($observer)
     {
         $this->getValidator($observer->getEvent())
@@ -72,33 +56,40 @@ class Mage_SalesRule_Model_Observer
     /**
      * Registered callback: called after an order is placed
      *
-     * @param Varien_Event_Observer $observer
+     * @param  Varien_Event_Observer $observer
+     * @return $this
+     * @throws Throwable
+     * @SuppressWarnings("PHPMD.CamelCaseMethodName")
      */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     public function sales_order_afterPlace($observer)
     {
+        /** @var Mage_Sales_Model_Order $order */
         $order = $observer->getEvent()->getOrder();
 
         if (!$order) {
             return $this;
         }
 
-        // lookup rule ids
-        $ruleIds = explode(',', $order->getAppliedRuleIds());
-        $ruleIds = array_unique($ruleIds);
-
-        $ruleCustomer = null;
         $customerId = $order->getCustomerId();
 
         // use each rule (and apply to customer, if applicable)
         if ($order->getDiscountAmount() != 0) {
+            // lookup rule ids
+            $ruleIds = array_map(intval(...), explode(',', (string) $order->getAppliedRuleIds()));
+            $ruleIds = array_unique($ruleIds);
+
             foreach ($ruleIds as $ruleId) {
                 if (!$ruleId) {
                     continue;
                 }
+
                 $rule = Mage::getModel('salesrule/rule');
+                // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                 $rule->load($ruleId);
                 if ($rule->getId()) {
                     $rule->setTimesUsed($rule->getTimesUsed() + 1);
+                    // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                     $rule->save();
 
                     if ($customerId) {
@@ -107,19 +98,20 @@ class Mage_SalesRule_Model_Observer
 
                         if ($ruleCustomer->getId()) {
                             $ruleCustomer->setTimesUsed($ruleCustomer->getTimesUsed() + 1);
-                        }
-                        else {
+                        } else {
                             $ruleCustomer
                             ->setCustomerId($customerId)
                             ->setRuleId($ruleId)
                             ->setTimesUsed(1);
                         }
+
+                        // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                         $ruleCustomer->save();
                     }
                 }
             }
+
             $coupon = Mage::getModel('salesrule/coupon');
-            /** @var Mage_SalesRule_Model_Coupon */
             $coupon->load($order->getCouponCode(), 'code');
             if ($coupon->getId()) {
                 $coupon->setTimesUsed($coupon->getTimesUsed() + 1);
@@ -130,13 +122,61 @@ class Mage_SalesRule_Model_Observer
                 }
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Registered callback: called after an order payment is canceled
+     *
+     * @param Varien_Event_Observer $observer
+     * @SuppressWarnings("PHPMD.CamelCaseMethodName")
+     * @throws Mage_Core_Exception
+     * @throws Throwable
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function sales_order_paymentCancel($observer)
+    {
+        $event = $observer->getEvent();
+        /** @var Mage_Sales_Model_Order $order */
+        $order = $event->getPayment()->getOrder();
+
+        if ($order->canCancel() && $code = $order->getCouponCode()) {
+            // Decrement coupon times_used
+            $coupon = Mage::getModel('salesrule/coupon')->loadByCode($code);
+            if ($coupon->getId()) {
+                $coupon->setTimesUsed($coupon->getTimesUsed() - 1);
+                $coupon->save();
+
+                // Decrement times_used on rule
+                $rule = Mage::getModel('salesrule/rule');
+                $rule->load($coupon->getRuleId());
+                if ($rule->getId()) {
+                    $rule->setTimesUsed($rule->getTimesUsed() - 1);
+                    $rule->save();
+                }
+
+                if ($customerId = $order->getCustomerId()) {
+                    // Decrement coupon_usage times_used
+                    Mage::getResourceModel('salesrule/coupon_usage')->updateCustomerCouponTimesUsed($customerId, $coupon->getId(), true);
+
+                    // Decrement rule times_used
+                    $customerCoupon = Mage::getModel('salesrule/rule_customer')->loadByCustomerRule($customerId, $coupon->getRuleId());
+                    if ($customerCoupon->getId()) {
+                        $customerCoupon->setTimesUsed($customerCoupon->getTimesUsed() - 1);
+                        $customerCoupon->save();
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Refresh sales coupons report statistics for last day
      *
-     * @param Mage_Cron_Model_Schedule $schedule
-     * @return Mage_SalesRule_Model_Observer
+     * @param  Mage_Cron_Model_Schedule $schedule
+     * @return $this
+     * @throws Zend_Date_Exception
      */
     public function aggregateSalesReportCouponsData($schedule)
     {
@@ -152,22 +192,22 @@ class Mage_SalesRule_Model_Observer
      * Check rules that contains affected attribute
      * If rules were found they will be set to inactive and notice will be add to admin session
      *
-     * @param string $attributeCode
-     * @return Mage_SalesRule_Model_Observer
+     * @param  string    $attributeCode
+     * @return $this
+     * @throws Throwable
      */
     protected function _checkSalesRulesAvailability($attributeCode)
     {
-        /* @var $collection Mage_SalesRule_Model_Mysql4_Rule_Collection */
+        /** @var Mage_SalesRule_Model_Resource_Rule_Collection $collection */
         $collection = Mage::getResourceModel('salesrule/rule_collection')
             ->addAttributeInConditionFilter($attributeCode);
 
         $disabledRulesCount = 0;
         foreach ($collection as $rule) {
-            /* @var $rule Mage_SalesRule_Model_Rule */
             $rule->setIsActive(0);
-            /* @var $rule->getConditions() Mage_SalesRule_Model_Rule_Condition_Combine */
             $this->_removeAttributeFromConditions($rule->getConditions(), $attributeCode);
             $this->_removeAttributeFromConditions($rule->getActions(), $attributeCode);
+            // phpcs:ignore Ecg.Performance.Loop.ModelLSD
             $rule->save();
 
             $disabledRulesCount++;
@@ -175,7 +215,8 @@ class Mage_SalesRule_Model_Observer
 
         if ($disabledRulesCount) {
             Mage::getSingleton('adminhtml/session')->addWarning(
-                Mage::helper('salesrule')->__('%d Shopping Cart Price Rules based on "%s" attribute have been disabled.', $disabledRulesCount, $attributeCode));
+                Mage::helper('salesrule')->__('%d Shopping Cart Price Rules based on "%s" attribute have been disabled.', $disabledRulesCount, $attributeCode),
+            );
         }
 
         return $this;
@@ -185,7 +226,7 @@ class Mage_SalesRule_Model_Observer
      * Remove catalog attribute condition by attribute code from rule conditions
      *
      * @param Mage_Rule_Model_Condition_Combine $combine
-     * @param string $attributeCode
+     * @param string                            $attributeCode
      */
     protected function _removeAttributeFromConditions($combine, $attributeCode)
     {
@@ -194,23 +235,24 @@ class Mage_SalesRule_Model_Observer
             if ($condition instanceof Mage_Rule_Model_Condition_Combine) {
                 $this->_removeAttributeFromConditions($condition, $attributeCode);
             }
-            if ($condition instanceof Mage_SalesRule_Model_Rule_Condition_Product) {
-                if ($condition->getAttribute() == $attributeCode) {
-                    unset($conditions[$conditionId]);
-                }
+
+            if ($condition instanceof Mage_SalesRule_Model_Rule_Condition_Product && $condition->getAttribute() == $attributeCode) {
+                unset($conditions[$conditionId]);
             }
         }
+
         $combine->setConditions($conditions);
     }
 
     /**
      * After save attribute if it is not used for promo rules already check rules for containing this attribute
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_SalesRule_Model_Observer
+     * @return $this
+     * @throws Throwable
      */
     public function catalogAttributeSaveAfter(Varien_Event_Observer $observer)
     {
+        /** @var Mage_Catalog_Model_Entity_Attribute $attribute */
         $attribute = $observer->getEvent()->getAttribute();
         if ($attribute->dataHasChangedFor('is_used_for_promo_rules') && !$attribute->getIsUsedForPromoRules()) {
             $this->_checkSalesRulesAvailability($attribute->getAttributeCode());
@@ -223,11 +265,12 @@ class Mage_SalesRule_Model_Observer
      * After delete attribute check rules that contains deleted attribute
      * If rules was found they will seted to inactive and added notice to admin session
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_SalesRule_Model_Observer
+     * @return $this
+     * @throws Throwable
      */
     public function catalogAttributeDeleteAfter(Varien_Event_Observer $observer)
     {
+        /** @var Mage_Catalog_Model_Entity_Attribute $attribute */
         $attribute = $observer->getEvent()->getAttribute();
         if ($attribute->getIsUsedForPromoRules()) {
             $this->_checkSalesRulesAvailability($attribute->getAttributeCode());
@@ -239,23 +282,25 @@ class Mage_SalesRule_Model_Observer
     /**
      * Append sales rule product attributes to select by quote item collection
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_SalesRule_Model_Observer
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function addProductAttributes(Varien_Event_Observer $observer)
     {
-        // @var Varien_Object
+        /** @var Varien_Object $attributesTransfer */
         $attributesTransfer = $observer->getEvent()->getAttributes();
 
         $attributes = Mage::getResourceModel('salesrule/rule')
             ->getActiveAttributes(
                 Mage::app()->getWebsite()->getId(),
-                Mage::getSingleton('customer/session')->getCustomer()->getGroupId()
+                Mage::getSingleton('customer/session')->getCustomer()->getGroupId(),
             );
-        $result = array();
+        $result = [];
         foreach ($attributes as $attribute) {
             $result[$attribute['attribute_code']] = true;
         }
+
         $attributesTransfer->addData($result);
         return $this;
     }
@@ -263,11 +308,12 @@ class Mage_SalesRule_Model_Observer
     /**
      * Add coupon's rule name to order data
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_SalesRule_Model_Observer
+     * @param  Varien_Event_Observer $observer
+     * @return $this
      */
     public function addSalesRuleNameToOrder($observer)
     {
+        /** @var Mage_Sales_Model_Order $order */
         $order = $observer->getOrder();
         $couponCode = $order->getCouponCode();
 
@@ -298,4 +344,3 @@ class Mage_SalesRule_Model_Observer
         return $this;
     }
 }
-

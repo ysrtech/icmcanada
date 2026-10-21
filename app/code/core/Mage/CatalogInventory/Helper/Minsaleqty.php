@@ -1,99 +1,92 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogInventory
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogInventory
  */
 
 /**
  * MinSaleQty value manipulation helper
+ *
+ * @package    Mage_CatalogInventory
  */
 class Mage_CatalogInventory_Helper_Minsaleqty
 {
+    protected $_moduleName = 'Mage_CatalogInventory';
+
     /**
      * Retrieve fixed qty value
      *
-     * @param mixed $qty
-     * @return float|null
+     * @param  mixed      $qty
+     * @return null|float
      */
     protected function _fixQty($qty)
     {
-        return (!empty($qty) ? (float)$qty : null);
+        return (empty($qty) ? null : (float) $qty);
     }
 
     /**
      * Generate a storable representation of a value
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return string
      */
     protected function _serializeValue($value)
     {
         if (is_numeric($value)) {
-            $data = (float)$value;
-            return (string)$data;
-        } else if (is_array($value)) {
-            $data = array();
+            $data = (float) $value;
+            return (string) $data;
+        }
+
+        if (is_array($value)) {
+            $data = [];
             foreach ($value as $groupId => $qty) {
                 if (!array_key_exists($groupId, $data)) {
                     $data[$groupId] = $this->_fixQty($qty);
                 }
             }
+
             if (count($data) == 1 && array_key_exists(Mage_Customer_Model_Group::CUST_GROUP_ALL, $data)) {
-                return (string)$data[Mage_Customer_Model_Group::CUST_GROUP_ALL];
+                return (string) $data[Mage_Customer_Model_Group::CUST_GROUP_ALL];
             }
+
             return serialize($data);
-        } else {
-            return '';
         }
+
+        return '';
     }
 
     /**
      * Create a value from a storable representation
      *
-     * @param mixed $value
+     * @param  mixed $value
      * @return array
      */
     protected function _unserializeValue($value)
     {
         if (is_numeric($value)) {
-            return array(
-                Mage_Customer_Model_Group::CUST_GROUP_ALL => $this->_fixQty($value)
-            );
-        } else if (is_string($value) && !empty($value)) {
+            return [
+                Mage_Customer_Model_Group::CUST_GROUP_ALL => $this->_fixQty($value),
+            ];
+        }
+
+        if (is_string($value) && $value !== '') {
             try {
                 return Mage::helper('core/unserializeArray')->unserialize($value);
-            } catch (Exception $e) {
-                return array();
+            } catch (Exception) {
+                return [];
             }
         } else {
-            return array();
+            return [];
         }
     }
 
     /**
      * Check whether value is in form retrieved by _encodeArrayFieldValue()
      *
-     * @param mixed
+     * @param  mixed $value
      * @return bool
      */
     protected function _isEncodedArrayFieldValue($value)
@@ -101,61 +94,72 @@ class Mage_CatalogInventory_Helper_Minsaleqty
         if (!is_array($value)) {
             return false;
         }
+
         unset($value['__empty']);
-        foreach ($value as $_id => $row) {
+        foreach ($value as $row) {
             if (!is_array($row) || !array_key_exists('customer_group_id', $row) || !array_key_exists('min_sale_qty', $row)) {
                 return false;
             }
         }
+
         return true;
     }
 
     /**
      * Encode value to be used in Mage_Adminhtml_Block_System_Config_Form_Field_Array_Abstract
      *
-     * @param array
      * @return array
      */
     protected function _encodeArrayFieldValue(array $value)
     {
-        $result = array();
+        $result = [];
         foreach ($value as $groupId => $qty) {
             $_id = Mage::helper('core')->uniqHash('_');
-            $result[$_id] = array(
+            $result[$_id] = [
                 'customer_group_id' => $groupId,
                 'min_sale_qty' => $this->_fixQty($qty),
-            );
+            ];
         }
+
         return $result;
     }
 
     /**
      * Decode value from used in Mage_Adminhtml_Block_System_Config_Form_Field_Array_Abstract
      *
-     * @param array
      * @return array
      */
     protected function _decodeArrayFieldValue(array $value)
     {
-        $result = array();
+        $result = [];
         unset($value['__empty']);
-        foreach ($value as $_id => $row) {
-            if (!is_array($row) || !array_key_exists('customer_group_id', $row) || !array_key_exists('min_sale_qty', $row)) {
+        foreach ($value as $row) {
+            if (!is_array($row)) {
                 continue;
             }
+
+            if (!array_key_exists('customer_group_id', $row)) {
+                continue;
+            }
+
+            if (!array_key_exists('min_sale_qty', $row)) {
+                continue;
+            }
+
             $groupId = $row['customer_group_id'];
             $qty = $this->_fixQty($row['min_sale_qty']);
             $result[$groupId] = $qty;
         }
+
         return $result;
     }
 
     /**
      * Retrieve min_sale_qty value from config
      *
-     * @param int $customerGroupId
-     * @param mixed $store
-     * @return float|null
+     * @param  int        $customerGroupId
+     * @param  mixed      $store
+     * @return null|float
      */
     public function getConfigValue($customerGroupId, $store = null)
     {
@@ -164,37 +168,40 @@ class Mage_CatalogInventory_Helper_Minsaleqty
         if ($this->_isEncodedArrayFieldValue($value)) {
             $value = $this->_decodeArrayFieldValue($value);
         }
+
         $result = null;
         foreach ($value as $groupId => $qty) {
             if ($groupId == $customerGroupId) {
                 $result = $qty;
                 break;
-            } else if ($groupId == Mage_Customer_Model_Group::CUST_GROUP_ALL) {
+            } elseif ($groupId == Mage_Customer_Model_Group::CUST_GROUP_ALL) {
                 $result = $qty;
             }
         }
+
         return $this->_fixQty($result);
     }
 
     /**
      * Make value readable by Mage_Adminhtml_Block_System_Config_Form_Field_Array_Abstract
      *
-     * @param mixed $value
+     * @param  mixed $value
      * @return array
      */
     public function makeArrayFieldValue($value)
     {
         $value = $this->_unserializeValue($value);
         if (!$this->_isEncodedArrayFieldValue($value)) {
-            $value = $this->_encodeArrayFieldValue($value);
+            return $this->_encodeArrayFieldValue($value);
         }
+
         return $value;
     }
 
     /**
      * Make value ready for store
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return string
      */
     public function makeStorableArrayFieldValue($value)
@@ -202,7 +209,7 @@ class Mage_CatalogInventory_Helper_Minsaleqty
         if ($this->_isEncodedArrayFieldValue($value)) {
             $value = $this->_decodeArrayFieldValue($value);
         }
-        $value = $this->_serializeValue($value);
-        return $value;
+
+        return $this->_serializeValue($value);
     }
 }

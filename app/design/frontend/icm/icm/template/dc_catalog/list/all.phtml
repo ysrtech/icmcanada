@@ -48,12 +48,12 @@
 		$_imgHtml = '<img
 			width="'.($thumbnail_width ? $thumbnail_width : $width) .'"
 	        src="'.$_imgUrl.'"
-	        alt="'.$this->htmlEscape($item->getValue()).'"
-	        title="'.$this->htmlEscape($item->getValue()).'"
+	        alt="'.$this->escapeHtml($item->getValue()).'"
+	        title="'.$this->escapeHtml($item->getValue()).'"
 	        class="attribute-logo" />';
 	}
         ?>
-        <a href="<?php echo $this->getUrl('/').$item->getAttributeCode().'/'.$item->getIdentifier(); ?>" title="<?php echo $this->htmlEscape($item->getName())?>">
+        <a href="<?php echo $this->getUrl('/').$item->getAttributeCode().'/'.$item->getIdentifier(); ?>" title="<?php echo $this->escapeHtml($item->getName())?>">
 	<?php if ($_imgHtml) {
             echo $_imgHtml;
 	}?>

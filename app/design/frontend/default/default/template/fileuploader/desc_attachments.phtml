@@ -17,7 +17,7 @@ $_product = Mage::registry('current_product');
 $attachments = $this->getProductAttachments($_product->getId());
 $_description = $_product->getDescription();
 $version = substr(Mage::getVersion(), 0, 3);
-if (count($attachments) > 0):
+if (!empty($attachments)):
 ?>
 <?php if ($_description && $version != '1.4'): ?></div><?php endif; ?>
     <div class="collateral-box box-collateral box-attachments">

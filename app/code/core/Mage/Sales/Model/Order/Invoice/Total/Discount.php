@@ -1,32 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
-
+/**
+ * @package    Mage_Sales
+ */
 class Mage_Sales_Model_Order_Invoice_Total_Discount extends Mage_Sales_Model_Order_Invoice_Total_Abstract
 {
+    /**
+     * @return $this
+     */
+    #[Override]
     public function collect(Mage_Sales_Model_Order_Invoice $invoice)
     {
         $invoice->setDiscountAmount(0);
@@ -48,15 +37,14 @@ class Mage_Sales_Model_Order_Invoice_Total_Discount extends Mage_Sales_Model_Ord
         }
 
         if ($addShippingDicount) {
-            $totalDiscountAmount     = $totalDiscountAmount + $invoice->getOrder()->getShippingDiscountAmount();
-            $baseTotalDiscountAmount = $baseTotalDiscountAmount + $invoice->getOrder()->getBaseShippingDiscountAmount();
+            $totalDiscountAmount += $invoice->getOrder()->getShippingDiscountAmount();
+            $baseTotalDiscountAmount += $invoice->getOrder()->getBaseShippingDiscountAmount();
         }
 
-        /** @var $item Mage_Sales_Model_Order_Invoice_Item */
         foreach ($invoice->getAllItems() as $item) {
             $orderItem = $item->getOrderItem();
             if ($orderItem->isDummy()) {
-                 continue;
+                continue;
             }
 
             $orderItemDiscount      = (float) $orderItem->getDiscountAmount();
@@ -64,14 +52,13 @@ class Mage_Sales_Model_Order_Invoice_Total_Discount extends Mage_Sales_Model_Ord
             $orderItemQty       = $orderItem->getQtyOrdered();
 
             if ($orderItemDiscount && $orderItemQty) {
-
                 /**
                  * Resolve rounding problems
                  *
-                 * We dont want to include the weee discount amount as the right amount
+                 * We don't want to include the weee discount amount as the right amount
                  * is added when calculating the taxes.
                  *
-                 * Also the subtotal is without weee
+                 * Also, the subtotal is without weee
                  */
 
                 $discount = $orderItemDiscount - $orderItem->getDiscountInvoiced();

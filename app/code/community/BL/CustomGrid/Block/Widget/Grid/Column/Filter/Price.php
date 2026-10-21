@@ -172,9 +172,9 @@ class Bl_CustomGrid_Block_Widget_Grid_Column_Filter_Price extends Mage_Adminhtml
         $html = '<select name="' . $this->_getHtmlName() . '[currency]" id="' . $this->_getHtmlId() . '_currency">';
         
         foreach ($this->_getCurrenciesList() as $currency) {
-            $html .= '<option value="' . $this->htmlEscape($currency) . '" '
+            $html .= '<option value="' . $this->escapeHtml($currency) . '" '
                 . ($currency == $value ? 'selected="selected"' : '') . '>'
-                . $this->htmlEscape($currency)
+                . $this->escapeHtml($currency)
                 . '</option>';
         }
         

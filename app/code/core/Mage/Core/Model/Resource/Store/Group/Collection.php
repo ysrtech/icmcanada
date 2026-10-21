@@ -1,36 +1,20 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+declare(strict_types=1);
+
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Store group collection
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
+ *
+ * @extends Mage_Core_Model_Resource_Db_Collection_Abstract<Mage_Core_Model_Store_Group>
  */
 class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
@@ -38,13 +22,12 @@ class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Re
      * Load default flag
      *
      * @deprecated since 1.5.0.0
-     * @var boolean
+     * @var bool
      */
     protected $_loadDefault = false;
 
     /**
-     * Define resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -55,19 +38,19 @@ class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Re
     /**
      * Set flag for load default (admin) store
      *
-     * @param boolean $loadDefault
+     * @param bool $loadDefault
      *
-     * @return Mage_Core_Model_Resource_Store_Group_Collection
+     * @return $this
      */
     public function setLoadDefault($loadDefault)
     {
-        return $this->setFlag('load_default_store_group', (bool)$loadDefault);
+        return $this->setFlag('load_default_store_group', (bool) $loadDefault);
     }
 
     /**
      * Is load default (admin) store
      *
-     * @return boolean
+     * @return bool
      */
     public function getLoadDefault()
     {
@@ -77,34 +60,34 @@ class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Re
     /**
      * Add disable default store group filter to collection
      *
-     * @return Mage_Core_Model_Resource_Store_Group_Collection
+     * @return $this
      */
     public function setWithoutDefaultFilter()
     {
-        return $this->addFieldToFilter('main_table.group_id', array('gt' => 0));
+        return $this->addFieldToFilter('main_table.group_id', ['gt' => 0]);
     }
 
     /**
      * Filter to discard stores without views
      *
-     * @return Mage_Core_Model_Resource_Store_Group_Collection
+     * @return $this
      */
     public function setWithoutStoreViewFilter()
     {
-        return $this->addFieldToFilter('main_table.default_store_id', array('gt' => 0));
+        return $this->addFieldToFilter('main_table.default_store_id', ['gt' => 0]);
     }
 
     /**
-     * Load collection data
-     *
-     * @return Mage_Core_Model_Resource_Store_Group_Collection
+     * @inheritDoc
      */
-    public function _beforeLoad()
+    #[Override]
+    protected function _beforeLoad()
     {
         if (!$this->getLoadDefault()) {
             $this->setWithoutDefaultFilter();
         }
-        $this->addOrder('main_table.name',  self::SORT_ORDER_ASC);
+
+        $this->addOrder('main_table.name', self::SORT_ORDER_ASC);
         return parent::_beforeLoad();
     }
 
@@ -113,6 +96,7 @@ class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Re
      *
      * @return array
      */
+    #[Override]
     public function toOptionArray()
     {
         return $this->_toOptionArray('group_id', 'name');
@@ -121,12 +105,12 @@ class Mage_Core_Model_Resource_Store_Group_Collection extends Mage_Core_Model_Re
     /**
      * Add filter by website to collection
      *
-     * @param int|array $website
+     * @param array|int $website
      *
-     * @return Mage_Core_Model_Resource_Store_Group_Collection
+     * @return $this
      */
     public function addWebsiteFilter($website)
     {
-        return $this->addFieldToFilter('main_table.website_id', array('in' => $website));
+        return $this->addFieldToFilter('main_table.website_id', ['in' => $website]);
     }
 }

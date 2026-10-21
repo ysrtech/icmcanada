@@ -17,7 +17,7 @@ $setup = new Mage_Eav_Model_Entity_Setup('core_setup');
 $installer->endSetup();
 
 
-$setup = new Mage_Sales_Model_Mysql4_Setup('sales_setup');
+$setup = new Mage_Sales_Model_Resource_Setup('sales_setup');
 $setup->getConnection()->addColumn(
         $setup->getTable('sales_flat_quote'),
         'delivery_note',

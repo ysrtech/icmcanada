@@ -34,8 +34,8 @@
                             $_imgHtml = '<img
 			width="' . ($thumbnail_width ? $thumbnail_width : $width) . '"
 	        src="' . $_imgUrl . '"
-	        alt="' . $this->htmlEscape($_attr->getValue()) . '"
-	        title="' . $this->htmlEscape($_attr->getValue()) . '"
+	        alt="' . $this->escapeHtml($_attr->getValue()) . '"
+	        title="' . $this->escapeHtml($_attr->getValue()) . '"
 	        class="attribute-values-logo" />';
                         }
 
@@ -46,7 +46,7 @@
 <?php } ?>
 <div class="category-title category-head attribute-title">
     <div class="brand-logo"> <?php echo $_imgHtml; ?></div>
-	<h2><?php echo $this->htmlEscape($_attr->getName()) ?></h2>
+	<h2><?php echo $this->escapeHtml($_attr->getName()) ?></h2>
         <?php if($_description=$this->getDescription()): ?>
 	<p class=""><?php echo $_description; ?></p>
         <?php endif; ?>

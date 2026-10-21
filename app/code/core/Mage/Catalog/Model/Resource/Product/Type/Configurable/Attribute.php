@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog super product attribute resource model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -49,8 +29,7 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
     protected $_priceTable;
 
     /**
-     * Inititalize connection and define tables
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -71,10 +50,10 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
 
     /**
      * Load attribute labels
-     * @deprecated
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @return Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @return $this
+     * @deprecated
      */
     public function loadLabel($attribute)
     {
@@ -83,10 +62,10 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
 
     /**
      * Load prices
-     * @deprecated
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @return Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @return $this
+     * @deprecated
      */
     public function loadPrices($attribute)
     {
@@ -96,8 +75,8 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
     /**
      * Save Custom labels for Attribute name
      *
-     * @param Mage_Catalog_Model_Product_Type_Configurable_Attribute $attribute
-     * @return Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute
+     * @param  Mage_Catalog_Model_Product_Type_Configurable_Attribute $attribute
+     * @return $this
      */
     public function saveLabel($attribute)
     {
@@ -107,39 +86,40 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
             ->from($this->_labelTable, 'value_id')
             ->where('product_super_attribute_id = :product_super_attribute_id')
             ->where('store_id = :store_id');
-        $bind = array(
-            'product_super_attribute_id' => (int)$attribute->getId(),
-            'store_id'                   => (int)$attribute->getStoreId()
-        );
+        $bind = [
+            'product_super_attribute_id' => (int) $attribute->getId(),
+            'store_id'                   => (int) $attribute->getStoreId(),
+        ];
         $valueId = $adapter->fetchOne($select, $bind);
         if ($valueId) {
             $adapter->update(
                 $this->_labelTable,
-                array(
+                [
                     'use_default' => (int) $attribute->getUseDefault(),
-                    'value'       => $attribute->getLabel()
-                ),
-                $adapter->quoteInto('value_id = ?', (int) $valueId)
+                    'value'       => $attribute->getLabel(),
+                ],
+                $adapter->quoteInto('value_id = ?', (int) $valueId),
             );
         } else {
             $adapter->insert(
                 $this->_labelTable,
-                array(
+                [
                     'product_super_attribute_id' => (int) $attribute->getId(),
                     'store_id' => (int) $attribute->getStoreId(),
                     'use_default' => (int) $attribute->getUseDefault(),
-                    'value' => $attribute->getLabel()
-                )
+                    'value' => $attribute->getLabel(),
+                ],
             );
         }
+
         return $this;
     }
 
     /**
      * Save Options prices (Depends from price save scope)
      *
-     * @param Mage_Catalog_Model_Product_Type_Configurable_Attribute $attribute
-     * @return Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute
+     * @param  Mage_Catalog_Model_Product_Type_Configurable_Attribute $attribute
+     * @return $this
      */
     public function savePrices($attribute)
     {
@@ -148,16 +128,16 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
         if ($this->getCatalogHelper()->isPriceGlobal()) {
             $websiteId = 0;
         } else {
-            $websiteId = (int)Mage::app()->getStore($attribute->getStoreId())->getWebsite()->getId();
+            $websiteId = (int) Mage::app()->getStore($attribute->getStoreId())->getWebsite()->getId();
         }
 
         $values     = $attribute->getValues();
         if (!is_array($values)) {
-            $values = array();
+            $values = [];
         }
 
-        $new = array();
-        $old = array();
+        $new = [];
+        $old = [];
 
         // retrieve old values
         $select = $write->select()
@@ -165,13 +145,13 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
             ->where('product_super_attribute_id = :product_super_attribute_id')
             ->where('website_id = :website_id');
 
-        $bind = array(
-            'product_super_attribute_id' => (int)$attribute->getId(),
-            'website_id'                   => $websiteId
-        );
+        $bind = [
+            'product_super_attribute_id' => (int) $attribute->getId(),
+            'website_id'                   => $websiteId,
+        ];
         $rowSet = $write->fetchAll($select, $bind);
         foreach ($rowSet as $row) {
-            $key = implode('-', array($row['website_id'], $row['value_index']));
+            $key = implode('-', [$row['website_id'], $row['value_index']]);
             if (!isset($old[$key])) {
                 $old[$key] = $row;
             } else {
@@ -182,30 +162,32 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
         }
 
         // prepare new values
-        foreach ($values as $v) {
-            if (empty($v['value_index'])) {
+        foreach ($values as $val) {
+            if (empty($val['value_index'])) {
                 continue;
             }
-            $key = implode('-', array($websiteId, $v['value_index']));
-            $new[$key] = array(
-                'value_index'   => $v['value_index'],
-                'pricing_value' => $v['pricing_value'],
-                'is_percent'    => $v['is_percent'],
+
+            $key = implode('-', [$websiteId, $val['value_index']]);
+            $new[$key] = [
+                'value_index'   => $val['value_index'],
+                'pricing_value' => $val['pricing_value'],
+                'is_percent'    => $val['is_percent'],
                 'website_id'    => $websiteId,
-                'use_default'   => !empty($v['use_default_value']) ? true : false
-            );
+                'use_default'   => !empty($val['use_default_value']),
+            ];
         }
 
-        $insert = array();
-        $update = array();
-        $delete = array();
+        $insert = [];
+        $update = [];
+        $delete = [];
 
-        foreach ($old as $k => $v) {
-            if (!isset($new[$k])) {
-                $delete[] = $v['value_id'];
+        foreach ($old as $index => $val) {
+            if (!isset($new[$index])) {
+                $delete[] = $val['value_id'];
             }
         }
-        foreach ($new as $k => $v) {
+
+        foreach ($new as $index => $val) {
             $needInsert = false;
             $needUpdate = false;
             $needDelete = false;
@@ -215,61 +197,62 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
                 $isGlobal = false;
             }
 
-            $hasValue   = ($isGlobal && !empty($v['pricing_value']))
-                || (!$isGlobal && !$v['use_default']);
+            $hasValue   = ($isGlobal && !empty($val['pricing_value']))
+                || (!$isGlobal && !$val['use_default']);
 
-            if (isset($old[$k])) {
+            if (isset($old[$index])) {
                 // data changed
-                $dataChanged = ($old[$k]['is_percent'] != $v['is_percent'])
-                    || ($old[$k]['pricing_value'] != $v['pricing_value']);
+                $dataChanged = ($old[$index]['is_percent'] != $val['is_percent'])
+                    || ($old[$index]['pricing_value'] != $val['pricing_value']);
                 if (!$hasValue) {
                     $needDelete = true;
-                } else if ($dataChanged) {
+                } elseif ($dataChanged) {
                     $needUpdate = true;
                 }
-            } else if ($hasValue) {
+            } elseif ($hasValue) {
                 $needInsert = true;
             }
 
-            if (!$isGlobal && empty($v['pricing_value'])) {
-                $v['pricing_value'] = 0;
-                $v['is_percent']    = 0;
+            if (!$isGlobal && empty($val['pricing_value'])) {
+                $val['pricing_value'] = 0;
+                $val['is_percent']    = 0;
             }
 
             if ($needInsert) {
-                $insert[] = array(
+                $insert[] = [
                     'product_super_attribute_id' => $attribute->getId(),
-                    'value_index'                => $v['value_index'],
-                    'is_percent'                 => $v['is_percent'],
-                    'pricing_value'              => $v['pricing_value'],
-                    'website_id'                 => $websiteId
-                );
+                    'value_index'                => $val['value_index'],
+                    'is_percent'                 => $val['is_percent'],
+                    'pricing_value'              => $val['pricing_value'],
+                    'website_id'                 => $websiteId,
+                ];
             }
+
             if ($needUpdate) {
-                $update[$old[$k]['value_id']] = array(
-                    'is_percent'    => $v['is_percent'],
-                    'pricing_value' => $v['pricing_value']
-                );
+                $update[$old[$index]['value_id']] = [
+                    'is_percent'    => $val['is_percent'],
+                    'pricing_value' => $val['pricing_value'],
+                ];
             }
+
             if ($needDelete) {
-                $delete[] = $old[$k]['value_id'];
+                $delete[] = $old[$index]['value_id'];
             }
         }
 
-        if (!empty($delete)) {
+        if ($delete !== []) {
             $where = $write->quoteInto('value_id IN(?)', $delete);
             $write->delete($this->_priceTable, $where);
         }
-        if (!empty($update)) {
-            foreach ($update as $valueId => $bind) {
-                $where = $write->quoteInto('value_id=?', $valueId);
-                $write->update($this->_priceTable, $bind, $where);
-            }
-        }
-        if (!empty($insert)) {
-            $write->insertMultiple($this->_priceTable, $insert);
+
+        foreach ($update as $valueId => $bind) {
+            $where = $write->quoteInto('value_id=?', $valueId);
+            $write->update($this->_priceTable, $bind, $where);
         }
 
+        if ($insert !== []) {
+            $write->insertMultiple($this->_priceTable, $insert);
+        }
 
         return $this;
     }
@@ -277,7 +260,7 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
     /**
      * Retrieve Used in Configurable Products Attributes
      *
-     * @param int $setId The specific attribute set
+     * @param  int   $setId The specific attribute set
      * @return array
      */
     public function getUsedAttributes($setId)
@@ -285,19 +268,19 @@ class Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute extends Ma
         $adapter = $this->_getReadAdapter();
         $select = $adapter->select()
             ->distinct(true)
-            ->from(array('e' => $this->getTable('catalog/product')), null)
+            ->from(['e' => $this->getTable('catalog/product')], null)
             ->join(
-                array('a' => $this->getMainTable()),
+                ['a' => $this->getMainTable()],
                 'e.entity_id = a.product_id',
-                array('attribute_id')
+                ['attribute_id'],
             )
             ->where('e.attribute_set_id = :attribute_set_id')
             ->where('e.type_id = :type_id');
 
-        $bind = array(
+        $bind = [
             'attribute_set_id' => $setId,
             'type_id'          => Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
-        );
+        ];
 
         return $adapter->fetchCol($select, $bind);
     }

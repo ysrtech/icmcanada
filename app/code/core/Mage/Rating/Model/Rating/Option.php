@@ -1,68 +1,67 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rating
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rating
  */
 
 /**
  * Rating option model
  *
- * @method Mage_Rating_Model_Resource_Rating_Option _getResource()
- * @method Mage_Rating_Model_Resource_Rating_Option getResource()
- * @method int getRatingId()
- * @method Mage_Rating_Model_Rating_Option setRatingId(int $value)
- * @method string getCode()
- * @method Mage_Rating_Model_Rating_Option setCode(string $value)
- * @method int getValue()
- * @method Mage_Rating_Model_Rating_Option setValue(int $value)
- * @method int getPosition()
- * @method Mage_Rating_Model_Rating_Option setPosition(int $value)
+ * @package    Mage_Rating
  *
- * @category    Mage
- * @package     Mage_Rating
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Rating_Model_Resource_Rating_Option            _getResource()
+ * @method string                                              getCode()
+ * @method Mage_Rating_Model_Resource_Rating_Option_Collection getCollection()
+ * @method int                                                 getDoUpdate()
+ * @method string                                              getEntityPkValue()
+ * @method int                                                 getPosition()
+ * @method int                                                 getRatingId()
+ * @method Mage_Rating_Model_Resource_Rating_Option            getResource()
+ * @method Mage_Rating_Model_Resource_Rating_Option_Collection getResourceCollection()
+ * @method int                                                 getReviewId()
+ * @method int                                                 getValue()
+ * @method int                                                 getVoteId()
+ * @method $this                                               setCode(string $value)
+ * @method $this                                               setDoUpdate(int $value)
+ * @method $this                                               setEntityPkValue(string $value)
+ * @method $this                                               setOptionId(int $value)
+ * @method $this                                               setPosition(int $value)
+ * @method $this                                               setRatingId(int $value)
+ * @method $this                                               setReviewId(int $value)
+ * @method $this                                               setValue(int $value)
+ * @method $this                                               setVoteId(int $value)
  */
 class Mage_Rating_Model_Rating_Option extends Mage_Core_Model_Abstract
 {
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('rating/rating_option');
     }
 
+    /**
+     * @return $this
+     * @throws Exception
+     */
     public function addVote()
     {
         $this->getResource()->addVote($this);
         return $this;
     }
 
+    /**
+     * @param  int   $id
+     * @return $this
+     */
+    #[Override]
     public function setId($id)
     {
         $this->setOptionId($id);
         return $this;
     }
-
-//    public function getId()
-//    {
-//        return $this->getOptionId();
-//    }
 }

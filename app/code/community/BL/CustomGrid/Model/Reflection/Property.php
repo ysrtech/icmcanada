@@ -87,6 +87,7 @@ class BL_CustomGrid_Model_Reflection_Property extends ReflectionProperty
      * 
      * @param bool $accessible Whether the property should be accessible
      */
+    #[\ReturnTypeWillChange]
     public function setAccessible($accessible)
     {
         $this->_hasForcedAccessibility = (bool) $accessible;
@@ -131,6 +132,7 @@ class BL_CustomGrid_Model_Reflection_Property extends ReflectionProperty
      * 
      * @param mixed $object Object from which to get the value (null if static property)
      * @return mixed
+     * @throws ReflectionException
      */
     protected function _getValueUsingAccessibleGetter($object)
     {
@@ -152,6 +154,7 @@ class BL_CustomGrid_Model_Reflection_Property extends ReflectionProperty
         return (!is_null($object) ? call_user_func($callback, $object) : call_user_func($callback));
     }
     
+    #[\ReturnTypeWillChange]
     public function getValue($object = null)
     {
         return $this->_hasForcedAccessibility && !empty($this->_accessibleObject)
@@ -165,21 +168,20 @@ class BL_CustomGrid_Model_Reflection_Property extends ReflectionProperty
      * @param mixed $object Object on which to set the value (null if static property)
      * @param mixed $value Property value
      * @return void
+     * @throws ReflectionException
      */
     protected function _setValueUsingAccessibleSetter($object, $value)
     {
-        /** @var $helper BL_CustomGrid_Helper_Data */
-        $helper = Mage::helper('customgrid');
         $callback = array($this->_accessibleObject, $this->_accessibleSetterName);
         $fullPropertyName = $this->_baseClassName . '::' . $this->_basePropertyName;
         
         if (empty($this->_accessibleObject) || empty($this->_accessibleSetterName)) {
             throw new ReflectionException(
-                $helper->__('Missing informations to set the value for a reflected property : "%s"', $fullPropertyName)
+                'Missing informations to set the value for a reflected property : "' . $fullPropertyName . '"'
             );
         } elseif (!is_callable($callback)) {
             throw new ReflectionException(
-                $helper->__('Could not set the value for a reflected property : "%s"', $fullPropertyName)
+                'Could not set the value for a reflected property : "' . $fullPropertyName . '"'
             );
         }
         
@@ -190,6 +192,7 @@ class BL_CustomGrid_Model_Reflection_Property extends ReflectionProperty
         }
     }
     
+    #[\ReturnTypeWillChange]
     public function setValue($arg1 = null, $arg2 = null)
     {
         $argsCount = func_num_args();

@@ -1,42 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Adminhtml customer recurring profiles tab
  *
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
  */
-class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
-    extends Mage_Sales_Block_Adminhtml_Recurring_Profile_Grid
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile extends Mage_Sales_Block_Adminhtml_Recurring_Profile_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
-    /**
-     * Disable filters and paging
-     *
-     */
+    protected string $_eventPrefix = 'sales_adminhtml_customer_edit_tab_recurring_profile';
+
     public function __construct()
     {
         parent::__construct();
@@ -44,9 +23,7 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
     }
 
     /**
-     * Return Tab label
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getTabLabel()
     {
@@ -54,9 +31,7 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
     }
 
     /**
-     * Return Tab title
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getTabTitle()
     {
@@ -64,20 +39,16 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
     }
 
     /**
-     * Can show tab in tabs
-     *
-     * @return boolean
+     * @inheritDoc
      */
     public function canShowTab()
     {
         $customer = Mage::registry('current_customer');
-        return (bool)$customer->getId();
+        return (bool) $customer->getId();
     }
 
     /**
-     * Tab is hidden
-     *
-     * @return boolean
+     * @inheritDoc
      */
     public function isHidden()
     {
@@ -87,8 +58,9 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
     /**
      * Prepare collection for grid
      *
-     * @return Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
+     * @return $this|Mage_Adminhtml_Block_Widget_Grid
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('sales/recurring_profile_collection')
@@ -96,6 +68,7 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
         if (!$this->getParam($this->getVarNameSort())) {
             $collection->setOrder('profile_id', 'desc');
         }
+
         $this->setCollection($collection);
         return Mage_Adminhtml_Block_Widget_Grid::_prepareCollection();
     }
@@ -111,12 +84,11 @@ class Mage_Sales_Block_Adminhtml_Customer_Edit_Tab_Recurring_Profile
     }
 
     /**
-     * Return grid url
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/sales_recurring_profile/customerGrid', array('_current' => true));
+        return $this->getUrl('*/sales_recurring_profile/customerGrid', ['_current' => true]);
     }
 }

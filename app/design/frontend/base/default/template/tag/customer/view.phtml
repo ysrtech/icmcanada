@@ -1,28 +1,12 @@
 <?php
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE_AFL.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    design
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
  * @package     base_default
- * @copyright   Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
+
+/** @var Mage_Tag_Block_Customer_View $this */
 ?>
 <div class="page-title">
     <h1><?php echo $this->__('My Tags') ?></h1>
@@ -35,7 +19,8 @@
 <div class="clearer"></div>
 <?php echo $this->getToolbarHtml() ?>
 <table class="data-table" id="my-tags-table">
-<?php if( sizeof($this->getMyProducts()) > 0 ): ?>
+<?php if(count($this->getMyProducts()) > 0): ?>
+    <?php $params[Mage_Core_Model_Url::FORM_KEY] = $this->getFormKey() ?>
     <col width="1" />
     <col />
     <col width="1" />
@@ -52,20 +37,26 @@
             </td>
             <td>
                 <?php if($_product->isSaleable()): ?>
-                    <?php $params[Mage_Core_Model_Url::FORM_KEY] = Mage::getSingleton('core/session')->getFormKey() ?>
                     <?php $params['product'] = $_product->getId(); ?>
                     <button type="button" title="<?php echo Mage::helper('core')->quoteEscape($this->__('Add to Cart')) ?>" class="button btn-cart" onclick="setLocation('<?php echo $this->getUrl('checkout/cart/add', $params) ?>')"><span><span><?php echo $this->__('Add to Cart') ?></span></span></button>
-                <?php endif; ?>
+                <?php endif ?>
                 <?php if ($this->helper('wishlist')->isAllow()) : ?>
                 <ul class="add-to-links">
                     <li>
-                        <a href="<?php echo $this->getUrl('wishlist/index/add',array('product'=>$_product->getId())) ?>" class="link-wishlist"><?php echo $this->__('Add to Wishlist') ?></a>
+                        <a href="#"
+                           class="link-wishlist"
+                           onclick="customFormSubmit(
+                                   '<?php echo $this->getAddToWishlistUrlCustom($_product, false) ?>',
+                                   '<?php echo $this->escapeHtml(json_encode(['form_key' => $params[Mage_Core_Model_Url::FORM_KEY]])) ?>',
+                                   'post')">
+                            <?php echo $this->__('Add to Wishlist') ?>
+                        </a>
                     </li>
                 </ul>
-                <?php endif; ?>
+                <?php endif ?>
             </td>
         </tr>
-    <?php endforeach; ?>
+    <?php endforeach ?>
     </tbody>
 <?php else: ?>
     <tbody>
@@ -75,7 +66,7 @@
             </td>
         </tr>
     </tbody>
-<?php endif; ?>
+<?php endif ?>
 </table>
 <script type="text/javascript">decorateTable('my-tags-table')</script>
 <?php echo $this->getToolbarHtml() ?>

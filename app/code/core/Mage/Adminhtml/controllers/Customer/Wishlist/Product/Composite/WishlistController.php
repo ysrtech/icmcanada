@@ -1,40 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Catalog composite product configuration controller
  *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
  */
-class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
-    extends Mage_Adminhtml_Controller_Action
+class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController extends Mage_Adminhtml_Controller_Action
 {
-     /**
+    /**
+     * ACL resource
+     * @see Mage_Adminhtml_Controller_Action::_isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'customer/manage';
+
+    /**
      * Wishlist we're working with
      *
      * @var Mage_Wishlist_Model_Wishlist
@@ -44,14 +30,14 @@ class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
     /**
      * Wishlist item we're working with
      *
-     * @var Mage_Wishlist_Model_Wishlist
+     * @var Mage_Wishlist_Model_Item
      */
     protected $_wishlistItem = null;
 
     /**
      * Loads wishlist and wishlist item
      *
-     * @return Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
+     * @return $this
      */
     protected function _initData()
     {
@@ -60,7 +46,7 @@ class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
             Mage::throwException($this->__('No wishlist item id defined.'));
         }
 
-        /* @var $wishlistItem Mage_Wishlist_Model_Item */
+        /** @var Mage_Wishlist_Model_Item $wishlistItem */
         $wishlistItem = Mage::getModel('wishlist/item')
             ->loadWithOptions($wishlistItemId);
 
@@ -79,7 +65,7 @@ class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
     /**
      * Ajax handler to response configuration fieldset of composite product in customer's wishlist
      *
-     * @return Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
+     * @return $this
      */
     public function configureAction()
     {
@@ -93,12 +79,12 @@ class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
             $configureResult->setCurrentCustomerId($this->_wishlist->getCustomerId());
 
             $configureResult->setOk(true);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $configureResult->setError(true);
-            $configureResult->setMessage($e->getMessage());
+            $configureResult->setMessage($exception->getMessage());
         }
 
-        /* @var $helper Mage_Adminhtml_Helper_Catalog_Product_Composite */
+        /** @var Mage_Adminhtml_Helper_Catalog_Product_Composite $helper */
         $helper = Mage::helper('adminhtml/catalog_product_composite');
         Mage::helper('catalog/product')->setSkipSaleableCheck(true);
         $helper->renderConfigureResult($this, $configureResult);
@@ -125,24 +111,15 @@ class Mage_Adminhtml_Customer_Wishlist_Product_Composite_WishlistController
                 ->save();
 
             $updateResult->setOk(true);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $updateResult->setError(true);
-            $updateResult->setMessage($e->getMessage());
+            $updateResult->setMessage($exception->getMessage());
         }
+
         $updateResult->setJsVarName($this->getRequest()->getParam('as_js_varname'));
         Mage::getSingleton('adminhtml/session')->setCompositeProductResult($updateResult);
         $this->_redirect('*/catalog_product/showUpdateResult');
 
         return false;
-    }
-
-    /**
-     * Check the permission to Manage Customers
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed('customer/manage');
     }
 }

@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tax
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Tax
  */
 
 /**
  * Notifications about not correct tax settings
  *
- * @category    Mage
- * @package     Mage_Tax
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Tax
  */
 class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Template
 {
@@ -49,13 +30,11 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
 
     /**
      * Initialize block instance
-     *
-     * @param array $args
      */
-    public function __construct(array $args = array())
+    public function __construct(array $args = [])
     {
-        $this->_factory = !empty($args['factory']) ? $args['factory'] : Mage::getSingleton('core/factory');
-        $this->_app = !empty($args['app']) ? $args['app'] : Mage::app();
+        $this->_factory = empty($args['factory']) ? Mage::getSingleton('core/factory') : $args['factory'];
+        $this->_app = empty($args['app']) ? Mage::app() : $args['app'];
         unset($args['factory'], $args['app']);
         parent::__construct($args);
     }
@@ -64,16 +43,19 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
      * Return list of store names which have not compatible tax calculation type and price display settings.
      * Return true if settings are wrong for default store.
      *
-     * @return bool|array
+     * @return array|bool
      */
     public function getStoresWithWrongDisplaySettings()
     {
         $defaultStoreId = Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
         //check default store first
-        if (!$this->_factory->getSingleton('tax/config')->checkDisplaySettings($defaultStoreId)) {
+        /** @var Mage_Tax_Model_Config $model */
+        $model = $this->_factory->getSingleton('tax/config');
+        if (!$model->checkDisplaySettings($defaultStoreId)) {
             return true;
         }
-        $storeNames = array();
+
+        $storeNames = [];
         $stores = $this->_app->getStores();
         foreach ($stores as $store) {
             if (!$this->checkDisplaySettings($store)) {
@@ -81,6 +63,7 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
                 $storeNames[] = $website->getName() . '(' . $store->getName() . ')';
             }
         }
+
         return $storeNames;
     }
 
@@ -92,9 +75,10 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
      */
     public function getStoresWithConflictingFptTaxConfigurationSettings()
     {
+        /** @var Mage_Weee_Helper_Data $weeeTaxHelper */
         $weeeTaxHelper = $this->_factory->getHelper('weee');
 
-        $storeNames = array();
+        $storeNames = [];
         $stores = $this->_app->getStores();
         foreach ($stores as $store) {
             if ($weeeTaxHelper->validateCatalogPricesAndFptConfiguration($store)) {
@@ -102,16 +86,18 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
                 $storeNames[] = $website->getName() . '(' . $store->getName() . ')';
             }
         }
+
         return $storeNames;
     }
 
     /**
      * Return boolean determining if FPT/ Catalog Price settings is conflicting or not.
      *
-     * @return boolean
+     * @return bool
      */
     public function isDefaultStoreWithConflictingFptTaxConfigurationSettings()
     {
+        /** @var Mage_Weee_Helper_Data $weeeTaxHelper */
         $weeeTaxHelper = $this->_factory->getHelper('weee');
         $defaultStoreId = Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
 
@@ -122,53 +108,61 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
     /**
      * Check if tax calculation type and price display settings are compatible
      *
-     * @param mixed $store
+     * @param  mixed $store
      * @return bool
      */
     public function checkDisplaySettings($store = null)
     {
-        return $this->_factory->getSingleton('tax/config')->checkDisplaySettings($store);
+        /** @var Mage_Tax_Model_Config $model */
+        $model = $this->_factory->getSingleton('tax/config');
+        return $model->checkDisplaySettings($store);
     }
 
     /**
      * Return list of store names where tax discount settings are compatible.
      * Return true if settings are wrong for default store.
      *
-     * @return bool|array
+     * @return array|bool
      */
     public function getWebsitesWithWrongDiscountSettings()
     {
+        /** @var Mage_Tax_Model_Config $model */
+        $model = $this->_factory->getSingleton('tax/config');
+
         $defaultStoreId = Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
         //check default store first
-        if (!$this->_factory->getSingleton('tax/config')->checkDiscountSettings($defaultStoreId)) {
+        if (!$model->checkDiscountSettings($defaultStoreId)) {
             return true;
         }
-        $storeNames = array();
+
+        $storeNames = [];
         $stores = $this->_app->getStores();
         foreach ($stores as $store) {
-            if (!$this->_factory->getSingleton('tax/config')->checkDiscountSettings($store)) {
+            if (!$model->checkDiscountSettings($store)) {
                 $website = $store->getWebsite();
                 $storeNames[] = $website->getName() . '(' . $store->getName() . ')';
             }
         }
+
         return $storeNames;
     }
 
     /**
      * Get URL to ignore tax notifications
      *
-     * @param string $section
+     * @param  string $section
      * @return string
      */
     public function getIgnoreTaxNotificationUrl($section)
     {
-        return $this->getUrl('adminhtml/tax/ignoreTaxNotification', array('section' => $section));
+        return $this->getUrl('adminhtml/tax/ignoreTaxNotification', ['section' => $section]);
     }
 
     /**
      * Get tax management url
      *
      * @return string
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getInfoUrl()
     {
@@ -190,12 +184,15 @@ class Mage_Tax_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Templa
      *
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
-        if ($this->_factory->getSingleton('admin/session')->isAllowed('system/config/tax')) {
+        /** @var Mage_Admin_Model_Session $model */
+        $model = $this->_factory->getSingleton('admin/session');
+        if ($model->isAllowed('system/config/tax')) {
             return parent::_toHtml();
         }
+
         return '';
     }
 }
-

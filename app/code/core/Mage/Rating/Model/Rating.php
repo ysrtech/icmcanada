@@ -1,75 +1,85 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rating
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rating
  */
 
 /**
  * Rating model
  *
- * @method Mage_Rating_Model_Resource_Rating getResource()
- * @method Mage_Rating_Model_Resource_Rating _getResource()
- * @method array getRatingCodes()
- * @method Mage_Rating_Model_Rating setRatingCodes(array $value)
- * @method array getStores()
- * @method Mage_Rating_Model_Rating setStores(array $value)
- * @method string getRatingCode()
- * @method Mage_Rating_Model_Rating getRatingCode(string $value)
- *
- * @category   Mage
  * @package    Mage_Rating
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Rating_Model_Resource_Rating            _getResource()
+ * @method Mage_Rating_Model_Resource_Rating_Collection getCollection()
+ * @method string                                       getEntityPkValue()
+ * @method string                                       getRatingCode()
+ * @method array                                        getRatingCodes()
+ * @method Mage_Rating_Model_Resource_Rating            getResource()
+ * @method Mage_Rating_Model_Resource_Rating_Collection getResourceCollection()
+ * @method int                                          getReviewId()
+ * @method int                                          getStoreId()
+ * @method array                                        getStores()
+ * @method int                                          getVoteId()
+ * @method bool                                         hasRatingCodes()
+ * @method bool                                         hasStores()
+ * @method $this                                        setCount(int $value)
+ * @method $this                                        setCustomerId(int $value)
+ * @method $this                                        setEntityId(int $value)
+ * @method $this                                        setEntityPkValue(string $value)
+ * @method $this                                        setId(string $value)
+ * @method $this                                        setPosition(string $value)
+ * @method $this                                        setRatingCode(string $value)
+ * @method $this                                        setRatingCodes(array $value)
+ * @method $this                                        setRatingId(int $value)
+ * @method $this                                        setReviewId(int $value)
+ * @method $this                                        setStoreId(int $value)
+ * @method $this                                        setStores(array $value)
+ * @method $this                                        setSum(int $value)
+ * @method $this                                        setSummary(float|int $param)
  */
 class Mage_Rating_Model_Rating extends Mage_Core_Model_Abstract
 {
     /**
      * rating entity codes
-     *
      */
-    const ENTITY_PRODUCT_CODE           = 'product';
-    const ENTITY_PRODUCT_REVIEW_CODE    = 'product_review';
-    const ENTITY_REVIEW_CODE            = 'review';
+    public const ENTITY_PRODUCT_CODE           = 'product';
+
+    public const ENTITY_PRODUCT_REVIEW_CODE    = 'product_review';
+
+    public const ENTITY_REVIEW_CODE            = 'review';
 
     /**
-     * Define resource model
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function _construct()
     {
         $this->_init('rating/rating');
     }
 
-    public function addOptionVote($optionId, $entityPkValue)
+    /**
+     * @param  int    $optionId
+     * @param  string $entityPkValue
+     * @param  int    $customerId
+     * @return $this
+     */
+    public function addOptionVote($optionId, $entityPkValue, $customerId = null)
     {
         Mage::getModel('rating/rating_option')->setOptionId($optionId)
             ->setRatingId($this->getId())
             ->setReviewId($this->getReviewId())
             ->setEntityPkValue($entityPkValue)
+            ->setCustomerId($customerId)
             ->addVote();
         return $this;
     }
 
+    /**
+     * @param  int   $optionId
+     * @return $this
+     */
     public function updateOptionVote($optionId)
     {
         Mage::getModel('rating/rating_option')->setOptionId($optionId)
@@ -87,32 +97,41 @@ class Mage_Rating_Model_Rating extends Mage_Core_Model_Abstract
      */
     public function getOptions()
     {
-        if ($options = $this->getData('options')) {
+        if ($options = $this->getDataByKey('options')) {
             return $options;
         }
-        elseif ($id = $this->getId()) {
+
+        if ($id = $this->getId()) {
             return Mage::getResourceModel('rating/rating_option_collection')
                ->addRatingFilter($id)
                ->setPositionOrder()
                ->load()
                ->getItems();
         }
-        return array();
+
+        return [];
     }
 
     /**
      * Get rating collection object
      *
-     * @return Varien_Data_Collection_Db
+     * @param  string                         $entityPkValue
+     * @param  bool                           $onlyForCurrentStore
+     * @return array|Mage_Rating_Model_Rating
      */
 
-    public function getEntitySummary($entityPkValue,  $onlyForCurrentStore = true)
+    public function getEntitySummary($entityPkValue, $onlyForCurrentStore = true)
     {
         $this->setEntityPkValue($entityPkValue);
         return $this->_getResource()->getEntitySummary($this, $onlyForCurrentStore);
     }
 
-    public function getReviewSummary($reviewId,  $onlyForCurrentStore = true)
+    /**
+     * @param  int   $reviewId
+     * @param  bool  $onlyForCurrentStore
+     * @return array
+     */
+    public function getReviewSummary($reviewId, $onlyForCurrentStore = true)
     {
         $this->setReviewId($reviewId);
         return $this->_getResource()->getReviewSummary($this, $onlyForCurrentStore);
@@ -121,8 +140,8 @@ class Mage_Rating_Model_Rating extends Mage_Core_Model_Abstract
     /**
      * Get rating entity type id by code
      *
-     * @param string $entityCode
-     * @return int
+     * @param  string $entityCode
+     * @return string
      */
     public function getEntityIdByCode($entityCode)
     {

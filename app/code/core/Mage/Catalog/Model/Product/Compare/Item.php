@@ -1,44 +1,30 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Compare Item Model
  *
- * @method Mage_Catalog_Model_Resource_Product_Compare_Item getResource()
- * @method Mage_Catalog_Model_Product_Compare_Item setVisitorId(int $value)
- * @method Mage_Catalog_Model_Product_Compare_Item setCustomerId(int $value)
- * @method int getProductId()
- * @method Mage_Catalog_Model_Product_Compare_Item setProductId(int $value)
- * @method int getStoreId()
- * @method Mage_Catalog_Model_Product_Compare_Item setStoreId(int $value)
+ * @package    Mage_Catalog
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Catalog_Model_Resource_Product_Compare_Item            _getResource()
+ * @method Mage_Catalog_Model_Resource_Product_Compare_Item_Collection getCollection()
+ * @method int                                                         getProductId()
+ * @method Mage_Catalog_Model_Resource_Product_Compare_Item            getResource()
+ * @method Mage_Catalog_Model_Resource_Product_Compare_Item_Collection getResourceCollection()
+ * @method int                                                         getStoreId()
+ * @method bool                                                        hasCustomerId()
+ * @method bool                                                        hasStoreId()
+ * @method bool                                                        hasVisitorId()
+ * @method $this                                                       setCustomerId(int $value)
+ * @method $this                                                       setProductId(int $value)
+ * @method $this                                                       setStoreId(int $value)
+ * @method $this                                                       setVisitorId(int $value)
  */
 class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
 {
@@ -66,8 +52,7 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     protected $_eventObject = 'item';
 
     /**
-     * Initialize resourse model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -75,20 +60,11 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Retrieve Resource instance
-     *
-     * @return Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Compare_Item
-     */
-    protected function _getResource()
-    {
-        return parent::_getResource();
-    }
-
-    /**
      * Set current store before save
      *
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         parent::_beforeSave();
@@ -102,21 +78,22 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Save object data
      *
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
+    #[Override]
     public function save()
     {
         if ($this->hasCustomerId() || $this->hasVisitorId()) {
             parent::save();
         }
+
         return $this;
     }
 
     /**
      * Add customer data from customer object
      *
-     * @param Mage_Customer_Model_Customer $customer
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
     public function addCustomerData(Mage_Customer_Model_Customer $customer)
     {
@@ -127,8 +104,8 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Set visitor
      *
-     * @param int $visitorId
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @param  int   $visitorId
+     * @return $this
      */
     public function addVisitorId($visitorId)
     {
@@ -139,8 +116,8 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Load compare item by product
      *
-     * @param mixed $product
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @param  mixed $product
+     * @return $this
      */
     public function loadByProduct($product)
     {
@@ -151,16 +128,15 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Set product data
      *
-     * @param mixed $product
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @param  mixed $product
+     * @return $this
      */
     public function addProductData($product)
     {
         if ($product instanceof Mage_Catalog_Model_Product) {
             $this->setProductId($product->getId());
-        }
-        else if(intval($product)) {
-            $this->setProductId(intval($product));
+        } elseif ((int) $product) {
+            $this->setProductId((int) $product);
         }
 
         return $this;
@@ -169,22 +145,21 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Retrieve data for save
      *
-     * @return array
+     * @return array<string, int>
      */
     public function getDataForSave()
     {
-        $data = array();
-        $data['customer_id'] = $this->getCustomerId();
-        $data['visitor_id']  = $this->getVisitorId();
-        $data['product_id']  = $this->getProductId();
-
-        return $data;
+        return [
+            'customer_id' => $this->getCustomerId(),
+            'visitor_id' => $this->getVisitorId(),
+            'product_id' => $this->getProductId(),
+        ];
     }
 
     /**
      * Customer login bind process
      *
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
     public function bindCustomerLogin()
     {
@@ -197,10 +172,9 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Customer logout bind process
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
-    public function bindCustomerLogout(Varien_Event_Observer $observer = null)
+    public function bindCustomerLogout(?Varien_Event_Observer $observer = null)
     {
         $this->_getResource()->purgeVisitorByCustomer($this);
 
@@ -211,7 +185,7 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
     /**
      * Clean compare items
      *
-     * @return Mage_Catalog_Model_Product_Compare_Item
+     * @return $this
      */
     public function clean()
     {
@@ -230,7 +204,8 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
             $customerId = Mage::getSingleton('customer/session')->getCustomerId();
             $this->setData('customer_id', $customerId);
         }
-        return $this->getData('customer_id');
+
+        return $this->getDataByKey('customer_id');
     }
 
     /**
@@ -244,6 +219,7 @@ class Mage_Catalog_Model_Product_Compare_Item extends Mage_Core_Model_Abstract
             $visitorId = Mage::getSingleton('log/visitor')->getId();
             $this->setData('visitor_id', $visitorId);
         }
-        return $this->getData('visitor_id');
+
+        return $this->getDataByKey('visitor_id');
     }
 }

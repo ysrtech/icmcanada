@@ -1,78 +1,56 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Sales Order Shipment PDF model
  *
- * @category   Mage
  * @package    Mage_Sales
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abstract
 {
     /**
      * Draw table header for product items
-     *
-     * @param  Zend_Pdf_Page $page
-     * @return void
      */
     protected function _drawHeader(Zend_Pdf_Page $page)
     {
         /* Add table head */
         $this->_setFontRegular($page, 10);
-        $page->setFillColor(new Zend_Pdf_Color_RGB(0.93, 0.92, 0.92));
+        $page->setFillColor(new Zend_Pdf_Color_Rgb(0.93, 0.92, 0.92));
         $page->setLineColor(new Zend_Pdf_Color_GrayScale(0.5));
         $page->setLineWidth(0.5);
-        $page->drawRectangle(25, $this->y, 570, $this->y-15);
+        $page->drawRectangle(25, $this->y, 570, $this->y - 15);
         $this->y -= 10;
-        $page->setFillColor(new Zend_Pdf_Color_RGB(0, 0, 0));
+        $page->setFillColor(new Zend_Pdf_Color_Rgb(0, 0, 0));
 
         //columns headers
-        $lines[0][] = array(
+        $lines[0][] = [
             'text' => Mage::helper('sales')->__('Products'),
             'feed' => 100,
-        );
+        ];
 
-        $lines[0][] = array(
+        $lines[0][] = [
             'text'  => Mage::helper('sales')->__('Qty'),
-            'feed'  => 35
-        );
+            'feed'  => 35,
+        ];
 
-        $lines[0][] = array(
+        $lines[0][] = [
             'text'  => Mage::helper('sales')->__('SKU'),
             'feed'  => 565,
-            'align' => 'right'
-        );
+            'align' => 'right',
+        ];
 
-        $lineBlock = array(
+        $lineBlock = [
             'lines'  => $lines,
-            'height' => 10
-        );
+            'height' => 10,
+        ];
 
-        $this->drawLineBlocks($page, array($lineBlock), array('table_header' => true));
+        $this->drawLineBlocks($page, [$lineBlock], ['table_header' => true]);
         $page->setFillColor(new Zend_Pdf_Color_GrayScale(0));
         $this->y -= 20;
     }
@@ -80,10 +58,10 @@ class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abs
     /**
      * Return PDF document
      *
-     * @param  array $shipments
+     * @param  array|Mage_Sales_Model_Resource_Order_Shipment_Collection $shipments
      * @return Zend_Pdf
      */
-    public function getPdf($shipments = array())
+    public function getPdf($shipments = [])
     {
         $this->_beforeGetPdf();
         $this->_initRenderer('shipment');
@@ -97,6 +75,7 @@ class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abs
                 Mage::app()->getLocale()->emulate($shipment->getStoreId());
                 Mage::app()->setCurrentStore($shipment->getStoreId());
             }
+
             $page  = $this->newPage();
             $order = $shipment->getOrder();
             /* Add image */
@@ -107,12 +86,12 @@ class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abs
             $this->insertOrder(
                 $page,
                 $shipment,
-                Mage::getStoreConfigFlag(self::XML_PATH_SALES_PDF_SHIPMENT_PUT_ORDER_ID, $order->getStoreId())
+                Mage::getStoreConfigFlag(self::XML_PATH_SALES_PDF_SHIPMENT_PUT_ORDER_ID, $order->getStoreId()),
             );
             /* Add document text and number */
             $this->insertDocumentNumber(
                 $page,
-                Mage::helper('sales')->__('Packingslip # ') . $shipment->getIncrementId()
+                Mage::helper('sales')->__('Packingslip # ') . $shipment->getIncrementId(),
             );
             /* Add table */
             $this->_drawHeader($page);
@@ -121,25 +100,28 @@ class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abs
                 if ($item->getOrderItem()->getParentItem()) {
                     continue;
                 }
+
                 /* Draw item */
                 $this->_drawItem($item, $page, $order);
                 $page = end($pdf->pages);
             }
         }
+
         $this->_afterGetPdf();
-        if ($shipment->getStoreId()) {
+        if (isset($shipment) && $shipment->getStoreId()) {
             Mage::app()->getLocale()->revert();
         }
+
         return $pdf;
     }
 
     /**
      * Create new page and assign to PDF object
      *
-     * @param  array $settings
      * @return Zend_Pdf_Page
      */
-    public function newPage(array $settings = array())
+    #[Override]
+    public function newPage(array $settings = [])
     {
         /* Add new table head */
         $page = $this->_getPdf()->newPage(Zend_Pdf_Page::SIZE_A4);
@@ -148,6 +130,7 @@ class Mage_Sales_Model_Order_Pdf_Shipment extends Mage_Sales_Model_Order_Pdf_Abs
         if (!empty($settings['table_header'])) {
             $this->_drawHeader($page);
         }
+
         return $page;
     }
 }

@@ -1,45 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog product option text type
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Model_Product_Option_Type_Text extends Mage_Catalog_Model_Product_Option_Type_Default
 {
+    public function getUserValue(): string
+    {
+        return (string) $this->getDataByKey('user_value');
+    }
+
     /**
      * Validate user input for option
      *
+     * @param  array               $values All product option values, i.e. array (option_id => mixed, option_id => mixed...)
+     * @return $this
      * @throws Mage_Core_Exception
-     * @param array $values All product option values, i.e. array (option_id => mixed, option_id => mixed...)
-     * @return Mage_Catalog_Model_Product_Option_Type_Default
      */
+    #[Override]
     public function validateUserValue($values)
     {
         parent::validateUserValue($values);
@@ -47,10 +34,14 @@ class Mage_Catalog_Model_Product_Option_Type_Text extends Mage_Catalog_Model_Pro
         $option = $this->getOption();
         $value = trim($this->getUserValue());
 
+        // Match the JS validator, which counts each line break as a single character.
+        // Browsers post textarea content with CRLF line endings, but readers see LF.
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+
         // Check requires option to have some value
         if (strlen($value) == 0 && $option->getIsRequire() && !$this->getSkipCheckRequiredOption()) {
             $this->setIsValid(false);
-            Mage::throwException(Mage::helper('catalog')->__('Please specify the product\'s required option(s).'));
+            Mage::throwException(Mage::helper('catalog')->__('Please specify the product required option <em>%s</em>.', $option->getTitle()));
         }
 
         // Check maximal length limit
@@ -67,23 +58,25 @@ class Mage_Catalog_Model_Product_Option_Type_Text extends Mage_Catalog_Model_Pro
     /**
      * Prepare option value for cart
      *
-     * @return mixed Prepared option value
+     * @return null|string Prepared option value
      */
+    #[Override]
     public function prepareForCart()
     {
-        if ($this->getIsValid() && strlen($this->getUserValue()) > 0) {
+        if ($this->getIsValid() && $this->getUserValue() !== '') {
             return $this->getUserValue();
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
      * Return formatted option value for quote option
      *
-     * @param string $value Prepared for cart option value
+     * @param  string $value Prepared for cart option value
      * @return string
      */
+    #[Override]
     public function getFormattedOptionValue($value)
     {
         return Mage::helper('core')->escapeHtml($value);

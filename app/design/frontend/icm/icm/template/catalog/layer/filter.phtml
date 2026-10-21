@@ -36,7 +36,7 @@
 <?php foreach ($this->getItems() as $_item): ?>
     
         <?php if ($_item->getCount() > 0): ?>
-            <option value="<?php echo $this->urlEscape($_item->getUrl()) ?>">
+            <option value="<?php echo $this->escapeUrl($_item->getUrl()) ?>">
                 <?php echo $_item->getLabel() ?>
                 <?php if ($this->shouldDisplayProductCount()): ?>
                   (<?php echo $_item->getCount() ?>)

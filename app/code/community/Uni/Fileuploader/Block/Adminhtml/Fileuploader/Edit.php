@@ -41,7 +41,7 @@ class Uni_Fileuploader_Block_Adminhtml_Fileuploader_Edit extends Mage_Adminhtml_
     public function getHeaderText() {
 
         if (Mage::registry('fileuploader_data') && Mage::registry('fileuploader_data')->getId()) {
-            return Mage::helper('fileuploader')->__("Edit Item '%s'", $this->htmlEscape(Mage::registry('fileuploader_data')->getTitle()));
+            return Mage::helper('fileuploader')->__("Edit Item '%s'", $this->escapeHtml(Mage::registry('fileuploader_data')->getTitle()));
         } else {
             return Mage::helper('fileuploader')->__('Add Item');
         }

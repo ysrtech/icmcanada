@@ -1,27 +1,14 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
+
+/**
+ * @package    Mage_Core
  */
 class Mage_Core_Model_Locale_Config
 {
@@ -30,7 +17,7 @@ class Mage_Core_Model_Locale_Config
      *
      * @var array
      */
-    protected $_allowedLocales      = array(
+    protected $_allowedLocales      = [
         'af_ZA' /*Afrikaans (South Africa)*/,   'ar_DZ' /*Arabic (Algeria)*/,       'ar_EG' /*Arabic (Egypt)*/,
         'ar_KW' /*Arabic (Kuwait)*/,            'ar_MA' /*Arabic (Morocco)*/,       'ar_SA' /*Arabic (Saudi Arabia)*/,
         'az_AZ' /*Azerbaijani (Azerbaijan)*/,   'be_BY' /*Belarusian (Belarus)*/,   'bg_BG' /*Bulgarian (Bulgaria)*/,
@@ -59,14 +46,15 @@ class Mage_Core_Model_Locale_Config
         'vi_VN' /*Vietnamese (Vietnam)*/,       'zh_CN' /*Chinese (China)*/,        'zh_HK' /*Chinese (Hong Kong SAR)*/,
         'zh_TW' /*Chinese (Taiwan)*/,           'es_CL' /*Spanich (Chile)*/,        'lo_LA' /*Laotian*/,
         'es_VE' /*Spanish (Venezuela)*/,        'en_IE' /*English (Ireland)*/,
-    );
+        'fr_CH' /*French (Switzerland)*/,
+    ];
 
     /**
      * List of allowed currencies
      *
      * @var array
      */
-    protected $_allowedCurrencies   = array(
+    protected $_allowedCurrencies   = [
         'AFN' /*Afghani*/,          'ALL' /*Albanian Lek*/,     'AZN' /*Azerbaijanian Manat*/,      'DZD' /*Algerian Dinar*/,
         'AOA' /*Angolan Kwanza*/,   'ARS' /*Argentine Peso*/,   'AMD' /*Armenian Dram*/,            'AWG' /*Aruban Florin*/,
         'AUD' /*Australian Dollar*/,'BSD' /*Bahamian Dollar*/,  'BHD' /*Bahraini Dinar*/,           'BDT' /*Bangladesh Taka*/,
@@ -109,8 +97,8 @@ class Mage_Core_Model_Locale_Config
         'VEF' /*Venezuelan bolívar fuerte*/,'VND' /*Vietnamese Dong*/,  'CHE' /*WIR Euro*/,                'CHW' /*WIR Franc*/,
         'XOF' /*West African CFA franc*/,'WST' /*Western Samoa Tala*/,'YER' /*Yemeni Rial*/,        'ZMK' /*Zambian Kwacha*/,
         'ZWD' /*Zimbabwe Dollar*/,'TRY' /*Turkish Lira*/,'AZM' /*Azerbaijani Manat (1993-2006)*/,   'ROL' /*Old Romanian Leu*/,
-        'TRL' /*Old Turkish Lira*/,'XPF' /*CFP Franc*/
-    );
+        'TRL' /*Old Turkish Lira*/,'XPF', /*CFP Franc*/
+    ];
 
     /**
      * Get list preconfigured allowed locales
@@ -123,11 +111,9 @@ class Mage_Core_Model_Locale_Config
         if ($configData) {
             $configData = $configData->asArray();
         }
-        if ($configData) {
-            $configData = array_keys($configData);
-        } else {
-            $configData = array();
-        }
+
+        $configData = $configData ? array_keys($configData) : [];
+
         return array_merge($this->_allowedLocales, $configData);
     }
 
@@ -142,11 +128,9 @@ class Mage_Core_Model_Locale_Config
         if ($configData) {
             $configData = $configData->asArray();
         }
-        if ($configData) {
-            $configData = array_keys($configData);
-        } else {
-            $configData = array();
-        }
+
+        $configData = $configData ? array_keys($configData) : [];
+
         return array_merge($this->_allowedCurrencies, $configData);
     }
 }

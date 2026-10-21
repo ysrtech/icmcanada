@@ -119,7 +119,7 @@ class BL_CustomGrid_Block_Grid_Edit_Tabs extends Mage_Adminhtml_Block_Widget_Tab
             $this->addTab('settings', 'customgrid/grid_edit_tab_settings');
         }
         if ($this->_canDisplayRolesTabs()) {
-            /** @var $roles Mage_Admin_Model_Mysql4_Roles_Collection */
+            /** @var $roles Mage_Admin_Model_Resource_Roles_Collection */
             $roles = Mage::getResourceModel('admin/roles_collection');
             
             foreach ($roles as $role) {

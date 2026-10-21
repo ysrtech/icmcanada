@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
+ * @package    Mage_Newsletter
+ */
+-->
+<config>
+    <modules>
+        <Mage_Newsletter>
+            <active>true</active>
+            <codePool>core</codePool>
+            <depends>
+                <Mage_Core/>
+                <Mage_Customer/>
+                <Mage_Eav/>
+                <Mage_Widget/>
+            </depends>
+        </Mage_Newsletter>
+    </modules>
+</config>

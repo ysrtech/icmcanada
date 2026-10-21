@@ -1,33 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Abstract helper
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
  */
 abstract class Mage_Core_Helper_Abstract
 {
@@ -41,7 +24,7 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Request object
      *
-     * @var Zend_Controller_Request_Http
+     * @var Mage_Core_Controller_Request_Http
      */
     protected $_request;
 
@@ -52,24 +35,27 @@ abstract class Mage_Core_Helper_Abstract
      */
     protected $_layout;
 
+    protected array $modulesDisabled = [];
+
     /**
      * Retrieve request object
      *
-     * @return Zend_Controller_Request_Http
+     * @return Mage_Core_Controller_Request_Http
      */
     protected function _getRequest()
     {
         if (!$this->_request) {
             $this->_request = Mage::app()->getRequest();
         }
+
         return $this->_request;
     }
 
     /**
      * Loading cache data
      *
-     * @param   string $id
-     * @return  mixed
+     * @param  string       $id
+     * @return false|string
      */
     protected function _loadCache($id)
     {
@@ -79,12 +65,13 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Saving cache
      *
-     * @param   mixed $data
-     * @param   string $id
-     * @param   array $tags
-     * @return  Mage_Core_Helper_Abstract
+     * @param  mixed          $data
+     * @param  string         $id
+     * @param  array          $tags
+     * @param  null|false|int $lifeTime
+     * @return $this
      */
-    protected function _saveCache($data, $id, $tags=array(), $lifeTime=false)
+    protected function _saveCache($data, $id, $tags = [], $lifeTime = false)
     {
         Mage::app()->saveCache($data, $id, $tags, $lifeTime);
         return $this;
@@ -93,8 +80,8 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Removing cache
      *
-     * @param   string $id
-     * @return  Mage_Core_Helper_Abstract
+     * @param  string $id
+     * @return $this
      */
     protected function _removeCache($id)
     {
@@ -105,10 +92,10 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Cleaning cache
      *
-     * @param   array $tags
-     * @return  Mage_Core_Helper_Abstract
+     * @param  array $tags
+     * @return $this
      */
-    protected function _cleanCache($tags=array())
+    protected function _cleanCache($tags = [])
     {
         Mage::app()->cleanCache($tags);
         return $this;
@@ -122,17 +109,18 @@ abstract class Mage_Core_Helper_Abstract
     protected function _getModuleName()
     {
         if (!$this->_moduleName) {
-            $class = get_class($this);
-            $this->_moduleName = substr($class, 0, strpos($class, '_Helper'));
+            $class = static::class;
+            $this->_moduleName = implode('_', array_slice(explode('_', $class), 0, 2));
         }
+
         return $this->_moduleName;
     }
 
     /**
-     * Check whether or not the module output is enabled in Configuration
+     * Check whether the module output is enabled in Configuration
      *
-     * @param string $moduleName Full module name
-     * @return boolean
+     * @param  string $moduleName Full module name
+     * @return bool
      */
     public function isModuleOutputEnabled($moduleName = null)
     {
@@ -144,17 +132,14 @@ abstract class Mage_Core_Helper_Abstract
             return false;
         }
 
-        if (Mage::getStoreConfigFlag('advanced/modules_disable_output/' . $moduleName)) {
-            return false;
-        }
-        return true;
+        return !Mage::getStoreConfigFlag('advanced/modules_disable_output/' . $moduleName);
     }
 
     /**
      * Check is module exists and enabled in global config.
      *
-     * @param string $moduleName the full module name, example Mage_Core
-     * @return boolean
+     * @param  string $moduleName the full module name, example Mage_Core
+     * @return bool
      */
     public function isModuleEnabled($moduleName = null)
     {
@@ -162,21 +147,28 @@ abstract class Mage_Core_Helper_Abstract
             $moduleName = $this->_getModuleName();
         }
 
+        if (array_key_exists($moduleName, $this->modulesDisabled)) {
+            return $this->modulesDisabled[$moduleName];
+        }
+
         if (!Mage::getConfig()->getNode('modules/' . $moduleName)) {
-            return false;
+            return $this->modulesDisabled[$moduleName] = false;
         }
 
         $isActive = Mage::getConfig()->getNode('modules/' . $moduleName . '/active');
-        if (!$isActive || !in_array((string)$isActive, array('true', '1'))) {
-            return false;
+        if (!$isActive || !in_array((string) $isActive, ['true', '1'], true)) {
+            return $this->modulesDisabled[$moduleName] = false;
         }
-        return true;
+
+        return $this->modulesDisabled[$moduleName] = true;
     }
 
     /**
      * Translate
      *
      * @return string
+     * @SuppressWarnings("PHPMD.CamelCaseMethodName")
+     * @SuppressWarnings("PHPMD.ShortMethodName")
      */
     public function __()
     {
@@ -187,51 +179,41 @@ abstract class Mage_Core_Helper_Abstract
     }
 
     /**
-     * @deprecated after 1.4.0.0-rc1
-     * @see self::escapeHtml()
-     */
-    public function htmlEscape($data, $allowedTags = null)
-    {
-        return $this->escapeHtml($data, $allowedTags);
-    }
-
-    /**
      * Escape html entities
      *
-     * @param   mixed $data
-     * @param   array $allowedTags
-     * @return  mixed
+     * @param  null|string|string[]                        $data
+     * @param  null|string[]                               $allowedTags
+     * @return ($data is array ? array<?string> : ?string)
      */
     public function escapeHtml($data, $allowedTags = null)
     {
         if (is_array($data)) {
-            $result = array();
+            $result = [];
             foreach ($data as $item) {
                 $result[] = $this->escapeHtml($item);
             }
-        } else {
+        } elseif (is_string($data) && strlen($data)) {
             // process single item
-            if (strlen($data)) {
-                if (is_array($allowedTags) and !empty($allowedTags)) {
-                    $allowed = implode('|', $allowedTags);
-                    $result = preg_replace('/<([\/\s\r\n]*)(' . $allowed . ')([\/\s\r\n]*)>/si', '##$1$2$3##', $data);
-                    $result = htmlspecialchars($result, ENT_COMPAT, 'UTF-8', false);
-                    $result = preg_replace('/##([\/\s\r\n]*)(' . $allowed . ')([\/\s\r\n]*)##/si', '<$1$2$3>', $result);
-                } else {
-                    $result = htmlspecialchars($data, ENT_COMPAT, 'UTF-8', false);
-                }
+            if (is_array($allowedTags) && $allowedTags !== []) {
+                $allowed = implode('|', $allowedTags);
+                $result = preg_replace('/<([\/\s\r\n]*)(' . $allowed . ')([\/\s\r\n]*)>/si', '##$1$2$3##', $data);
+                $result = htmlspecialchars($result, ENT_COMPAT, 'UTF-8', false);
+                $result = preg_replace('/##([\/\s\r\n]*)(' . $allowed . ')([\/\s\r\n]*)##/si', '<$1$2$3>', $result);
             } else {
-                $result = $data;
+                $result = htmlspecialchars($data, ENT_COMPAT, 'UTF-8', false);
             }
+        } else {
+            $result = $data;
         }
+
         return $result;
     }
 
-     /**
+    /**
      * Remove html tags, but leave "<" and ">" signs
      *
-     * @param   string $html
-     * @return  string
+     * @param  string $html
+     * @return string
      */
     public function removeTags($html)
     {
@@ -240,39 +222,34 @@ abstract class Mage_Core_Helper_Abstract
             function ($matches) {
                 return htmlentities($matches[0]);
             },
-            $html
+            $html,
         );
         $html =  strip_tags($html);
         return htmlspecialchars_decode($html);
     }
 
     /**
-     * Wrapper for standart strip_tags() function with extra functionality for html entities
+     * Wrapper for standard strip_tags() function with extra functionality for html entities
      *
-     * @param string $data
-     * @param string $allowableTags
-     * @param bool $escape
+     * @param  string               $data
+     * @param  null|string|string[] $allowableTags
+     * @param  bool                 $escape
      * @return string
      */
     public function stripTags($data, $allowableTags = null, $escape = false)
     {
+        if ($data === null) {
+            return '';
+        }
+
         $result = strip_tags($data, $allowableTags);
         return $escape ? $this->escapeHtml($result, $allowableTags) : $result;
     }
 
     /**
-     * @deprecated after 1.4.0.0-rc1
-     * @see self::escapeHtml()
-     */
-    public function urlEscape($data)
-    {
-        return $this->escapeUrl($data);
-    }
-
-    /**
      * Escape html entities in url
      *
-     * @param string $data
+     * @param  string $data
      * @return string
      */
     public function escapeUrl($data)
@@ -280,14 +257,14 @@ abstract class Mage_Core_Helper_Abstract
         return htmlspecialchars(
             $this->escapeScriptIdentifiers((string) $data),
             ENT_COMPAT | ENT_HTML5 | ENT_HTML401,
-            'UTF-8'
+            'UTF-8',
         );
     }
 
     /**
      * Remove `\t`,`\n`,`\r`,`\0`,`\x0B:` symbols from the string.
      *
-     * @param string $data
+     * @param  string $data
      * @return string
      */
     public function escapeSpecial($data)
@@ -300,7 +277,7 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Remove `javascript:`, `vbscript:`, `data:` words from the string.
      *
-     * @param string $data
+     * @param  string $data
      * @return string
      */
     public function escapeScriptIdentifiers($data)
@@ -312,7 +289,7 @@ abstract class Mage_Core_Helper_Abstract
         $preFilteredData = $this->escapeSpecial($data);
         $filteredData = preg_replace($scripIdentifiersFiltrationPattern, ':', $preFilteredData) ?: '';
         if (preg_match($scripIdentifiersFiltrationPattern, $filteredData)) {
-            $filteredData = $this->escapeScriptIdentifiers($filteredData);
+            return $this->escapeScriptIdentifiers($filteredData);
         }
 
         return $filteredData;
@@ -321,46 +298,53 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Escape quotes in java script
      *
-     * @param mixed $data
-     * @param string $quote
-     * @return mixed
+     * @param  string|string[]                      $data
+     * @param  string                               $quote
+     * @return ($data is array ? string[] : string)
      */
-    public function jsQuoteEscape($data, $quote='\'')
+    public function jsQuoteEscape($data, $quote = "'")
     {
         if (is_array($data)) {
-            $result = array();
+            $result = [];
             foreach ($data as $item) {
-                $result[] = str_replace($quote, '\\'.$quote, $item);
+                $result[] = str_replace($quote, '\\' . $quote, $item);
             }
+
             return $result;
         }
-        return str_replace($quote, '\\'.$quote, $data);
+
+        return str_replace($quote, '\\' . $quote, $data);
     }
 
     /**
      * Escape quotes inside html attributes
      * Use $addSlashes = false for escaping js that inside html attribute (onClick, onSubmit etc)
      *
-     * @param string $data
-     * @param bool $addSlashes
+     * @param  string $data
+     * @param  bool   $addSlashes
      * @return string
      */
     public function quoteEscape($data, $addSlashes = false)
     {
+        if (!$data) {
+            return $data;
+        }
+
         if ($addSlashes === true) {
             $data = addslashes($data);
         }
+
         return htmlspecialchars($data, ENT_QUOTES, null, false);
     }
 
     /**
      * Retrieve url
      *
-     * @param   string $route
-     * @param   array $params
-     * @return  string
+     * @param  string $route
+     * @param  array  $params
+     * @return string
      */
-    protected function _getUrl($route, $params = array())
+    protected function _getUrl($route, $params = [])
     {
         return Mage::getUrl($route, $params);
     }
@@ -368,8 +352,8 @@ abstract class Mage_Core_Helper_Abstract
     /**
      * Declare layout
      *
-     * @param   Mage_Core_Model_Layout $layout
-     * @return  Mage_Core_Helper_Abstract
+     * @param  Mage_Core_Model_Layout $layout
+     * @return $this
      */
     public function setLayout($layout)
     {
@@ -390,8 +374,8 @@ abstract class Mage_Core_Helper_Abstract
     /**
      *  base64_encode() for URLs encoding
      *
-     *  @param    string $url
-     *  @return   string
+     * @param  string $url
+     * @return string
      */
     public function urlEncode($url)
     {
@@ -399,10 +383,10 @@ abstract class Mage_Core_Helper_Abstract
     }
 
     /**
-     *  base64_dencode() for URLs dencoding
+     *  base64_decode() for URLs decoding
      *
-     *  @param    string $url
-     *  @return   string
+     * @param  string $url
+     * @return string
      */
     public function urlDecode($url)
     {
@@ -413,72 +397,72 @@ abstract class Mage_Core_Helper_Abstract
     /**
      *  base64_decode() and escape quotes in url
      *
-     *  @param    string $url
-     *  @return   string
+     * @param  string $url
+     * @return string
      */
     public function urlDecodeAndEscape($url)
     {
         $url = $this->urlDecode($url);
-        $quote = array ('\'', '"');
-        $replace = array('%27', '%22');
-        $url = str_replace($quote, $replace, $url);
-        return $url;
+        $quote = ["'", '"'];
+        $replace = ['%27', '%22'];
+        return str_replace($quote, $replace, $url);
     }
 
     /**
      *   Translate array
      *
-     *  @param    array $arr
-     *  @return   array
+     * @param  array $arr
+     * @return array
      */
-    public function translateArray($arr = array())
+    public function translateArray($arr = [])
     {
-        foreach ($arr as $k => $v) {
-            if (is_array($v)) {
-                $v = self::translateArray($v);
-            } elseif ($k === 'label') {
-                $v = self::__($v);
+        foreach ($arr as $key => $value) {
+            if (is_array($value)) {
+                $value = self::translateArray($value);
+            } elseif ($key === 'label') {
+                $value = self::__($value);
             }
-            $arr[$k] = $v;
+
+            $arr[$key] = $value;
         }
+
         return $arr;
     }
 
     /**
      * Check for tags in multidimensional arrays
      *
-     * @param string|array $data
-     * @param array $arrayKeys keys of the array being checked that are excluded and included in the check
-     * @param bool $skipTags skip transferred array keys, if false then check only them
+     * @param  array|string $data
+     * @param  array        $arrayKeys keys of the array being checked that are excluded and included in the check
+     * @param  bool         $skipTags  skip transferred array keys, if false then check only them
      * @return bool
      */
-    public function hasTags($data, array $arrayKeys = array(), $skipTags = true)
+    public function hasTags($data, array $arrayKeys = [], $skipTags = true)
     {
         if (is_array($data)) {
             foreach ($data as $key => $item) {
-                if ($skipTags && in_array($key, $arrayKeys)) {
+                if ($skipTags && in_array($key, $arrayKeys, true)) {
                     continue;
                 }
+
                 if (is_array($item)) {
                     if ($this->hasTags($item, $arrayKeys, $skipTags)) {
                         return true;
                     }
-                } elseif (
-                    (bool)strcmp($item, $this->removeTags($item))
-                    || (bool)strcmp($key, $this->removeTags($key))
+                } elseif ((bool) strcmp($item, $this->removeTags($item))
+                    || (bool) strcmp($key, $this->removeTags($key))
                 ) {
-                    if (!$skipTags && !in_array($key, $arrayKeys)) {
+                    if (!$skipTags && !in_array($key, $arrayKeys, true)) {
                         continue;
                     }
+
                     return true;
                 }
             }
+
             return false;
-        } elseif (is_string($data)) {
-            if ((bool)strcmp($data, $this->removeTags($data))) {
-                return true;
-            }
         }
-        return false;
+
+        return is_string($data) && (bool) strcmp($data, $this->removeTags($data));
     }
 }

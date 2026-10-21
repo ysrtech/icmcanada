@@ -1,46 +1,38 @@
 <?php
+
 /**
- * Magento
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
+ */
+
+/**
+ * @package    Mage_Adminhtml
  *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @method bool  getNoSecret()
+ * @method $this setNoSecret(bool $value)
  */
 class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
 {
     /**
      * Secret key query param name
      */
-    const SECRET_KEY_PARAM_NAME = 'key';
+    public const SECRET_KEY_PARAM_NAME = 'key';
 
     /**
      * Retrieve is secure mode for ULR logic
      *
      * @return bool
      */
+    #[Override]
     public function getSecure()
     {
         if ($this->hasData('secure_is_forced')) {
-            return $this->getData('secure');
+            return $this->getDataByKey('secure');
         }
-        return Mage::getStoreConfigFlag('web/secure/use_in_adminhtml');
+
+        return Mage::getStoreConfigFlag(Mage_Core_Model_Store::XML_PATH_SECURE_IN_ADMINHTML);
     }
 
     /**
@@ -48,7 +40,8 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
      *
      * @return Mage_Core_Model_Url
      */
-    public function setRouteParams(array $data, $unsetOldParams=true)
+    #[Override]
+    public function setRouteParams(array $data, $unsetOldParams = true)
     {
         if (isset($data['_nosecret'])) {
             $this->setNoSecret(true);
@@ -63,11 +56,12 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
     /**
      * Custom logic to retrieve Urls
      *
-     * @param string $routePath
-     * @param array $routeParams
+     * @param  string $routePath
+     * @param  array  $routeParams
      * @return string
      */
-    public function getUrl($routePath=null, $routeParams=null)
+    #[Override]
+    public function getUrl($routePath = null, $routeParams = null)
     {
         $cacheSecretKey = false;
         if (is_array($routeParams) && isset($routeParams['_cache_secret_key'])) {
@@ -80,45 +74,43 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
             return $result;
         }
 
-        $_route = $this->getRouteName() ? $this->getRouteName() : '*';
-        $_controller = $this->getControllerName() ? $this->getControllerName() : $this->getDefaultControllerName();
-        $_action = $this->getActionName() ? $this->getActionName() : $this->getDefaultActionName();
+        $route = $this->getRouteName() ? $this->getRouteName() : '*';
+        $controller = $this->getControllerName() ? $this->getControllerName() : $this->getDefaultControllerName();
+        $action = $this->getActionName() ? $this->getActionName() : $this->getDefaultActionName();
 
         if ($cacheSecretKey) {
-            $secret = array(self::SECRET_KEY_PARAM_NAME => "\${$_controller}/{$_action}\$");
-        }
-        else {
-            $secret = array(self::SECRET_KEY_PARAM_NAME => $this->getSecretKey($_controller, $_action));
-        }
-        if (is_array($routeParams)) {
-            $routeParams = array_merge($secret, $routeParams);
+            $secret = [self::SECRET_KEY_PARAM_NAME => "\${$controller}/{$action}\$"];
         } else {
-            $routeParams = $secret;
+            $secret = [self::SECRET_KEY_PARAM_NAME => $this->getSecretKey($controller, $action)];
         }
+
+        $routeParams = is_array($routeParams) ? array_merge($secret, $routeParams) : $secret;
+
         if (is_array($this->getRouteParams())) {
             $routeParams = array_merge($this->getRouteParams(), $routeParams);
         }
 
-        return parent::getUrl("{$_route}/{$_controller}/{$_action}", $routeParams);
+        return parent::getUrl("{$route}/{$controller}/{$action}", $routeParams);
     }
 
     /**
      * Generate secret key for controller and action based on form key
      *
-     * @param string $controller Controller name
-     * @param string $action Action name
+     * @param  string $controller Controller name
+     * @param  string $action     Action name
      * @return string
      */
     public function getSecretKey($controller = null, $action = null)
     {
         $salt = Mage::getSingleton('core/session')->getFormKey();
 
-        $p = explode('/', trim($this->getRequest()->getOriginalPathInfo(), '/'));
+        $path = explode('/', trim($this->getRequest()->getOriginalPathInfo(), '/'));
         if (!$controller) {
-            $controller = !empty($p[1]) ? $p[1] : $this->getRequest()->getControllerName();
+            $controller = empty($path[1]) ? $this->getRequest()->getControllerName() : $path[1];
         }
+
         if (!$action) {
-            $action = !empty($p[2]) ? $p[2] : $this->getRequest()->getActionName();
+            $action = empty($path[2]) ? $this->getRequest()->getActionName() : $path[2];
         }
 
         $secret = $controller . $action . $salt;
@@ -128,7 +120,7 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
     /**
      * Return secret key settings flag
      *
-     * @return boolean
+     * @return bool
      */
     public function useSecretKey()
     {
@@ -138,7 +130,7 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
     /**
      * Enable secret key using
      *
-     * @return Mage_Adminhtml_Model_Url
+     * @return $this
      */
     public function turnOnSecretKey()
     {
@@ -149,7 +141,7 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
     /**
      * Disable secret key using
      *
-     * @return Mage_Adminhtml_Model_Url
+     * @return $this
      */
     public function turnOffSecretKey()
     {
@@ -159,11 +151,9 @@ class Mage_Adminhtml_Model_Url extends Mage_Core_Model_Url
 
     /**
      * Refresh admin menu cache etc.
-     *
-     * @return Mage_Adminhtml_Model_Url
      */
     public function renewSecretUrls()
     {
-        Mage::app()->cleanCache(array(Mage_Adminhtml_Block_Page_Menu::CACHE_TAGS));
+        Mage::app()->cleanCache([Mage_Adminhtml_Block_Page_Menu::CACHE_TAGS]);
     }
 }

@@ -28,4 +28,31 @@ class Uni_Fileuploader_Model_Fileuploader extends Mage_Core_Model_Abstract {
         return $collection->toArray();
     }
 
+    /**
+     * All active inline (video) files, used by the "videos-all" page
+     *
+     * @return array
+     */
+    public function getAllFiles() {
+        $collection = Mage::getResourceModel('fileuploader/fileuploader_collection');
+        $collection->addFieldToFilter('file_status', 1)
+                ->addFieldToFilter('content_disp', 1);
+        $collection->getSelect()->order('sort_order');
+        return $collection->toArray();
+    }
+
+    /**
+     * Featured active inline (video) files
+     *
+     * @return array
+     */
+    public function getFeaturedFiles() {
+        $collection = Mage::getResourceModel('fileuploader/fileuploader_collection');
+        $collection->addFieldToFilter('file_status', 1)
+                ->addFieldToFilter('featured', 1)
+                ->addFieldToFilter('content_disp', 1);
+        $collection->getSelect()->order('sort_order');
+        return $collection->toArray();
+    }
+
 }

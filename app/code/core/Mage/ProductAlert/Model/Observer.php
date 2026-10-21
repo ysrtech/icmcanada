@@ -1,70 +1,48 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ProductAlert
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ProductAlert
+ */
 
 /**
  * ProductAlert observer
  *
- * @category   Mage
  * @package    Mage_ProductAlert
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_ProductAlert_Model_Observer
 {
     /**
      * Error email template configuration
      */
-    const XML_PATH_ERROR_TEMPLATE   = 'catalog/productalert_cron/error_email_template';
+    public const XML_PATH_ERROR_TEMPLATE   = 'catalog/productalert_cron/error_email_template';
 
     /**
      * Error email identity configuration
      */
-    const XML_PATH_ERROR_IDENTITY   = 'catalog/productalert_cron/error_email_identity';
+    public const XML_PATH_ERROR_IDENTITY   = 'catalog/productalert_cron/error_email_identity';
 
     /**
      * 'Send error emails to' configuration
      */
-    const XML_PATH_ERROR_RECIPIENT  = 'catalog/productalert_cron/error_email';
+    public const XML_PATH_ERROR_RECIPIENT  = 'catalog/productalert_cron/error_email';
 
     /**
      * Allow price alert
-     *
      */
-    const XML_PATH_PRICE_ALLOW      = 'catalog/productalert/allow_price';
+    public const XML_PATH_PRICE_ALLOW      = 'catalog/productalert/allow_price';
 
     /**
      * Allow stock alert
-     *
      */
-    const XML_PATH_STOCK_ALLOW      = 'catalog/productalert/allow_stock';
+    public const XML_PATH_STOCK_ALLOW      = 'catalog/productalert/allow_stock';
 
     /**
      * Website collection array
      *
-     * @var array
+     * @var null|array
      */
     protected $_websites;
 
@@ -73,62 +51,63 @@ class Mage_ProductAlert_Model_Observer
      *
      * @var array
      */
-    protected $_errors = array();
+    protected $_errors = [];
 
     /**
      * Retrieve website collection array
      *
-     * @return array
+     * @return Mage_Core_Model_Website[]
      */
     protected function _getWebsites()
     {
         if (is_null($this->_websites)) {
             try {
                 $this->_websites = Mage::app()->getWebsites();
-            }
-            catch (Exception $e) {
-                $this->_errors[] = $e->getMessage();
+            } catch (Exception $exception) {
+                $this->_errors[] = $exception->getMessage();
             }
         }
+
         return $this->_websites;
     }
 
     /**
      * Process price emails
      *
-     * @param Mage_ProductAlert_Model_Email $email
-     * @return Mage_ProductAlert_Model_Observer
+     * @return $this
      */
     protected function _processPrice(Mage_ProductAlert_Model_Email $email)
     {
         $email->setType('price');
         $originalStore = Mage::app()->getStore();
         foreach ($this->_getWebsites() as $website) {
-            /* @var $website Mage_Core_Model_Website */
+            /** @var Mage_Core_Model_Website $website */
+            if (!$website->getDefaultGroup()) {
+                continue;
+            }
 
-            if (!$website->getDefaultGroup() || !$website->getDefaultGroup()->getDefaultStore()) {
+            if (!$website->getDefaultGroup()->getDefaultStore()) {
                 continue;
             }
-            if (!Mage::getStoreConfig(
-                self::XML_PATH_PRICE_ALLOW,
-                $website->getDefaultGroup()->getDefaultStore()->getId()
-            )) {
+
+            if (!Mage::getStoreConfig(self::XML_PATH_PRICE_ALLOW, $website->getDefaultGroup()->getDefaultStore()->getId())) {
                 continue;
             }
+
             try {
                 $collection = Mage::getModel('productalert/price')
                     ->getCollection()
                     ->addWebsiteFilter($website->getId())
                     ->setCustomerOrder();
-            }
-            catch (Exception $e) {
-                $this->_errors[] = $e->getMessage();
+            } catch (Exception $exception) {
+                $this->_errors[] = $exception->getMessage();
                 return $this;
             }
 
             $previousCustomer = null;
             $email->setWebsite($website);
             Mage::app()->setCurrentStore($website->getDefaultGroup()->getDefaultStore());
+            /** @var Mage_ProductAlert_Model_Price $alert */
             foreach ($collection as $alert) {
                 try {
                     if (!$previousCustomer || $previousCustomer->getId() != $alert->getCustomerId()) {
@@ -136,14 +115,15 @@ class Mage_ProductAlert_Model_Observer
                         if ($previousCustomer) {
                             $email->send();
                         }
-                        if (!$customer) {
+
+                        if (!$customer->getId()) {
                             continue;
                         }
+
                         $previousCustomer = $customer;
                         $email->clean();
                         $email->setCustomer($customer);
-                    }
-                    else {
+                    } else {
                         $customer = $previousCustomer;
                     }
 
@@ -153,6 +133,7 @@ class Mage_ProductAlert_Model_Observer
                     if (!$product) {
                         continue;
                     }
+
                     $product->setCustomerGroupId($customer->getGroupId());
                     if ($alert->getPrice() > $product->getFinalPrice()) {
                         $productPrice = $product->getFinalPrice();
@@ -166,20 +147,20 @@ class Mage_ProductAlert_Model_Observer
                         $alert->setStatus(1);
                         $alert->save();
                     }
-                }
-                catch (Exception $e) {
-                    $this->_errors[] = $e->getMessage();
+                } catch (Exception $exception) {
+                    $this->_errors[] = $exception->getMessage();
                 }
             }
+
             if ($previousCustomer) {
                 try {
                     $email->send();
-                }
-                catch (Exception $e) {
-                    $this->_errors[] = $e->getMessage();
+                } catch (Exception $exception) {
+                    $this->_errors[] = $exception->getMessage();
                 }
             }
         }
+
         Mage::app()->setCurrentStore($originalStore);
         return $this;
     }
@@ -187,8 +168,7 @@ class Mage_ProductAlert_Model_Observer
     /**
      * Process stock emails
      *
-     * @param Mage_ProductAlert_Model_Email $email
-     * @return Mage_ProductAlert_Model_Observer
+     * @return $this
      */
     protected function _processStock(Mage_ProductAlert_Model_Email $email)
     {
@@ -196,32 +176,34 @@ class Mage_ProductAlert_Model_Observer
         $originalStore = Mage::app()->getStore();
 
         foreach ($this->_getWebsites() as $website) {
-            /* @var $website Mage_Core_Model_Website */
+            /** @var Mage_Core_Model_Website $website */
+            if (!$website->getDefaultGroup()) {
+                continue;
+            }
 
-            if (!$website->getDefaultGroup() || !$website->getDefaultGroup()->getDefaultStore()) {
+            if (!$website->getDefaultGroup()->getDefaultStore()) {
                 continue;
             }
-            if (!Mage::getStoreConfig(
-                self::XML_PATH_STOCK_ALLOW,
-                $website->getDefaultGroup()->getDefaultStore()->getId()
-            )) {
+
+            if (!Mage::getStoreConfig(self::XML_PATH_STOCK_ALLOW, $website->getDefaultGroup()->getDefaultStore()->getId())) {
                 continue;
             }
+
             try {
                 $collection = Mage::getModel('productalert/stock')
                     ->getCollection()
                     ->addWebsiteFilter($website->getId())
                     ->addStatusFilter(0)
                     ->setCustomerOrder();
-            }
-            catch (Exception $e) {
-                $this->_errors[] = $e->getMessage();
+            } catch (Exception $exception) {
+                $this->_errors[] = $exception->getMessage();
                 return $this;
             }
 
             $previousCustomer = null;
             $email->setWebsite($website);
             Mage::app()->setCurrentStore($website->getDefaultGroup()->getDefaultStore());
+            /** @var Mage_ProductAlert_Model_Stock $alert */
             foreach ($collection as $alert) {
                 try {
                     if (!$previousCustomer || $previousCustomer->getId() != $alert->getCustomerId()) {
@@ -229,21 +211,22 @@ class Mage_ProductAlert_Model_Observer
                         if ($previousCustomer) {
                             $email->send();
                         }
-                        if (!$customer) {
+
+                        if (!$customer->getId()) {
                             continue;
                         }
+
                         $previousCustomer = $customer;
                         $email->clean();
                         $email->setCustomer($customer);
-                    }
-                    else {
+                    } else {
                         $customer = $previousCustomer;
                     }
 
                     $product = Mage::getModel('catalog/product')
                         ->setStoreId($website->getDefaultStore()->getId())
                         ->load($alert->getProductId());
-                    /* @var $product Mage_Catalog_Model_Product */
+
                     if (!$product) {
                         continue;
                     }
@@ -258,21 +241,20 @@ class Mage_ProductAlert_Model_Observer
                         $alert->setStatus(1);
                         $alert->save();
                     }
-                }
-                catch (Exception $e) {
-                    $this->_errors[] = $e->getMessage();
+                } catch (Exception $exception) {
+                    $this->_errors[] = $exception->getMessage();
                 }
             }
 
             if ($previousCustomer) {
                 try {
                     $email->send();
-                }
-                catch (Exception $e) {
-                    $this->_errors[] = $e->getMessage();
+                } catch (Exception $exception) {
+                    $this->_errors[] = $exception->getMessage();
                 }
             }
         }
+
         Mage::app()->setCurrentStore($originalStore);
 
         return $this;
@@ -281,7 +263,7 @@ class Mage_ProductAlert_Model_Observer
     /**
      * Send email to administrator if error
      *
-     * @return Mage_ProductAlert_Model_Observer
+     * @return $this
      */
     protected function _sendErrorEmail()
     {
@@ -291,35 +273,35 @@ class Mage_ProductAlert_Model_Observer
             }
 
             $translate = Mage::getSingleton('core/translate');
-            /* @var $translate Mage_Core_Model_Translate */
+            /** @var Mage_Core_Model_Translate $translate */
             $translate->setTranslateInline(false);
 
             $emailTemplate = Mage::getModel('core/email_template');
-            /* @var $emailTemplate Mage_Core_Model_Email_Template */
-            $emailTemplate->setDesignConfig(array('area'  => 'backend'))
+            /** @var Mage_Core_Model_Email_Template $emailTemplate */
+            $emailTemplate->setDesignConfig(['area'  => 'backend'])
                 ->sendTransactional(
                     Mage::getStoreConfig(self::XML_PATH_ERROR_TEMPLATE),
                     Mage::getStoreConfig(self::XML_PATH_ERROR_IDENTITY),
                     Mage::getStoreConfig(self::XML_PATH_ERROR_RECIPIENT),
                     null,
-                    array('warnings' => join("\n", $this->_errors))
+                    ['warnings' => implode("\n", $this->_errors)],
                 );
 
             $translate->setTranslateInline(true);
-            $this->_errors[] = array();
+            $this->_errors[] = [];
         }
+
         return $this;
     }
 
     /**
      * Run process send product alerts
      *
-     * @return Mage_ProductAlert_Model_Observer
+     * @return $this
      */
     public function process()
     {
         $email = Mage::getModel('productalert/email');
-        /* @var $email Mage_ProductAlert_Model_Email */
         $this->_processPrice($email);
         $this->_processStock($email);
         $this->_sendErrorEmail();

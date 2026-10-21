@@ -1,44 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Order configuration model
  *
- * @category   Mage
  * @package    Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
 {
     /**
      * Statuses per state array
      *
-     * @var array
+     * @var array<array-key, array<string, string>>
      */
     protected $_stateStatuses;
+
+    /**
+     * Statuses array
+     *
+     * @var array
+     */
+    protected $_statuses;
 
     /**
      * States array
@@ -47,29 +35,34 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
      */
     private $_states;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         parent::__construct(Mage::getConfig()->getNode('global/sales/order'));
     }
 
+    /**
+     * @param  string                   $status
+     * @return Varien_Simplexml_Element
+     */
     protected function _getStatus($status)
     {
-        return $this->getNode('statuses/'.$status);
+        return $this->getNode('statuses/' . $status);
     }
 
+    /**
+     * @param  string                   $state
+     * @return Varien_Simplexml_Element
+     */
     protected function _getState($state)
     {
-        return $this->getNode('states/'.$state);
+        return $this->getNode('states/' . $state);
     }
 
     /**
      * Retrieve default status for state
      *
-     * @param   string $state
-     * @return  string
+     * @param  string $state
+     * @return string
      */
     public function getStateDefaultStatus($state)
     {
@@ -80,27 +73,32 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
                 ->loadDefaultByState($state);
             $status = $status->getStatus();
         }
+
         return $status;
     }
 
     /**
      * Retrieve status label
      *
-     * @param   string $code
-     * @return  string
+     * @param  string $code
+     * @return string
      */
     public function getStatusLabel($code)
     {
-        $status = Mage::getModel('sales/order_status')
-            ->load($code);
-        return $status->getStoreLabel();
+        $key = $code . '/' . Mage::app()->getStore()->getStoreId();
+        if (!isset($this->_statuses[$key])) {
+            $status = Mage::getModel('sales/order_status')->load($code);
+            $this->_statuses[$key] = $status->getStoreLabel();
+        }
+
+        return $this->_statuses[$key];
     }
 
     /**
      * State label getter
      *
-     * @param   string $state
-     * @return  string
+     * @param  string $state
+     * @return string
      */
     public function getStateLabel($state)
     {
@@ -109,20 +107,19 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
             $state = (string) $stateNode->label;
             return Mage::helper('sales')->__($state);
         }
+
         return $state;
     }
-
 
     /**
      * Retrieve all statuses
      *
-     * @return array
+     * @return array<array-key, string>
      */
     public function getStatuses()
     {
-        $statuses = Mage::getResourceModel('sales/order_status_collection')
+        return Mage::getResourceModel('sales/order_status_collection')
             ->toOptionHash();
-        return $statuses;
     }
 
     /**
@@ -132,44 +129,44 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
      */
     public function getStates()
     {
-        $states = array();
+        $states = [];
         foreach ($this->getNode('states')->children() as $state) {
             $label = (string) $state->label;
             $states[$state->getName()] = Mage::helper('sales')->__($label);
         }
+
         return $states;
     }
-
 
     /**
      * Retrieve statuses available for state
      * Get all possible statuses, or for specified state, or specified states array
      * Add labels by default. Return plain array of statuses, if no labels.
      *
-     * @param mixed $state
-     * @param bool $addLabels
+     * @param  string|string[] $state
+     * @param  bool            $addLabels
      * @return array
      */
     public function getStateStatuses($state, $addLabels = true)
     {
-        if (is_array($state)) {
-            $key = implode("|", $state) . $addLabels;
-        } else {
-            $key = $state . $addLabels;
-        }
+        $key = is_array($state) ? implode('|', $state) . $addLabels : $state . $addLabels;
+
         if (isset($this->_stateStatuses[$key])) {
             return $this->_stateStatuses[$key];
         }
-        $statuses = array();
+
+        $statuses = [];
         if (empty($state) || !is_array($state)) {
-            $state = array($state);
+            $state = [$state];
         }
+
         foreach ($state as $_state) {
             $stateNode = $this->_getState($_state);
             if ($stateNode) {
                 $collection = Mage::getResourceModel('sales/order_status_collection')
                     ->addStateFilter($_state)
                     ->orderByLabel();
+                /** @var Mage_Sales_Model_Order_Status $status */
                 foreach ($collection as $status) {
                     $code = $status->getStatus();
                     if ($addLabels) {
@@ -180,6 +177,7 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
                 }
             }
         }
+
         $this->_stateStatuses[$key] = $statuses;
         return $statuses;
     }
@@ -188,16 +186,17 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
      * Retrieve state available for status
      * Get all assigned states for specified status
      *
-     * @param string $status
+     * @param  string $status
      * @return array
      */
     public function getStatusStates($status)
     {
-        $states = array();
+        $states = [];
         $collection = Mage::getResourceModel('sales/order_status_collection')->addStatusFilter($status);
         foreach ($collection as $state) {
             $states[] = $state;
         }
+
         return $states;
     }
 
@@ -228,23 +227,23 @@ class Mage_Sales_Model_Order_Config extends Mage_Core_Model_Config_Base
      */
     private function _getStates()
     {
-        if (null === $this->_states) {
-            $this->_states = array(
-                'all'       => array(),
-                'visible'   => array(),
-                'invisible' => array(),
-                'statuses'  => array(),
-            );
+        if ($this->_states === null) {
+            $this->_states = [
+                'all'       => [],
+                'visible'   => [],
+                'invisible' => [],
+                'statuses'  => [],
+            ];
             foreach ($this->getNode('states')->children() as $state) {
                 $name = $state->getName();
                 $this->_states['all'][] = $name;
-                $isVisibleOnFront = (string)$state->visible_on_front;
-                if ((bool)$isVisibleOnFront || ($state->visible_on_front && $isVisibleOnFront == '')) {
+                $isVisibleOnFront = (string) $state->visible_on_front;
+                if ((bool) $isVisibleOnFront || ($state->visible_on_front && $isVisibleOnFront == '')) {
                     $this->_states['visible'][] = $name;
-                }
-                else {
+                } else {
                     $this->_states['invisible'][] = $name;
                 }
+
                 foreach ($state->statuses->children() as $status) {
                     $this->_states['statuses'][$name][] = $status->getName();
                 }

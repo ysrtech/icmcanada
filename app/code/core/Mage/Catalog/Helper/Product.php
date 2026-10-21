@@ -1,46 +1,35 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog category helper
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
+ *
+ * @phpstan-import-type ConfigStoreId from Mage
  */
 class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
 {
-    const XML_PATH_PRODUCT_URL_SUFFIX           = 'catalog/seo/product_url_suffix';
-    const XML_PATH_PRODUCT_URL_USE_CATEGORY     = 'catalog/seo/product_use_categories';
-    const XML_PATH_USE_PRODUCT_CANONICAL_TAG    = 'catalog/seo/product_canonical_tag';
+    public const XML_PATH_PRODUCT_URL_SUFFIX           = 'catalog/seo/product_url_suffix';
 
-    const DEFAULT_QTY                           = 1;
+    public const XML_PATH_PRODUCT_URL_USE_CATEGORY     = 'catalog/seo/product_use_categories';
+
+    public const XML_PATH_USE_PRODUCT_CANONICAL_TAG    = 'catalog/seo/product_canonical_tag';
+
+    public const DEFAULT_QTY                           = 1;
+
+    protected $_moduleName = 'Mage_Catalog';
 
     /**
      * Flag that shows if Magento has to check product to be saleable (enabled and/or inStock)
      *
-     * @var boolean
+     * @var bool
      */
     protected $_skipSaleableCheck = false;
 
@@ -49,7 +38,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      *
      * @var array
      */
-    protected $_productUrlSuffix = array();
+    protected $_productUrlSuffix = [];
 
     protected $_statuses;
 
@@ -58,26 +47,30 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Retrieve product view page url
      *
-     * @param   mixed $product
-     * @return  string
+     * @param  int|Mage_Catalog_Model_Product|string $product
+     * @return false|string
+     * @throws Mage_Core_Exception
      */
     public function getProductUrl($product)
     {
         if ($product instanceof Mage_Catalog_Model_Product) {
             return $product->getProductUrl();
         }
-        elseif (is_numeric($product)) {
+
+        if (is_numeric($product)) {
             return Mage::getModel('catalog/product')->load($product)->getProductUrl();
         }
+
         return false;
     }
 
     /**
      * Retrieve product view page url including provided category Id
      *
-     * @param   int $productId
-     * @param   int $categoryId
-     * @return  string
+     * @param  int|string          $productId
+     * @param  int|string          $categoryId
+     * @return string
+     * @throws Mage_Core_Exception
      */
     public function getFullProductUrl($productId, $categoryId = null)
     {
@@ -86,14 +79,15 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
             $category = Mage::getModel('catalog/category')->load($categoryId);
             $product->setCategory($category);
         }
+
         return $product->getProductUrl();
     }
 
     /**
      * Retrieve product price
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  float
+     * @param  Mage_Catalog_Model_Product $product
+     * @return float
      */
     public function getPrice($product)
     {
@@ -103,8 +97,8 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Retrieve product final price
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  float
+     * @param  Mage_Catalog_Model_Product $product
+     * @return float
      */
     public function getFinalPrice($product)
     {
@@ -114,63 +108,87 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Retrieve base image url
      *
+     * @param  Mage_Catalog_Model_Product $product
      * @return string
+     * @throws Exception
      */
     public function getImageUrl($product)
     {
         $url = false;
         if (!$product->getImage()) {
             $url = Mage::getDesign()->getSkinUrl('images/no_image.jpg');
-        }
-        elseif ($attribute = $product->getResource()->getAttribute('image')) {
+        } elseif ($attribute = $product->getResource()->getAttribute('image')) {
             $url = $attribute->getFrontend()->getUrl($product);
         }
+
         return $url;
     }
 
     /**
      * Retrieve small image url
      *
-     * @return unknown
+     * @param  Mage_Catalog_Model_Product $product
+     * @return string
+     * @throws Exception
+     * @throws Mage_Core_Exception
      */
     public function getSmallImageUrl($product)
     {
         $url = false;
         if (!$product->getSmallImage()) {
             $url = Mage::getDesign()->getSkinUrl('images/no_image.jpg');
-        }
-        elseif ($attribute = $product->getResource()->getAttribute('small_image')) {
+        } elseif ($attribute = $product->getResource()->getAttribute('small_image')) {
             $url = $attribute->getFrontend()->getUrl($product);
         }
+
         return $url;
     }
 
     /**
      * Retrieve thumbnail image url
      *
-     * @return unknown
+     * @param  Mage_Catalog_Model_Product $product
+     * @return string
+     * @throws Exception
+     * @throws Mage_Core_Exception
      */
     public function getThumbnailUrl($product)
     {
-        return '';
+        $url = false;
+        if (!$product->getThumbnail()) {
+            $url = Mage::getDesign()->getSkinUrl('images/no_image.jpg');
+        } elseif ($attribute = $product->getResource()->getAttribute('thumbnail')) {
+            $url = $attribute->getFrontend()->getUrl($product);
+        }
+
+        return $url;
     }
 
+    /**
+     * @param  Mage_Catalog_Model_Product $product
+     * @return string
+     * @throws Mage_Core_Exception
+     */
     public function getEmailToFriendUrl($product)
     {
         $categoryId = null;
         if ($category = Mage::registry('current_category')) {
             $categoryId = $category->getId();
         }
-        return $this->_getUrl('sendfriend/product/send', array(
+
+        return $this->_getUrl('sendfriend/product/send', [
             'id' => $product->getId(),
-            'cat_id' => $categoryId
-        ));
+            'cat_id' => $categoryId,
+        ]);
     }
 
+    /**
+     * @return array
+     */
     public function getStatuses()
     {
-        if(is_null($this->_statuses)) {
-            $this->_statuses = array();//Mage::getModel('catalog/product_status')->getResourceCollection()->load();
+        if (is_null($this->_statuses)) {
+            $this->_statuses = [];//Mage::getModel('catalog/product_status')->getResourceCollection()->load();
         }
 
         return $this->_statuses;
@@ -179,8 +197,10 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Check if a product can be shown
      *
-     * @param  Mage_Catalog_Model_Product|int $product
-     * @return boolean
+     * @param  int|Mage_Catalog_Model_Product $product
+     * @param  string                         $where
+     * @return bool
+     * @throws Mage_Core_Exception
      */
     public function canShow($product, $where = 'catalog')
     {
@@ -188,8 +208,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
             $product = Mage::getModel('catalog/product')->load($product);
         }
 
-        /* @var $product Mage_Catalog_Model_Product */
-
+        /** @var Mage_Catalog_Model_Product $product */
         if (!$product->getId()) {
             return false;
         }
@@ -200,8 +219,9 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Retrieve product rewrite sufix for store
      *
-     * @param int $storeId
+     * @param  int                             $storeId
      * @return string
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getProductUrlSuffix($storeId = null)
     {
@@ -212,18 +232,19 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if (!isset($this->_productUrlSuffix[$storeId])) {
             $this->_productUrlSuffix[$storeId] = Mage::getStoreConfig(self::XML_PATH_PRODUCT_URL_SUFFIX, $storeId);
         }
+
         return $this->_productUrlSuffix[$storeId];
     }
 
     /**
      * Check if <link rel="canonical"> can be used for product
      *
-     * @param $store
+     * @param  ConfigStoreId $store
      * @return bool
      */
     public function canUseCanonicalTag($store = null)
     {
-        return Mage::getStoreConfig(self::XML_PATH_USE_PRODUCT_CANONICAL_TAG, $store);
+        return Mage::getStoreConfigFlag(self::XML_PATH_USE_PRODUCT_CANONICAL_TAG, $store);
     }
 
     /**
@@ -231,36 +252,35 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      * Only a small number of settings returned, so we won't break anything in current dataflow
      * As soon as development process goes on we need to add there all possible settings
      *
-     * @param string $inputType
+     * @param  string $inputType
      * @return array
      */
     public function getAttributeInputTypes($inputType = null)
     {
         /**
-        * @todo specify there all relations for properties depending on input type
-        */
-        $inputTypes = array(
-            'multiselect'   => array(
-                'backend_model'     => 'eav/entity_attribute_backend_array'
-            ),
-            'boolean'       => array(
-                'source_model'      => 'eav/entity_attribute_source_boolean'
-            )
-        );
+         * @todo specify there all relations for properties depending on input type
+         */
+        $inputTypes = [
+            'multiselect'   => [
+                'backend_model'     => 'eav/entity_attribute_backend_array',
+            ],
+            'boolean'       => [
+                'source_model'      => 'eav/entity_attribute_source_boolean',
+            ],
+        ];
 
         if (is_null($inputType)) {
             return $inputTypes;
-        } else if (isset($inputTypes[$inputType])) {
-            return $inputTypes[$inputType];
         }
-        return array();
+
+        return $inputTypes[$inputType] ?? [];
     }
 
     /**
      * Return default attribute backend model by input type
      *
-     * @param string $inputType
-     * @return string|null
+     * @param  string      $inputType
+     * @return null|string
      */
     public function getAttributeBackendModelByInputType($inputType)
     {
@@ -268,14 +288,15 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if (!empty($inputTypes[$inputType]['backend_model'])) {
             return $inputTypes[$inputType]['backend_model'];
         }
+
         return null;
     }
 
     /**
      * Return default attribute source model by input type
      *
-     * @param string $inputType
-     * @return string|null
+     * @param  string      $inputType
+     * @return null|string
      */
     public function getAttributeSourceModelByInputType($inputType)
     {
@@ -283,6 +304,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if (!empty($inputTypes[$inputType]['source_model'])) {
             return $inputTypes[$inputType]['source_model'];
         }
+
         return null;
     }
 
@@ -292,11 +314,13 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      *   'category_id' - id of category to check and append to product as current.
      *     If empty (except FALSE) - will be guessed (e.g. from last visited) to load as current.
      *
-     * @param int $productId
+     * @param int                               $productId
      * @param Mage_Core_Controller_Front_Action $controller
-     * @param Varien_Object $params
+     * @param Varien_Object                     $params
      *
      * @return false|Mage_Catalog_Model_Product
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function initProduct($productId, $controller, $params = null)
     {
@@ -304,12 +328,6 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if (!$params) {
             $params = new Varien_Object();
         }
-
-        // Init and load product
-        Mage::dispatchEvent('catalog_controller_product_init_before', array(
-            'controller_action' => $controller,
-            'params' => $params,
-        ));
 
         if (!$productId) {
             return false;
@@ -319,9 +337,17 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
             ->setStoreId(Mage::app()->getStore()->getId())
             ->load($productId);
 
+        // Init and load product
+        Mage::dispatchEvent('catalog_controller_product_init_before', [
+            'controller_action' => $controller,
+            'params' => $params,
+            'product' => $product,
+        ]);
+
         if (!$this->canShow($product)) {
             return false;
         }
+
         if (!in_array(Mage::app()->getStore()->getWebsiteId(), $product->getWebsiteIds())) {
             return false;
         }
@@ -341,6 +367,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
             $category = Mage::getModel('catalog/category')->load($categoryId);
             $product->setCategory($category);
             Mage::register('current_category', $category);
+            Mage::register('current_entity_key', $category->getPath());
         }
 
         // Register current data and dispatch final events
@@ -348,14 +375,15 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         Mage::register('product', $product);
 
         try {
-            Mage::dispatchEvent('catalog_controller_product_init', array('product' => $product));
-            Mage::dispatchEvent('catalog_controller_product_init_after',
-                            array('product' => $product,
-                                'controller_action' => $controller
-                            )
+            Mage::dispatchEvent('catalog_controller_product_init', ['product' => $product]);
+            Mage::dispatchEvent(
+                'catalog_controller_product_init_after',
+                ['product' => $product,
+                    'controller_action' => $controller,
+                ],
             );
-        } catch (Mage_Core_Exception $e) {
-            Mage::logException($e);
+        } catch (Mage_Core_Exception $mageCoreException) {
+            Mage::logException($mageCoreException);
             return false;
         }
 
@@ -367,13 +395,14 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      * Also parses and adds product management related values - e.g. qty
      *
      * @param  Mage_Catalog_Model_Product $product
-     * @param  Varien_Object $buyRequest
-     * @return Mage_Catalog_Helper_Product
+     * @param  Varien_Object              $buyRequest
+     * @return $this
      */
     public function prepareProductOptions($product, $buyRequest)
     {
         $optionValues = $product->processBuyRequest($buyRequest);
         $optionValues->setQty($buyRequest->getQty());
+
         $product->setPreconfiguredValues($optionValues);
 
         return $this;
@@ -389,8 +418,8 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      * - 'files_prefix': string[a-z0-9_] - prefix that was added at frontend to names of file inputs,
      *   so they won't intersect with other submitted options
      *
-     * @param Varien_Object|array $buyRequest
-     * @param Varien_Object|array $params
+     * @param  array|Varien_Object $buyRequest
+     * @param  array|Varien_Object $params
      * @return Varien_Object
      */
     public function addParamsToBuyRequest($buyRequest, $params)
@@ -398,17 +427,17 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if (is_array($buyRequest)) {
             $buyRequest = new Varien_Object($buyRequest);
         }
+
         if (is_array($params)) {
             $params = new Varien_Object($params);
         }
-
 
         // Ensure that currentConfig goes as Varien_Object - for easier work with it later
         $currentConfig = $params->getCurrentConfig();
         if ($currentConfig) {
             if (is_array($currentConfig)) {
                 $params->setCurrentConfig(new Varien_Object($currentConfig));
-            } else if (!($currentConfig instanceof Varien_Object)) {
+            } elseif (!($currentConfig instanceof Varien_Object)) {
                 $params->unsCurrentConfig();
             }
         }
@@ -417,11 +446,12 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
          * Notice that '_processing_params' must always be object to protect processing forged requests
          * where '_processing_params' comes in $buyRequest as array from user input
          */
-        $processingParams = $buyRequest->getData('_processing_params');
+        $processingParams = $buyRequest->getDataByKey('_processing_params');
         if (!$processingParams || !($processingParams instanceof Varien_Object)) {
             $processingParams = new Varien_Object();
             $buyRequest->setData('_processing_params', $processingParams);
         }
+
         $processingParams->addData($params->getData());
 
         return $buyRequest;
@@ -430,28 +460,28 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Return loaded product instance
      *
-     * @param  int|string $productId (SKU or ID)
-     * @param  int $store
-     * @param  string $identifierType
+     * @param  int|string                      $productId      (SKU or ID)
+     * @param  null|int                        $store
+     * @param  string                          $identifierType
      * @return Mage_Catalog_Model_Product
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getProduct($productId, $store, $identifierType = null)
     {
-        /** @var $product Mage_Catalog_Model_Product */
+        /** @var Mage_Catalog_Model_Product $product */
         $product = Mage::getModel('catalog/product')->setStoreId(Mage::app()->getStore($store)->getId());
 
         $expectedIdType = false;
-        if ($identifierType === null) {
-            if (is_string($productId) && !preg_match("/^[+-]?[1-9][0-9]*$|^0$/", $productId)) {
-                $expectedIdType = 'sku';
-            }
+        if ($identifierType === null && (is_string($productId) && !preg_match('/^[+-]?[1-9]\d*$|^0$/', $productId))) {
+            $expectedIdType = 'sku';
         }
 
         if ($identifierType == 'sku' || $expectedIdType == 'sku') {
             $idBySku = $product->getIdBySku($productId);
             if ($idBySku) {
                 $productId = $idBySku;
-            } else if ($identifierType == 'sku') {
+            } elseif ($identifierType == 'sku') {
                 // Return empty product because it was not found by originally specified SKU identifier
                 return $product;
             }
@@ -469,8 +499,8 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      *
      * For instance, during order creation in the backend admin has ability to add any products to order
      *
-     * @param bool $skipSaleableCheck
-     * @return Mage_Catalog_Helper_Product
+     * @param  bool  $skipSaleableCheck
+     * @return $this
      */
     public function setSkipSaleableCheck($skipSaleableCheck = false)
     {
@@ -481,7 +511,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Get flag that shows if Magento has to check product to be saleable (enabled and/or inStock)
      *
-     * @return boolean
+     * @return bool
      */
     public function getSkipSaleableCheck()
     {
@@ -491,8 +521,8 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Gets minimal sales quantity
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return int|null
+     * @param  Mage_Catalog_Model_Product $product
+     * @return null|float
      */
     public function getMinimalQty($product)
     {
@@ -500,6 +530,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if ($stockItem && $stockItem->getMinSaleQty()) {
             return $stockItem->getMinSaleQty() * 1;
         }
+
         return null;
     }
 
@@ -507,8 +538,8 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
      * Get default qty - either as preconfigured, or as 1.
      * Also restricts it by minimal qty.
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return int|float
+     * @param  Mage_Catalog_Model_Product $product
+     * @return float|int
      */
     public function getDefaultQty($product)
     {
@@ -520,7 +551,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         }
 
         if (is_null($qty)) {
-            $qty = self::DEFAULT_QTY;
+            return self::DEFAULT_QTY;
         }
 
         return $qty;
@@ -529,30 +560,30 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
     /**
      * Get default product value by field name
      *
-     * @param string $fieldName
-     * @param string $productType
+     * @param  string $fieldName
+     * @param  string $productType
      * @return int
      */
     public function getDefaultProductValue($fieldName, $productType)
     {
         $fieldData = $this->getFieldset($fieldName) ? (array) $this->getFieldset($fieldName) : null;
-        if (
-            count($fieldData)
-            && array_key_exists($productType, $fieldData['product_type'])
-            && (bool)$fieldData['use_config']
+        if (!empty($fieldData)
+            && ((is_array($fieldData['product_type']) && array_key_exists($productType, $fieldData['product_type'])) || (is_object($fieldData['product_type']) && property_exists($fieldData['product_type'], $productType)))
+            && (bool) $fieldData['use_config']
         ) {
             return $fieldData['inventory'];
         }
+
         return self::DEFAULT_QTY;
     }
 
     /**
      * Return array from config by fieldset name and area
      *
-     * @param null|string $field
-     * @param string $fieldset
-     * @param string $area
-     * @return array|null
+     * @param  null|string $field
+     * @param  string      $fieldset
+     * @param  string      $area
+     * @return null|array
      */
     public function getFieldset($field = null, $fieldset = 'catalog_product_dataflow', $area = 'admin')
     {
@@ -560,6 +591,7 @@ class Mage_Catalog_Helper_Product extends Mage_Core_Helper_Url
         if ($fieldsetData) {
             return $fieldsetData ? $fieldsetData->$field : $fieldsetData;
         }
+
         return $fieldsetData;
     }
 }

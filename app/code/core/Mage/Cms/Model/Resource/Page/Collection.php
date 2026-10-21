@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Cms
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Cms
+ */
 
 /**
  * CMS page collection
  *
- * @category    Mage
- * @package     Mage_Cms
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Cms
  */
 class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
@@ -41,10 +21,8 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
      */
     protected $_previewFlag;
 
-
     /**
-     * Define resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -54,10 +32,10 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
     }
 
     /**
-     * deprecated after 1.4.0.1, use toOptionIdArray()
-     *
      * @return array
+     * @deprecated after 1.4.0.1, use toOptionIdArray()
      */
+    #[Override]
     public function toOptionArray()
     {
         return $this->_toOptionArray('identifier', 'title');
@@ -71,16 +49,16 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
      */
     public function toOptionIdArray()
     {
-        $res = array();
-        $existingIdentifiers = array();
+        $res = [];
+        $existingIdentifiers = [];
         foreach ($this as $item) {
-            $identifier = $item->getData('identifier');
+            $identifier = $item->getDataByKey('identifier');
 
             $data['value'] = $identifier;
-            $data['label'] = $item->getData('title');
+            $data['label'] = $item->getDataByKey('title');
 
             if (in_array($identifier, $existingIdentifiers)) {
-                $data['value'] .= '|' . $item->getData('page_id');
+                $data['value'] .= '|' . $item->getDataByKey('page_id');
             } else {
                 $existingIdentifiers[] = $identifier;
             }
@@ -94,8 +72,8 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
     /**
      * Set first store flag
      *
-     * @param bool $flag
-     * @return Mage_Cms_Model_Resource_Page_Collection
+     * @param  bool  $flag
+     * @return $this
      */
     public function setFirstStoreFlag($flag = false)
     {
@@ -104,10 +82,9 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
     }
 
     /**
-     * Perform operations after collection load
-     *
-     * @return Mage_Cms_Model_Resource_Page_Collection
+     * @inheritDoc
      */
+    #[Override]
     protected function _afterLoad()
     {
         if ($this->_previewFlag) {
@@ -115,22 +92,24 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
             $connection = $this->getConnection();
             if (count($items)) {
                 $select = $connection->select()
-                        ->from(array('cps'=>$this->getTable('cms/page_store')))
+                        ->from(['cps' => $this->getTable('cms/page_store')])
                         ->where('cps.page_id IN (?)', $items);
 
                 if ($result = $connection->fetchPairs($select)) {
                     foreach ($this as $item) {
-                        if (!isset($result[$item->getData('page_id')])) {
+                        if (!isset($result[$item->getDataByKey('page_id')])) {
                             continue;
                         }
-                        if ($result[$item->getData('page_id')] == 0) {
+
+                        if ($result[$item->getDataByKey('page_id')] == 0) {
                             $stores = Mage::app()->getStores(false, true);
                             $storeId = current($stores)->getId();
                             $storeCode = key($stores);
                         } else {
-                            $storeId = $result[$item->getData('page_id')];
+                            $storeId = $result[$item->getDataByKey('page_id')];
                             $storeCode = Mage::app()->getStore($storeId)->getCode();
                         }
+
                         $item->setData('_first_store_id', $storeId);
                         $item->setData('store_code', $storeCode);
                     }
@@ -144,27 +123,28 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
     /**
      * Add filter by store
      *
-     * @param int|Mage_Core_Model_Store $store
-     * @param bool $withAdmin
-     * @return Mage_Cms_Model_Resource_Page_Collection
+     * @param  int|Mage_Core_Model_Store $store
+     * @param  bool                      $withAdmin
+     * @return $this
      */
     public function addStoreFilter($store, $withAdmin = true)
     {
         if (!$this->getFlag('store_filter_added')) {
             if ($store instanceof Mage_Core_Model_Store) {
-                $store = array($store->getId());
+                $store = [$store->getId()];
             }
 
             if (!is_array($store)) {
-                $store = array($store);
+                $store = [$store];
             }
 
             if ($withAdmin) {
                 $store[] = Mage_Core_Model_App::ADMIN_STORE_ID;
             }
 
-            $this->addFilter('store', array('in' => $store), 'public');
+            $this->addFilter('store', ['in' => $store], 'public');
         }
+
         return $this;
     }
 
@@ -175,9 +155,10 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
     {
         if ($this->getFilter('store')) {
             $this->getSelect()->join(
-                array('store_table' => $this->getTable('cms/page_store')),
+                ['store_table' => $this->getTable('cms/page_store')],
                 'main_table.page_id = store_table.page_id',
-                array()
+                [],
+                // phpcs:ignore: Ecg.Sql.SlowQuery.SlowSql
             )->group('main_table.page_id');
 
             /*
@@ -185,9 +166,9 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
              */
             $this->_useAnalyticFunction = true;
         }
-        return parent::_renderFiltersBefore();
-    }
 
+        parent::_renderFiltersBefore();
+    }
 
     /**
      * Get SQL for get record count.
@@ -195,6 +176,7 @@ class Mage_Cms_Model_Resource_Page_Collection extends Mage_Core_Model_Resource_D
      *
      * @return Varien_Db_Select
      */
+    #[Override]
     public function getSelectCountSql()
     {
         $countSelect = parent::getSelectCountSql();

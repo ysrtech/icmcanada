@@ -1,42 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Index
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Index
  */
 
 /**
  * Lock model
  *
- * @category Mage
- * @package Mage_Core
- * @author Magento Core Team core@magentocommerce.com
+ * @package    Mage_Index
  */
 class Mage_Index_Model_Lock
 {
     /**
      * Lock storage config path
      */
-    const STORAGE_CONFIG_PATH = 'global/index/lock/storage';
+    public const STORAGE_CONFIG_PATH = 'global/index/lock/storage';
 
     /**
      * Storage instance
@@ -57,28 +38,25 @@ class Mage_Index_Model_Lock
      *
      * @var array
      */
-    protected static $_lockDb = array();
+    protected static $_lockDb = [];
 
     /**
      * Array of registered file locks
      *
      * @var array
      */
-    protected static $_lockFile = array();
+    protected static $_lockFile = [];
 
     /**
      * Array of registered file lock resources
      *
      * @var array
      */
-    protected static $_lockFileResource = array();
+    protected static $_lockFileResource = [];
 
-    /**
-     * Constructor
-     */
     protected function __construct()
     {
-        register_shutdown_function(array($this, 'shutdownReleaseLocks'));
+        register_shutdown_function([$this, 'shutdownReleaseLocks']);
     }
 
     /**
@@ -91,6 +69,7 @@ class Mage_Index_Model_Lock
         if (!self::$_instance instanceof self) {
             self::$_instance = new self();
         }
+
         return self::$_instance;
     }
 
@@ -102,9 +81,11 @@ class Mage_Index_Model_Lock
         foreach (self::$_lockDb as $lockDb) {
             $this->_releaseLockDb($lockDb);
         }
+
         foreach (self::$_lockFile as $lockFile) {
             $this->_releaseLockFile($lockFile);
         }
+
         foreach (self::$_lockFileResource as $lockFileResource) {
             if ($lockFileResource) {
                 fclose($lockFileResource);
@@ -115,46 +96,58 @@ class Mage_Index_Model_Lock
     /**
      * Set named lock
      *
-     * @param string $lockName
-     * @param bool $file
-     * @param bool $block
+     * @param  string $lockName
+     * @param  bool   $file
+     * @param  bool   $block
      * @return bool
      */
     public function setLock($lockName, $file = false, $block = false)
     {
         if ($file) {
             return $this->_setLockFile($lockName, $block);
-        } else {
-            return $this->_setLockDb($lockName, $block);
         }
+
+        return $this->_setLockDb($lockName, $block);
     }
 
     /**
      * Set named file lock
      *
-     * @param string $lockName
-     * @param bool $block
+     * @param  string $lockName
+     * @param  bool   $block
      * @return bool
      */
     protected function _setLockFile($lockName, $block = false)
     {
         if ($block) {
-            $result = flock($this->_getLockFile($lockName), LOCK_EX);
+            try {
+                $result = flock($this->_getLockFile($lockName), LOCK_EX);
+            } catch (Exception $exception) {
+                Mage::logException($exception);
+                throw $exception;
+            }
         } else {
-            $result = flock($this->_getLockFile($lockName), LOCK_EX | LOCK_NB);
+            try {
+                $result = flock($this->_getLockFile($lockName), LOCK_EX | LOCK_NB);
+            } catch (Exception $exception) {
+                Mage::logException($exception);
+                throw $exception;
+            }
         }
+
         if ($result) {
             self::$_lockFile[$lockName] = $lockName;
             return true;
         }
+
         return false;
     }
 
     /**
      * Set named DB lock
      *
-     * @param string $lockName
-     * @param bool $block
+     * @param  string $lockName
+     * @param  bool   $block
      * @return bool
      */
     protected function _setLockDb($lockName, $block = false)
@@ -163,29 +156,30 @@ class Mage_Index_Model_Lock
             self::$_lockDb[$lockName] = $lockName;
             return true;
         }
+
         return false;
     }
 
     /**
      * Release named lock by name
      *
-     * @param string $lockName
-     * @param bool $file
+     * @param  string $lockName
+     * @param  bool   $file
      * @return bool
      */
     public function releaseLock($lockName, $file = false)
     {
         if ($file) {
             return $this->_releaseLockFile($lockName);
-        } else {
-            return $this->_releaseLockDb($lockName);
         }
+
+        return $this->_releaseLockDb($lockName);
     }
 
     /**
      * Release named file lock by name
      *
-     * @param string $lockName
+     * @param  string $lockName
      * @return bool
      */
     protected function _releaseLockFile($lockName)
@@ -194,13 +188,14 @@ class Mage_Index_Model_Lock
             unset(self::$_lockFile[$lockName]);
             return true;
         }
+
         return false;
     }
 
     /**
      * Release named DB lock by name
      *
-     * @param string $lockName
+     * @param  string $lockName
      * @return bool
      */
     protected function _releaseLockDb($lockName)
@@ -209,47 +204,53 @@ class Mage_Index_Model_Lock
             unset(self::$_lockDb[$lockName]);
             return true;
         }
+
         return false;
     }
 
     /**
      * Check whether the named lock exists
      *
-     * @param string $lockName
-     * @param bool $file
+     * @param  string $lockName
+     * @param  bool   $file
      * @return bool
      */
     public function isLockExists($lockName, $file = false)
     {
         if ($file) {
             return $this->_isLockExistsFile($lockName);
-        } else {
-            return $this->_isLockExistsDb($lockName);
         }
+
+        return $this->_isLockExistsDb($lockName);
     }
 
     /**
      * Check whether the named file lock exists
      *
-     * @param string $lockName
+     * @param  string $lockName
      * @return bool
      */
     protected function _isLockExistsFile($lockName)
     {
         $result = true;
-        $fp = $this->_getLockFile($lockName);
-        if (flock($fp, LOCK_EX | LOCK_NB)) {
-            flock($fp, LOCK_UN);
-            $result = false;
+        $resource = $this->_getLockFile($lockName);
+        try {
+            if (flock($resource, LOCK_EX | LOCK_NB)) {
+                flock($resource, LOCK_UN);
+                $result = false;
+            }
+        } catch (Exception $exception) {
+            Mage::logException($exception);
+            throw $exception;
         }
+
         return $result;
     }
-
 
     /**
      * Check whether the named DB lock exists
      *
-     * @param string $lockName
+     * @param  string $lockName
      * @return bool
      */
     protected function _isLockExistsDb($lockName)
@@ -266,29 +267,36 @@ class Mage_Index_Model_Lock
     {
         if (!$this->_storage instanceof Mage_Index_Model_Lock_Storage_Interface) {
             $config = Mage::getConfig()->getNode(self::STORAGE_CONFIG_PATH);
-            $this->_storage = Mage::getModel($config->model);
+            /** @var Mage_Index_Model_Lock_Storage_Interface $model */
+            $model = Mage::getModel($config->model);
+            $this->_storage = $model;
         }
+
         return $this->_storage;
     }
 
     /**
      * Get lock file resource
      *
-     * @param string $lockName
+     * @param  string    $lockName
      * @return resource
+     * @throws Exception
      */
     protected function _getLockFile($lockName)
     {
         if (!isset(self::$_lockFileResource[$lockName]) || self::$_lockFileResource[$lockName] === null) {
             $varDir = Mage::getConfig()->getVarDir('locks');
             $file = $varDir . DS . $lockName . '.lock';
-            if (is_file($file)) {
-                self::$_lockFileResource[$lockName] = fopen($file, 'w');
-            } else {
-                self::$_lockFileResource[$lockName] = fopen($file, 'x');
+            self::$_lockFileResource[$lockName] = is_file($file) ? fopen($file, 'w') : fopen($file, 'x');
+
+            if (!self::$_lockFileResource[$lockName]) {
+                self::$_lockFileResource[$lockName] = null;
+                throw new Exception(sprintf("Unable to open lock file '%s': %s", $file, error_get_last()));
             }
-            fwrite(self::$_lockFileResource[$lockName], date('r'));
+
+            fwrite(self::$_lockFileResource[$lockName], Mage::helper('core/clock')->format('r'));
         }
+
         return self::$_lockFileResource[$lockName];
     }
 }

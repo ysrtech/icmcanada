@@ -18,7 +18,7 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
     protected function _construct()
     {
         parent::_construct();
-        $this->setId($this->_getCoreHelper()->uniqHash('blcgEditor'));
+        $this->setId($this->getCoreHelper()->uniqHash('blcgEditor'));
         $this->setTemplate('bl/customgrid/widget/grid/columns/editor.phtml');
     }
     
@@ -39,11 +39,11 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
     }
     
     /**
-     * Return core helper
+     * Return the core helper
      * 
      * @return Mage_Core_Helper_Data
      */
-    protected function _getCoreHelper()
+    public function getCoreHelper()
     {
         return $this->helper('core');
     }
@@ -55,7 +55,10 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
      */
     public function getGridModel()
     {
-        return $this->getDataSetDefault('grid_model', Mage::registry('blcg_grid'));
+        if (!$this->hasData('grid_model')) {
+            return $this->setData('grid_model', Mage::registry('blcg_grid'));
+        }
+        return $this->_getData('grid_model');
     }
     
     /**
@@ -101,16 +104,20 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
         $config = array();
         $gridBlock = $this->getGridBlock();
         $gridModel = $this->getGridModel();
+        $blockType = $gridModel->getBlockType();
+        $entityLoader = $gridModel->getTypeModel()
+            ->getEditor()
+            ->getEntityLoader();
         
         if ($gridCollection = $gridBlock->getCollection()) {
             foreach ($gridCollection as $row) {
-                $config[] = $gridModel->getCollectionRowIdentifiers($row);
+                $config[] = $entityLoader->getEntityRowIdentifiers($blockType, $row);
                 
                 // Avoid taking non-consistent rows
                 if ($multipleRows = $gridBlock->getMultipleRows($row)) {
                     $rowsCount = count($multipleRows);
                     
-                    for ($rowIndex=0; $rowIndex<$rowsCount; $rowIndex++) {
+                    for ($rowIndex = 0; $rowIndex < $rowsCount; $rowIndex++) {
                         $config[] = false;
                     }
                 }
@@ -121,7 +128,7 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
             }
         }
         
-        return $this->_getCoreHelper()->jsonEncode($config);
+        return $this->getCoreHelper()->jsonEncode($config);
     }
     
     /**
@@ -155,7 +162,7 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
         foreach ($columns as $columnBlockId => $column) {
             if ($column->isOnlyFilterable()) {
                 unset($columns[$columnBlockId]);
-            } elseif (!$column->isEditable() || !$column->isEditAllowed()) {
+            } elseif (!$column->isEditable() || !$column->getIsEditAllowed()) {
                 $columns[$columnBlockId] = false;
             }
         }
@@ -196,9 +203,9 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
      */
     public function getEditableColumnsJsonConfig()
     {
-        /** @var $stringHelper BL_CustomGrid_Helper_String */
-        $stringHelper = $this->helper('customgrid/string');
         $gridModel = $this->getGridModel();
+        $gridBlock = $this->getGridBlock();
+        $editor = $gridModel->getTypeModel()->getEditor();
         $config = array();
         
         if ($gridModel->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_USE_CUSTOMIZED_COLUMNS)) {
@@ -206,10 +213,12 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
         } else {
             $columns = $this->_getEditableDefaultColumns();
         }
-        if ($gridModel->hasUserEditPermissions($this->getGridBlock())) {
+        if ($editor->getSentry()->checkBaseUserEditPermissions($gridModel, $gridBlock)) {
             foreach ($columns as $column) {
                 if ($column !== false) {
-                    $config[] = $stringHelper->camelizeArrayKeys($column->getEditConfig()->getEditorBlockData(), false);
+                    /** @var $valueConfig BL_CustomGrid_Model_Grid_Editor_Value_Config */
+                    $valueConfig = $column->getEditorConfig();
+                    $config[] = $valueConfig->getEditorJsData();
                 } else {
                     $config[] = false;
                 }
@@ -218,17 +227,17 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
             $config = array_fill(0, count($columns), false);
         }
         
-        return $this->_getCoreHelper()->jsonEncode($config);
+        return $this->getCoreHelper()->jsonEncode($config);
     }
     
     /**
-     * Return the global parameters for editing as JSO
+     * Return the global edit parameters as JSON
      * 
      * @return string
      */
     public function getGlobalParamsJson()
     {
-        return $this->_getCoreHelper()
+        return $this->getCoreHelper()
             ->jsonEncode(
                 array(
                     'grid_id' => $this->getGridModel()->getId(),
@@ -239,13 +248,18 @@ class BL_CustomGrid_Block_Widget_Grid_Columns_Editor extends Mage_Adminhtml_Bloc
     }
     
     /**
-     * Return the additional parameters for editing as JSON
+     * Return the additional edit parameters as JSON
      * 
      * @return string
      */
     public function getAdditionalParamsJson()
     {
-        return $this->_getCoreHelper()
-            ->jsonEncode($this->getGridModel()->getAdditionalEditParams($this->getGridBlock()));
+        return $this->getCoreHelper()
+            ->jsonEncode(
+                $this->getGridModel()
+                    ->getTypeModel()
+                    ->getEditor()
+                    ->getAdditionalEditParams($this->getGridModel()->getBlockType(), $this->getGridBlock())
+            );
     }
 }

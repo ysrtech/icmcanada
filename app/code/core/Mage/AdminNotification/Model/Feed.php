@@ -1,57 +1,35 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_AdminNotification
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_AdminNotification
  */
 
+use Carbon\Carbon;
 
 /**
  * AdminNotification Feed model
  *
- * @category   Mage
  * @package    Mage_AdminNotification
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_AdminNotification_Model_Feed extends Mage_Core_Model_Abstract
 {
-    const XML_USE_HTTPS_PATH    = 'system/adminnotification/use_https';
-    const XML_FEED_URL_PATH     = 'system/adminnotification/feed_url';
-    const XML_FREQUENCY_PATH    = 'system/adminnotification/frequency';
-    const XML_LAST_UPDATE_PATH  = 'system/adminnotification/last_update';
+    public const XML_USE_HTTPS_PATH    = 'system/adminnotification/use_https';
+
+    public const XML_FEED_URL_PATH     = 'system/adminnotification/feed_url';
+
+    public const XML_FREQUENCY_PATH    = 'system/adminnotification/frequency';
+
+    public const XML_LAST_UPDATE_PATH  = 'system/adminnotification/last_update';
 
     /**
      * Feed url
      *
-     * @var string
+     * @var null|string
      */
     protected $_feedUrl;
-
-    /**
-     * Init model
-     *
-     */
-    protected function _construct()
-    {}
 
     /**
      * Retrieve feed url
@@ -61,43 +39,43 @@ class Mage_AdminNotification_Model_Feed extends Mage_Core_Model_Abstract
     public function getFeedUrl()
     {
         if (is_null($this->_feedUrl)) {
-            $this->_feedUrl = (Mage::getStoreConfigFlag(self::XML_USE_HTTPS_PATH) ? 'https://' : 'http://')
-                . Mage::getStoreConfig(self::XML_FEED_URL_PATH);
+            $this->_feedUrl = 'https://' . Mage::getStoreConfig(self::XML_FEED_URL_PATH);
         }
+
         return $this->_feedUrl;
     }
 
     /**
      * Check feed for modification
      *
-     * @return Mage_AdminNotification_Model_Feed
+     * @return $this
      */
     public function checkUpdate()
     {
-        if (($this->getFrequency() + $this->getLastUpdate()) > time()) {
+        if (($this->getFrequency() + $this->getLastUpdate()) > $this->getClockHelper()->getTimestamp()) {
             return $this;
         }
 
-        $feedData = array();
+        $feedData = [];
 
         $feedXml = $this->getFeedData();
 
         if ($feedXml && $feedXml->channel && $feedXml->channel->item) {
             foreach ($feedXml->channel->item as $item) {
-                $feedData[] = array(
-                    'severity'      => (int)$item->severity,
-                    'date_added'    => $this->getDate((string)$item->pubDate),
-                    'title'         => (string)$item->title,
-                    'description'   => (string)$item->description,
-                    'url'           => (string)$item->link,
-                );
+                $feedData[] = [
+                    'severity'      => (int) $item->severity,
+                    'date_added'    => $this->getDate((string) $item->pubDate),
+                    'title'         => (string) $item->title,
+                    'description'   => (string) $item->description,
+                    'url'           => (string) $item->link,
+                ];
             }
 
             if ($feedData) {
                 Mage::getModel('adminnotification/inbox')->parse(array_reverse($feedData));
             }
-
         }
+
         $this->setLastUpdate();
 
         return $this;
@@ -106,12 +84,12 @@ class Mage_AdminNotification_Model_Feed extends Mage_Core_Model_Abstract
     /**
      * Retrieve DB date from RSS date
      *
-     * @param string $rssDate
+     * @param  string $rssDate
      * @return string YYYY-MM-DD YY:HH:SS
      */
     public function getDate($rssDate)
     {
-        return gmdate('Y-m-d H:i:s', strtotime($rssDate));
+        return gmdate(Varien_Db_Adapter_Pdo_Mysql::TIMESTAMP_FORMAT, Carbon::parse($rssDate)->getTimestamp());
     }
 
     /**
@@ -127,66 +105,66 @@ class Mage_AdminNotification_Model_Feed extends Mage_Core_Model_Abstract
     /**
      * Retrieve Last update time
      *
-     * @return int
+     * @return false|string
      */
     public function getLastUpdate()
     {
         return Mage::app()->loadCache('admin_notifications_lastcheck');
-//        return Mage::getStoreConfig(self::XML_LAST_UPDATE_PATH);
     }
 
     /**
      * Set last update time (now)
      *
-     * @return Mage_AdminNotification_Model_Feed
+     * @return $this
      */
     public function setLastUpdate()
     {
-        Mage::app()->saveCache(time(), 'admin_notifications_lastcheck');
-//        $config = Mage::getModel('core/config');
-//        /* @var $config Mage_Core_Model_Config */
-//        $config->saveConfig(self::XML_LAST_UPDATE_PATH, time());
+        Mage::app()->saveCache($this->getClockHelper()->getTimestamp(), 'admin_notifications_lastcheck');
         return $this;
     }
 
     /**
      * Retrieve feed data as XML element
      *
-     * @return SimpleXMLElement
+     * @return false|SimpleXMLElement
      */
     public function getFeedData()
     {
         $curl = new Varien_Http_Adapter_Curl();
-        $curl->setConfig(array(
-            'timeout'   => 2
-        ));
+        $curl->setConfig([
+            'timeout'   => 2,
+        ]);
         $curl->write(Zend_Http_Client::GET, $this->getFeedUrl(), '1.0');
+
         $data = $curl->read();
         if ($data === false) {
             return false;
         }
+
         $data = preg_split('/^\r?$/m', $data, 2);
         $data = trim($data[1]);
+
         $curl->close();
 
         try {
             $xml  = new SimpleXMLElement($data);
-        }
-        catch (Exception $e) {
+        } catch (Exception) {
             return false;
         }
 
         return $xml;
     }
 
+    /**
+     * @return SimpleXMLElement
+     */
     public function getFeedXml()
     {
         try {
             $data = $this->getFeedData();
             $xml  = new SimpleXMLElement($data);
-        }
-        catch (Exception $e) {
-            $xml  = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8" ?>');
+        } catch (Exception) {
+            $xml  = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8" ?><feed />');
         }
 
         return $xml;

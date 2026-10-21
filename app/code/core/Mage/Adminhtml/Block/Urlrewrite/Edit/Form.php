@@ -1,41 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Urlrewrites edit form
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Urlrewrite_Edit_Form extends Mage_Adminhtml_Block_Widget_Form
 {
     /**
      * Set form id and title
-     *
      */
     public function __construct()
     {
@@ -47,8 +27,9 @@ class Mage_Adminhtml_Block_Urlrewrite_Edit_Form extends Mage_Adminhtml_Block_Wid
     /**
      * Prepare the form layout
      *
-     * @return Mage_Adminhtml_Block_Urlrewrite_Edit_Form
+     * @return $this
      */
+    #[Override]
     protected function _prepareForm()
     {
         $model    = Mage::registry('current_urlrewrite');
@@ -56,74 +37,76 @@ class Mage_Adminhtml_Block_Urlrewrite_Edit_Form extends Mage_Adminhtml_Block_Wid
         $category = Mage::registry('current_category');
 
         $form = new Varien_Data_Form(
-            array(
+            [
                 'id' => 'edit_form',
-                'action' => $this->getData('action'),
-                'method' => 'post'
-            )
+                'action' => $this->getDataByKey('action'),
+                'method' => 'post',
+            ],
         );
 
         // set form data either from model values or from session
-        $formValues = array(
+        $formValues = [
             'store_id'     => $model->getStoreId(),
             'id_path'      => $model->getIdPath(),
             'request_path' => $model->getRequestPath(),
             'target_path'  => $model->getTargetPath(),
             'options'      => $model->getOptions(),
             'description'  => $model->getDescription(),
-        );
+        ];
         if ($sessionData = Mage::getSingleton('adminhtml/session')->getData('urlrewrite_data', true)) {
-            foreach ($formValues as $key => $value) {
+            foreach (array_keys($formValues) as $key) {
                 if (isset($sessionData[$key])) {
                     $formValues[$key] = $sessionData[$key];
                 }
             }
         }
 
-        $fieldset = $form->addFieldset('base_fieldset', array(
-            'legend'    => Mage::helper('adminhtml')->__('URL Rewrite Information')
-        ));
+        $fieldset = $form->addFieldset('base_fieldset', [
+            'legend'    => Mage::helper('adminhtml')->__('URL Rewrite Information'),
+        ]);
 
-        $fieldset->addField('is_system', 'select', array(
+        $fieldset->addField('is_system', 'select', [
             'label'     => Mage::helper('adminhtml')->__('Type'),
             'title'     => Mage::helper('adminhtml')->__('Type'),
             'name'      => 'is_system',
             'required'  => true,
-            'options'   => array(
+            'options'   => [
                 1 => Mage::helper('adminhtml')->__('System'),
-                0 => Mage::helper('adminhtml')->__('Custom')
-            ),
+                0 => Mage::helper('adminhtml')->__('Custom'),
+            ],
             'disabled'  => true,
-            'value'     => $model->getIsSystem()
-        ));
+            'value'     => $model->getIsSystem(),
+        ]);
 
         $isFilterAllowed = false;
         // get store switcher or a hidden field with its id
         if (!Mage::app()->isSingleStoreMode()) {
             $stores  = Mage::getSingleton('adminhtml/system_store')->getStoreValuesForForm();
-            $entityStores = array();
+            $entityStores = [];
             $noStoreError = false;
 
             //showing websites that only associated to products
             if ($product && $product->getId()) {
-                $entityStores = $product->getStoreIds() ? $product->getStoreIds() : array();
-                if  (!$entityStores) {
-                    $stores = array(); //reset the stores
+                $entityStores = $product->getStoreIds() ? $product->getStoreIds() : [];
+                if (!$entityStores) {
+                    $stores = []; //reset the stores
                     $noStoreError = $this->__('Chosen product does not associated with any website, so url rewrite is not possible.');
                 }
+
                 //if category is chosen, reset stores which are not related with this category
                 if ($category && $category->getId()) {
-                    $categoryStores = $category->getStoreIds() ? $category->getStoreIds() : array();
+                    $categoryStores = $category->getStoreIds() ? $category->getStoreIds() : [];
                     $entityStores = array_intersect($entityStores, $categoryStores);
-
                 }
+
                 $isFilterAllowed = true;
             } elseif ($category && $category->getId()) {
-                $entityStores = $category->getStoreIds() ? $category->getStoreIds() : array();
-                if  (!$entityStores) {
-                    $stores = array(); //reset the stores
+                $entityStores = $category->getStoreIds() ? $category->getStoreIds() : [];
+                if (!$entityStores) {
+                    $stores = []; //reset the stores
                     $noStoreError = $this->__('Chosen category does not associated with any website, so url rewrite is not possible.');
                 }
+
                 $isFilterAllowed = true;
             }
 
@@ -132,24 +115,25 @@ class Mage_Adminhtml_Block_Urlrewrite_Edit_Form extends Mage_Adminhtml_Block_Wid
              * If we use custom rewrite, all stores are accepted.
              */
             if ($stores && $isFilterAllowed) {
-                foreach ($stores as $i => $store) {
+                foreach ($stores as $index => $store) {
                     if (isset($store['value']) && $store['value']) {
                         $found = false;
-                        foreach ($store['value'] as $_k => $_v) {
-                            if (isset($_v['value']) && in_array($_v['value'], $entityStores)) {
-                               $found = true;
+                        foreach ($store['value'] as $key => $value) {
+                            if (isset($value['value']) && in_array($value['value'], $entityStores)) {
+                                $found = true;
                             } else {
-                                unset($stores[$i]['value'][$_k]);
+                                unset($stores[$index]['value'][$key]);
                             }
                         }
+
                         if (!$found) {
-                            unset($stores[$i]);
+                            unset($stores[$index]);
                         }
                     }
                 }
             }
 
-            $element = $fieldset->addField('store_id', 'select', array(
+            $element = $fieldset->addField('store_id', 'select', [
                 'label'     => Mage::helper('adminhtml')->__('Store'),
                 'title'     => Mage::helper('adminhtml')->__('Store'),
                 'name'      => 'store_id',
@@ -157,106 +141,106 @@ class Mage_Adminhtml_Block_Urlrewrite_Edit_Form extends Mage_Adminhtml_Block_Wid
                 'values'    => $stores,
                 'disabled'  => true,
                 'value'     => $formValues['store_id'],
-            ));
-            $renderer = $this->getLayout()->createBlock('adminhtml/store_switcher_form_renderer_fieldset_element');
+            ]);
+            $renderer = $this->getStoreSwitcherRenderer();
             $element->setRenderer($renderer);
             if ($noStoreError) {
                 $element->setAfterElementHtml($noStoreError);
             }
+
             if (!$model->getIsSystem()) {
                 $element->unsetData('disabled');
             }
         } else {
-            $fieldset->addField('store_id', 'hidden', array(
+            $fieldset->addField('store_id', 'hidden', [
                 'name'      => 'store_id',
-                'value'     => Mage::app()->getStore(true)->getId()
-            ));
+                'value'     => Mage::app()->getStore(true)->getId(),
+            ]);
         }
 
-        $idPath = $fieldset->addField('id_path', 'text', array(
+        $idPath = $fieldset->addField('id_path', 'text', [
             'label'     => Mage::helper('adminhtml')->__('ID Path'),
             'title'     => Mage::helper('adminhtml')->__('ID Path'),
             'name'      => 'id_path',
             'required'  => true,
             'disabled'  => true,
-            'value'     => $formValues['id_path']
-        ));
+            'value'     => $formValues['id_path'],
+        ]);
 
-        $requestPath = $fieldset->addField('request_path', 'text', array(
+        $requestPath = $fieldset->addField('request_path', 'text', [
             'label'     => Mage::helper('adminhtml')->__('Request Path'),
             'title'     => Mage::helper('adminhtml')->__('Request Path'),
             'name'      => 'request_path',
             'required'  => true,
-            'value'     => $formValues['request_path']
-        ));
+            'value'     => $formValues['request_path'],
+        ]);
 
-        $targetPath = $fieldset->addField('target_path', 'text', array(
+        $targetPath = $fieldset->addField('target_path', 'text', [
             'label'     => Mage::helper('adminhtml')->__('Target Path'),
             'title'     => Mage::helper('adminhtml')->__('Target Path'),
             'name'      => 'target_path',
             'required'  => true,
             'disabled'  => true,
             'value'     => $formValues['target_path'],
-        ));
+        ]);
 
         // auto-generate paths for new url rewrites
         if (!$model->getId()) {
-            $_product  = null;
-            $_category = null;
+            $newProduct  = null;
+            $newCategory = null;
             if ($category->getId() || $product->getId()) {
-                $_category = $category;
+                $newCategory = $category;
             }
 
             if ($product->getId()) {
-                $_product = $product;
+                $newProduct = $product;
             }
 
-            if ($_category || $_product) {
+            if ($newCategory || $newProduct) {
                 $catalogUrlModel = Mage::getSingleton('catalog/url');
-                $idPath->setValue($catalogUrlModel->generatePath('id', $_product, $_category));
+                $idPath->setValue($catalogUrlModel->generatePath('id', $newProduct, $newCategory));
                 if (!isset($sessionData['request_path'])) {
-                    $requestPath->setValue($catalogUrlModel->generatePath('request', $_product, $_category, ''));
+                    $requestPath->setValue($catalogUrlModel->generatePath('request', $newProduct, $newCategory, ''));
                 }
-                $targetPath->setValue($catalogUrlModel->generatePath('target', $_product, $_category));
+
+                $targetPath->setValue($catalogUrlModel->generatePath('target', $newProduct, $newCategory));
             } else {
                 $idPath->unsetData('disabled');
                 $targetPath->unsetData('disabled');
             }
-        } else {
-            if (!$model->getProductId() && !$model->getCategoryId()) {
-                $idPath->unsetData('disabled');
-                $targetPath->unsetData('disabled');
-            }
+        } elseif (!$model->getProductId() && !$model->getCategoryId()) {
+            $idPath->unsetData('disabled');
+            $targetPath->unsetData('disabled');
         }
 
-        $fieldset->addField('options', 'select', array(
+        $fieldset->addField('options', 'select', [
             'label'     => Mage::helper('adminhtml')->__('Redirect'),
             'title'     => Mage::helper('adminhtml')->__('Redirect'),
             'name'      => 'options',
-            'options'   => array(
+            'options'   => [
                 ''   => Mage::helper('adminhtml')->__('No'),
                 'R'  => Mage::helper('adminhtml')->__('Temporary (302)'),
                 'RP' => Mage::helper('adminhtml')->__('Permanent (301)'),
-            ),
-            'value'     => $formValues['options']
-        ));
+            ],
+            'value'     => $formValues['options'],
+        ]);
 
-        $fieldset->addField('description', 'textarea', array(
+        $fieldset->addField('description', 'textarea', [
             'label'     => Mage::helper('adminhtml')->__('Description'),
             'title'     => Mage::helper('adminhtml')->__('Description'),
             'name'      => 'description',
             'cols'      => 20,
             'rows'      => 5,
             'value'     => $formValues['description'],
-            'wrap'      => 'soft'
-        ));
+            'wrap'      => 'soft',
+        ]);
 
         $form->setUseContainer(true);
-        $form->setAction(Mage::helper('adminhtml')->getUrl('*/*/save', array(
+        $form->setAction(Mage::helper('adminhtml')::getUrl('*/*/save', [
             'id'       => $model->getId(),
             'product'  => $product->getId(),
             'category' => $category->getId(),
-        )));
+        ]));
         $this->setForm($form);
 
         return parent::_prepareForm();

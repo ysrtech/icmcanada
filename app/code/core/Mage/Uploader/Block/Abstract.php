@@ -1,29 +1,17 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Uploader
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Uploader
  */
 
+/**
+ * Class Mage_Uploader_Block_Abstract
+ *
+ * @package    Mage_Uploader
+ */
 abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
 {
     /**
@@ -39,29 +27,29 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
     protected $_misc;
 
     /**
-     * @var Mage_Uploader_Model_Config_Uploader
+     * @var null|Mage_Uploader_Model_Config_Uploader
      */
     protected $_uploaderConfig;
 
     /**
-     * @var Mage_Uploader_Model_Config_Browsebutton
+     * @var null|Mage_Uploader_Model_Config_Browsebutton
      */
     protected $_browseButtonConfig;
 
     /**
-     * @var Mage_Uploader_Model_Config_Misc
+     * @var null|Mage_Uploader_Model_Config_Misc
      */
     protected $_miscConfig;
 
     /**
      * @var array
      */
-    protected $_idsMapping = array();
+    protected $_idsMapping = [];
 
     /**
      * Default browse button ID suffix
      */
-    const DEFAULT_BROWSE_BUTTON_ID_SUFFIX = 'browse';
+    public const DEFAULT_BROWSE_BUTTON_ID_SUFFIX = 'browse';
 
     /**
      * Constructor for uploader block
@@ -90,12 +78,14 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
      */
     public function getJsonConfig()
     {
-        return $this->helper('core')->jsonEncode(array(
+        /** @var Mage_Core_Helper_Data $helper */
+        $helper = $this->helper('core');
+        return $helper->jsonEncode([
             'uploaderConfig'    => $this->getUploaderConfig()->getData(),
             'elementIds'        => $this->_getElementIdsMapping(),
             'browseConfig'      => $this->getButtonConfig()->getData(),
             'miscConfig'        => $this->getMiscConfig()->getData(),
-        ));
+        ]);
     }
 
     /**
@@ -111,10 +101,10 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
     /**
      * Add mapping ids for front-end use
      *
-     * @param array $additionalButtons
+     * @param  array $additionalButtons
      * @return $this
      */
-    protected function _addElementIdsMapping($additionalButtons = array())
+    protected function _addElementIdsMapping($additionalButtons = [])
     {
         $this->_idsMapping = array_merge($this->_idsMapping, $additionalButtons);
 
@@ -124,42 +114,43 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
     /**
      * Prepare layout, create buttons, set front-end elements ids
      *
-     * @return Mage_Core_Block_Abstract
+     * @return $this
      */
+    #[Override]
     protected function _prepareLayout()
     {
         $this->setChild(
             'browse_button',
             $this->getLayout()->createBlock('adminhtml/widget_button')
-                ->addData(array(
+                ->addData([
                     // Workaround for IE9
                     'before_html'   => sprintf(
                         '<div style="display:inline-block;" id="%s">',
-                        $this->getElementId(self::DEFAULT_BROWSE_BUTTON_ID_SUFFIX)
+                        $this->getElementId(self::DEFAULT_BROWSE_BUTTON_ID_SUFFIX),
                     ),
                     'after_html'    => '</div>',
                     'id'            => $this->getElementId(self::DEFAULT_BROWSE_BUTTON_ID_SUFFIX . '_button'),
                     'label'         => Mage::helper('uploader')->__('Browse Files...'),
                     'type'          => 'button',
-                ))
+                ]),
         );
 
         $this->setChild(
             'delete_button',
             $this->getLayout()->createBlock('adminhtml/widget_button')
-                ->addData(array(
+                ->addData([
                     'id'      => '{{id}}',
                     'class'   => 'delete',
                     'type'    => 'button',
-                    'label'   => Mage::helper('uploader')->__('Remove')
-                ))
+                    'label'   => Mage::helper('uploader')->__('Remove'),
+                ]),
         );
 
-        $this->_addElementIdsMapping(array(
+        $this->_addElementIdsMapping([
             'container'         => $this->getHtmlId(),
             'templateFile'      => $this->getElementId('template'),
-            'browse'            => $this->_prepareElementsIds(array(self::DEFAULT_BROWSE_BUTTON_ID_SUFFIX))
-        ));
+            'browse'            => $this->_prepareElementsIds([self::DEFAULT_BROWSE_BUTTON_ID_SUFFIX]),
+        ]);
 
         return parent::_prepareLayout();
     }
@@ -194,6 +185,7 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
         if (is_null($this->_miscConfig)) {
             $this->_miscConfig = Mage::getModel('uploader/config_misc');
         }
+
         return $this->_miscConfig;
     }
 
@@ -207,6 +199,7 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
         if (is_null($this->_uploaderConfig)) {
             $this->_uploaderConfig = Mage::getModel('uploader/config_uploader');
         }
+
         return $this->_uploaderConfig;
     }
 
@@ -220,13 +213,14 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
         if (is_null($this->_browseButtonConfig)) {
             $this->_browseButtonConfig = Mage::getModel('uploader/config_browsebutton');
         }
+
         return $this->_browseButtonConfig;
     }
 
     /**
      * Get button unique id
      *
-     * @param string $suffix
+     * @param  string $suffix
      * @return string
      */
     public function getElementId($suffix)
@@ -237,11 +231,11 @@ abstract class Mage_Uploader_Block_Abstract extends Mage_Adminhtml_Block_Widget
     /**
      * Prepare actual elements ids from suffixes
      *
-     * @param array $targets $type => array($idsSuffixes)
+     * @param  array $targets $type => array($idsSuffixes)
      * @return array $type => array($htmlIds)
      */
     protected function _prepareElementsIds($targets)
     {
-        return array_map(array($this, 'getElementId'), array_unique(array_values($targets)));
+        return array_map($this->getElementId(...), array_unique(array_values($targets)));
     }
 }

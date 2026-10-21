@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Admin
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Admin
+ */
 
 /**
  * Configuration for Admin model
  *
- * @category   Mage
  * @package    Mage_Admin
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Admin_Model_Config extends Varien_Simplexml_Config
 {
@@ -49,12 +29,11 @@ class Mage_Admin_Model_Config extends Varien_Simplexml_Config
         parent::__construct();
         $this->setCacheId('adminhtml_acl_menu_config');
 
-        /* @var $adminhtmlConfig Varien_Simplexml_Config */
         $adminhtmlConfig = Mage::app()->loadCache($this->getCacheId());
         if ($adminhtmlConfig) {
             $this->_adminhtmlConfig = new Varien_Simplexml_Config($adminhtmlConfig);
         } else {
-            $adminhtmlConfig = new Varien_Simplexml_Config;
+            $adminhtmlConfig = new Varien_Simplexml_Config();
             $adminhtmlConfig->loadString('<?xml version="1.0"?><config></config>');
             Mage::getConfig()->loadModulesConfiguration('adminhtml.xml', $adminhtmlConfig);
             $this->_adminhtmlConfig = $adminhtmlConfig;
@@ -67,14 +46,18 @@ class Mage_Admin_Model_Config extends Varien_Simplexml_Config
             if ($aclConfig) {
                 $adminhtmlConfig->getNode()->extendChild($aclConfig, true);
             }
+
             $menuConfig = Mage::getConfig()->getNode('adminhtml/menu');
             if ($menuConfig) {
                 $adminhtmlConfig->getNode()->extendChild($menuConfig, true);
             }
 
             if (Mage::app()->useCache('config')) {
-                Mage::app()->saveCache($adminhtmlConfig->getXmlString(), $this->getCacheId(),
-                    array(Mage_Core_Model_Config::CACHE_TAG));
+                Mage::app()->saveCache(
+                    $adminhtmlConfig->getXmlString(),
+                    $this->getCacheId(),
+                    [Mage_Core_Model_Config::CACHE_TAG],
+                );
             }
         }
     }
@@ -82,84 +65,75 @@ class Mage_Admin_Model_Config extends Varien_Simplexml_Config
     /**
      * Load Acl resources from config
      *
-     * @param Mage_Admin_Model_Acl $acl
-     * @param Mage_Core_Model_Config_Element $resource
-     * @param string $parentName
-     * @return Mage_Admin_Model_Config
+     * @param  Mage_Core_Model_Config_Element|Varien_Simplexml_Element $resource
+     * @param  string                                                  $parentName
+     * @return $this
      */
     public function loadAclResources(Mage_Admin_Model_Acl $acl, $resource = null, $parentName = null)
     {
         if (is_null($resource)) {
-            $resource = $this->getAdminhtmlConfig()->getNode("acl/resources");
+            $resource = $this->getAdminhtmlConfig()->getNode('acl/resources');
             $resourceName = null;
         } else {
             $resourceName = (is_null($parentName) ? '' : $parentName . '/') . $resource->getName();
-            $acl->add(Mage::getModel('admin/acl_resource', $resourceName), $parentName);
+            $acl->addResource(Mage::getModel('admin/acl_resource', $resourceName), $parentName);
         }
 
         if (isset($resource->all)) {
-            $acl->add(Mage::getModel('admin/acl_resource', 'all'), null);
+            $acl->addResource(Mage::getModel('admin/acl_resource', 'all'));
         }
 
         if (isset($resource->admin)) {
             $children = $resource->admin;
-        } elseif (isset($resource->children)){
+        } elseif (isset($resource->children)) {
             $children = $resource->children->children();
         }
-
-
 
         if (empty($children)) {
             return $this;
         }
 
         foreach ($children as $res) {
-            if (1 == $res->disabled) {
+            if ((string) $res->disabled === '1') {
                 continue;
             }
+
             $this->loadAclResources($acl, $res, $resourceName);
         }
+
         return $this;
     }
 
     /**
      * Get acl assert config
      *
-     * @param string $name
-     * @return Mage_Core_Model_Config_Element|boolean
+     * @param  string                                                                         $name
+     * @return false|Mage_Core_Model_Config_Element|SimpleXMLElement|Varien_Simplexml_Element
      */
     public function getAclAssert($name = '')
     {
-        $asserts = $this->getNode("admin/acl/asserts");
-        if ('' === $name) {
+        $asserts = $this->getNode('admin/acl/asserts');
+        if ($name === '') {
             return $asserts;
         }
 
-        if (isset($asserts->$name)) {
-            return $asserts->$name;
-        }
-
-        return false;
+        return $asserts->$name ?? false;
     }
 
     /**
      * Retrieve privilege set by name
      *
-     * @param string $name
-     * @return Mage_Core_Model_Config_Element|boolean
+     * @param  string                                          $name
+     * @return false|SimpleXMLElement|Varien_Simplexml_Element
      */
     public function getAclPrivilegeSet($name = '')
     {
-        $sets = $this->getNode("admin/acl/privilegeSets");
-        if ('' === $name) {
+        $sets = $this->getNode('admin/acl/privilegeSets');
+        if ($name === '') {
             return $sets;
         }
 
-        if (isset($sets->$name)) {
-            return $sets->$name;
-        }
-
-        return false;
+        return $sets->$name ?? false;
     }
 
     /**
@@ -175,7 +149,7 @@ class Mage_Admin_Model_Config extends Varien_Simplexml_Config
     /**
      * Get menu item label by item path
      *
-     * @param string $path
+     * @param  string $path
      * @return string
      */
     public function getMenuItemLabel($path)
@@ -183,8 +157,9 @@ class Mage_Admin_Model_Config extends Varien_Simplexml_Config
         $moduleName = 'adminhtml';
         $menuNode = $this->getAdminhtmlConfig()->getNode('menu/' . str_replace('/', '/children/', trim($path, '/')));
         if ($menuNode->getAttribute('module')) {
-            $moduleName = (string)$menuNode->getAttribute('module');
+            $moduleName = (string) $menuNode->getAttribute('module');
         }
-        return Mage::helper($moduleName)->__((string)$menuNode->title);
+
+        return Mage::helper($moduleName)->__((string) $menuNode->title);
     }
 }

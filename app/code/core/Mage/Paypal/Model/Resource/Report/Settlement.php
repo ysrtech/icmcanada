@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
+ */
 
 /**
  * Report settlement resource model
  *
- * @category    Mage
- * @package     Mage_Paypal
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
 class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -42,8 +22,7 @@ class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resou
     protected $_rowsTable;
 
     /**
-     * Init main table
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -54,24 +33,26 @@ class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resou
     /**
      * Save report rows collected in settlement model
      *
-     * @param Mage_Paypal_Model_Report_Settlement $object
-     * @return Mage_Paypal_Model_Resource_Report_Settlement
+     * @param  Mage_Paypal_Model_Report_Settlement $object
+     * @return $this
      */
+    #[Override]
     protected function _afterSave(Mage_Core_Model_Abstract $object)
     {
         $rows = $object->getRows();
         if (is_array($rows)) {
             $adapter  = $this->_getWriteAdapter();
-            $reportId = (int)$object->getId();
+            $reportId = (int) $object->getId();
+            $adapter->beginTransaction();
             try {
-                $adapter->beginTransaction();
                 if ($reportId) {
-                    $adapter->delete($this->_rowsTable, array('report_id = ?' => $reportId));
+                    $adapter->delete($this->_rowsTable, ['report_id = ?' => $reportId]);
                 }
-                /** @var $date Mage_Core_Model_Date */
+
+                /** @var Mage_Core_Model_Date $date */
                 $date = Mage::getSingleton('core/date');
 
-                foreach ($rows as $key => $row) {
+                foreach (array_keys($rows) as $key) {
                     /*
                      * Converting dates
                      */
@@ -82,18 +63,20 @@ class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resou
                     /*
                      * Converting numeric
                      */
-                    $rows[$key]['fee_amount'] = (float)$rows[$key]['fee_amount'];
+                    $rows[$key]['fee_amount'] = (float) $rows[$key]['fee_amount'];
                     /*
                      * Setting reportId
                      */
                     $rows[$key]['report_id'] = $reportId;
                 }
-                if (!empty($rows)) {
+
+                if ($rows !== []) {
                     $adapter->insertMultiple($this->_rowsTable, $rows);
                 }
+
                 $adapter->commit();
-            } catch (Exception $e) {
-                $adapter->rollback();
+            } catch (Exception) {
+                $adapter->rollBack();
             }
         }
 
@@ -103,10 +86,9 @@ class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resou
     /**
      * Check if report with same account and report date already fetched
      *
-     * @param Mage_Paypal_Model_Report_Settlement $report
-     * @param string $accountId
-     * @param string $reportDate
-     * @return Mage_Paypal_Model_Resource_Report_Settlement
+     * @param  string $accountId
+     * @param  string $reportDate
+     * @return $this
      */
     public function loadByAccountAndDate(Mage_Paypal_Model_Report_Settlement $report, $accountId, $reportDate)
     {
@@ -116,7 +98,7 @@ class Mage_Paypal_Model_Resource_Report_Settlement extends Mage_Core_Model_Resou
             ->where('account_id = :account_id')
             ->where('report_date = :report_date');
 
-        $data = $adapter->fetchRow($select, array(':account_id' => $accountId, ':report_date' => $reportDate));
+        $data = $adapter->fetchRow($select, [':account_id' => $accountId, ':report_date' => $reportDate]);
         if ($data) {
             $report->addData($data);
         }

@@ -35,7 +35,7 @@
 			<deliverynote_setup>   
 				<setup>
 					<module>Dh_Deliverynote</module>
-					<class>Mage_Sales_Model_Mysql4_Setup</class>
+					<class>Mage_Sales_Model_Resource_Setup</class>
 				</setup>
 			</deliverynote_setup>
 		</resources>

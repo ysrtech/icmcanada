@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Db
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Db
+ */
 
 /**
  * Mysql DB Statement
  *
- * @category    Varien
- * @package     Varien_Db
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Varien_Db
  */
 class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
 {
@@ -38,7 +18,7 @@ class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
      * Executes statement with binding values to it.
      * Allows transferring specific options to DB driver.
      *
-     * @param array $params Array of values to bind to parameter placeholders.
+     * @param  array                       $params array of values to bind to parameter placeholders
      * @return bool
      * @throws Zend_Db_Statement_Exception
      */
@@ -46,16 +26,16 @@ class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
     {
         // Check whether we deal with named bind
         $isPositionalBind = true;
-        foreach ($params as $k => $v) {
+        foreach (array_keys($params) as $k) {
             if (!is_int($k)) {
                 $isPositionalBind = false;
                 break;
             }
         }
 
-        /* @var $statement PDOStatement */
+        /* @var PDOStatement $statement */
         $statement = $this->_stmt;
-        $bindValues = array(); // Separate array with values, as they are bound by reference
+        $bindValues = []; // Separate array with values, as they are bound by reference
         foreach ($params as $name => $param) {
             $dataType = PDO::PARAM_STR;
             $length = null;
@@ -69,6 +49,7 @@ class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
                     $length = $param->getLength();
                     $driverOptions = $param->getDriverOptions();
                 }
+
                 $bindValues[$name] = $param->getValue();
             } else {
                 $bindValues[$name] = $param;
@@ -80,19 +61,20 @@ class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
 
         try {
             return $statement->execute();
-        } catch (PDOException $e) {
-            throw new Zend_Db_Statement_Exception($e->getMessage(), (int) $e->getCode(), $e);
+        } catch (PDOException $pdoException) {
+            throw new Zend_Db_Statement_Exception($pdoException->getMessage(), (int) $pdoException->getCode(), $pdoException);
         }
     }
 
     /**
      * Executes a prepared statement.
      *
-     * @param array $params OPTIONAL Values to bind to parameter placeholders.
+     * @param  array                       $params OPTIONAL Values to bind to parameter placeholders
      * @return bool
      * @throws Zend_Db_Statement_Exception
      */
-    public function _execute(array $params = null)
+    #[Override]
+    public function _execute(?array $params = null)
     {
         $specialExecute = false;
         if ($params) {
@@ -106,8 +88,8 @@ class Varien_Db_Statement_Pdo_Mysql extends Zend_Db_Statement_Pdo
 
         if ($specialExecute) {
             return $this->_executeWithBinding($params);
-        } else {
-            return parent::_execute($params);
         }
+
+        return parent::_execute($params);
     }
 }

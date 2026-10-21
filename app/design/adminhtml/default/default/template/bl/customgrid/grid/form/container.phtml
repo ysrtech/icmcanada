@@ -50,19 +50,22 @@ blcgGridForm.submit = function(url) {
             onSuccess: function(transport) {
                 var response= blcg.Tools.handleAjaxOnSuccessResponse(
                     null,
-                    blcg.Tools.translate('An error occured while saving the values'),
+                    blcg.Tools.translate('An error occurred while saving the values'),
                     transport
                 );
                 
                 if (response) {
                     <?php if ($this->getReloadGridAfterSuccess()): ?>
-                    blcg.Grid.Tools.reloadGrid('<?php echo $_gridJsObjectName ?>');
+                    blcg.Grid.Tools.reloadGrid('<?php echo $_gridJsObjectName ?>', null, null, <?php echo ($this->getIsFrameContainedForm() ? 'true' : 'false') ?>);
+                    <?php endif ?>
+                    <?php if ($this->getIsFrameContainedForm()): ?>
+                    (window.top || window).blcg.Tools.closeDialog();
                     <?php endif ?>
                 }
             },
             
             onFailure: function(transport) {
-                alert(blcg.Tools.translate('An error occured while saving the values'));
+                alert(blcg.Tools.translate('An error occurred while saving the values'));
             }.bind(this)
         });
         <?php else: ?>
@@ -85,6 +88,7 @@ blcgGridForm.submit = function(url) {
         blcg.Tools.closeDialog();
         return true;
     }
+    
     return false;
 }.bind(blcgGridForm);
 
@@ -97,6 +101,7 @@ $('<?php echo $_formHtmlId ?>').observe('keydown', function(e) {
     }
 });
 
+blcg.Tools.adaptPopupPageWrapper();
 blcg.Tools.focusFirstInput('<?php echo $_formHtmlId ?>');
 <?php endif ?>
 //]]>

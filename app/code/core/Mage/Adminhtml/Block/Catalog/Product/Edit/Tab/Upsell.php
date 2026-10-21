@@ -1,42 +1,25 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Upsell products admin grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Catalog_Model_Resource_Product_Link_Product_Collection getCollection()
  */
 class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_catalog_product_edit_tab_upsell';
 
     /**
-     * Set grid params
-     *
+     * @throws Mage_Core_Exception
      */
     public function __construct()
     {
@@ -45,15 +28,16 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
         $this->setDefaultSort('entity_id');
         $this->setUseAjax(true);
         if ($this->_getProduct()->getId()) {
-            $this->setDefaultFilter(array('in_products'=>1));
+            $this->setDefaultFilter(['in_products' => 1]);
         }
+
         if ($this->isReadonly()) {
             $this->setFilterVisibility(false);
         }
     }
 
     /**
-     * Retirve currently edited product model
+     * Retrieve currently edited product model
      *
      * @return Mage_Catalog_Model_Product
      */
@@ -63,36 +47,35 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
     }
 
     /**
-     * Add filter
-     *
-     * @param object $column
-     * @return Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell
+     * @inheritDoc
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     protected function _addColumnFilterToCollection($column)
     {
         // Set custom filter for in product flag
-        if ($column->getId() == 'in_products') {
+        if ($column->getId() === 'in_products') {
             $productIds = $this->_getSelectedProducts();
             if (empty($productIds)) {
                 $productIds = 0;
             }
+
             if ($column->getFilter()->getValue()) {
-                $this->getCollection()->addFieldToFilter('entity_id', array('in'=>$productIds));
-            } else {
-                if($productIds) {
-                    $this->getCollection()->addFieldToFilter('entity_id', array('nin'=>$productIds));
-                }
+                $this->getCollection()->addFieldToFilter('entity_id', ['in' => $productIds]);
+            } elseif ($productIds) {
+                $this->getCollection()->addFieldToFilter('entity_id', ['nin' => $productIds]);
             }
         } else {
             parent::_addColumnFilterToCollection($column);
         }
+
         return $this;
     }
 
     /**
      * Checks when this block is readonly
      *
-     * @return boolean
+     * @return bool
      */
     public function isReadonly()
     {
@@ -100,10 +83,9 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
     }
 
     /**
-     * Prepare collection
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getModel('catalog/product_link')->useUpSellLinks()
@@ -114,9 +96,10 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
         if ($this->isReadonly()) {
             $productIds = $this->_getSelectedProducts();
             if (empty($productIds)) {
-                $productIds = array(0);
+                $productIds = [0];
             }
-            $collection->addFieldToFilter('entity_id', array('in'=>$productIds));
+
+            $collection->addFieldToFilter('entity_id', ['in' => $productIds]);
         }
 
         $this->setCollection($collection);
@@ -124,85 +107,83 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
     }
 
     /**
-     * Add columns to grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     * @throws Zend_Cache_Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
         if (!$this->_getProduct()->getUpsellReadonly()) {
-            $this->addColumn('in_products', array(
+            $this->addColumn('in_products', [
                 'header_css_class' => 'a-center',
                 'type'      => 'checkbox',
                 'name'      => 'in_products',
                 'values'    => $this->_getSelectedProducts(),
                 'align'     => 'center',
-                'index'     => 'entity_id'
-            ));
+                'index'     => 'entity_id',
+            ]);
         }
 
-        $this->addColumn('entity_id', array(
+        $this->addColumn('entity_id', [
             'header'    => Mage::helper('catalog')->__('ID'),
-            'sortable'  => true,
-            'width'     => 60,
-            'index'     => 'entity_id'
-        ));
-        $this->addColumn('name', array(
+            'index'     => 'entity_id',
+        ]);
+        $this->addColumn('name', [
             'header'    => Mage::helper('catalog')->__('Name'),
-            'index'     => 'name'
-        ));
+            'index'     => 'name',
+        ]);
 
-        $this->addColumn('type', array(
+        $this->addColumn('type', [
             'header'    => Mage::helper('catalog')->__('Type'),
             'width'     => 100,
             'index'     => 'type_id',
             'type'      => 'options',
-            'options'   => Mage::getSingleton('catalog/product_type')->getOptionArray(),
-        ));
+            'options'   => Mage::getSingleton('catalog/product_type')::getOptionArray(),
+        ]);
 
         $sets = Mage::getResourceModel('eav/entity_attribute_set_collection')
             ->setEntityTypeFilter(Mage::getModel('catalog/product')->getResource()->getTypeId())
             ->load()
             ->toOptionHash();
 
-        $this->addColumn('set_name', array(
+        $this->addColumn('set_name', [
             'header'    => Mage::helper('catalog')->__('Attrib. Set Name'),
             'width'     => 130,
             'index'     => 'attribute_set_id',
             'type'      => 'options',
             'options'   => $sets,
-        ));
+        ]);
 
-        $this->addColumn('status', array(
+        $this->addColumn('status', [
             'header'    => Mage::helper('catalog')->__('Status'),
             'width'     => 90,
             'index'     => 'status',
             'type'      => 'options',
-            'options'   => Mage::getSingleton('catalog/product_status')->getOptionArray(),
-        ));
+            'options'   => Mage::getSingleton('catalog/product_status')::getOptionArray(),
+        ]);
 
-        $this->addColumn('visibility', array(
+        $this->addColumn('visibility', [
             'header'    => Mage::helper('catalog')->__('Visibility'),
             'width'     => 90,
             'index'     => 'visibility',
             'type'      => 'options',
-            'options'   => Mage::getSingleton('catalog/product_visibility')->getOptionArray(),
-        ));
+            'options'   => Mage::getSingleton('catalog/product_visibility')::getOptionArray(),
+        ]);
 
-        $this->addColumn('sku', array(
+        $this->addColumn('sku', [
             'header'    => Mage::helper('catalog')->__('SKU'),
             'width'     => 80,
-            'index'     => 'sku'
-        ));
+            'index'     => 'sku',
+        ]);
 
-        $this->addColumn('price', array(
-            'header'        => Mage::helper('catalog')->__('Price'),
+        $this->addColumn('price', [
             'type'          => 'currency',
-            'currency_code' => (string) Mage::getStoreConfig(Mage_Directory_Model_Currency::XML_PATH_CURRENCY_BASE),
-            'index'         => 'price'
-        ));
+            'currency_code' => Mage_Directory_Helper_Data::getConfigCurrencyBase(),
+        ]);
 
-        $this->addColumn('position', array(
+        $this->addColumn('position', [
             'header'                    => Mage::helper('catalog')->__('Position'),
             'name'                      => 'position',
             'type'                      => 'number',
@@ -211,20 +192,19 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
             'index'                     => 'position',
             'editable'                  => !$this->_getProduct()->getUpsellReadonly(),
             'edit_only'                 => !$this->_getProduct()->getId(),
-            'filter_condition_callback' => array($this, '_addLinkModelFilterCallback')
-        ));
+            'filter_condition_callback' => $this->_addLinkModelFilterCallback(...),
+        ]);
 
         return parent::_prepareColumns();
     }
 
     /**
-     * Rerieve grid URL
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->_getData('grid_url') ? $this->_getData('grid_url') : $this->getUrl('*/*/upsellGrid', array('_current'=>true));
+        return $this->_getData('grid_url') ?: $this->getUrl('*/*/upsellGrid', ['_current' => true]);
     }
 
     /**
@@ -236,8 +216,9 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
     {
         $products = $this->getProductsUpsell();
         if (!is_array($products)) {
-            $products = array_keys($this->getSelectedUpsellProducts());
+            return array_keys($this->getSelectedUpsellProducts());
         }
+
         return $products;
     }
 
@@ -248,11 +229,11 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Upsell extends Mage_Adminhtm
      */
     public function getSelectedUpsellProducts()
     {
-        $products = array();
+        $products = [];
         foreach (Mage::registry('current_product')->getUpSellProducts() as $product) {
-            $products[$product->getId()] = array('position' => $product->getPosition());
+            $products[$product->getId()] = ['position' => $product->getPosition()];
         }
+
         return $products;
     }
-
 }

@@ -1,42 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api2
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api2
  */
 
 /**
  * API2 EAV Validator
  *
- * @category   Mage
  * @package    Mage_Api2
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Validator
 {
     /**
      * Config node key of current validator
      */
-    const CONFIG_NODE_KEY = 'eav';
+    public const CONFIG_NODE_KEY = 'eav';
 
     /**
      * Form path
@@ -72,47 +53,58 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
      * Required parameteres for options:
      * - resource
      *
-     * @param array $options
-     * @throws Exception If passed parameter 'resource' is wrong
-     * @throws Exception If config parameter 'formPath' is empty
-     * @throws Exception If config parameter 'formCode' is empty
+     * @param  array     $options
      * @throws Exception If config parameter 'entity' is wrong
-     * @throws Exception If entity is not model
+     * @throws Exception If config parameter 'formCode' is empty
+     * @throws Exception If config parameter 'formPath' is empty
      * @throws Exception If eav form is not found
+     * @throws Exception If entity is not model
+     * @throws Exception If passed parameter 'resource' is wrong
      */
     public function __construct($options)
     {
         if (!isset($options['resource']) || !$options['resource'] instanceof Mage_Api2_Model_Resource) {
             throw new Exception("Passed parameter 'resource' is wrong.");
         }
+
         $resource = $options['resource'];
         $userType = $resource->getUserType();
 
         $validationConfig = $resource->getConfig()->getValidationConfig(
-            $resource->getResourceType(), self::CONFIG_NODE_KEY);
+            $resource->getResourceType(),
+            self::CONFIG_NODE_KEY,
+        );
 
         if (empty($validationConfig[$userType]['form_model'])) {
             throw new Exception("Config parameter 'formPath' is empty.");
         }
+
         $this->_formPath = $validationConfig[$userType]['form_model'];
 
         if (empty($validationConfig[$userType]['form_code'])) {
             throw new Exception("Config parameter 'formCode' is empty.");
         }
+
         $this->_formCode = $validationConfig[$userType]['form_code'];
 
         if (empty($validationConfig[$userType]['entity_model'])) {
             throw new Exception("Config parameter 'entity' is wrong.");
         }
-        $this->_entity = Mage::getModel($validationConfig[$userType]['entity_model']);
-        if (empty($this->_entity) || !$this->_entity instanceof Mage_Core_Model_Abstract) {
-            throw new Exception("Entity is not model.");
+
+        $entityModel = Mage::getModel($validationConfig[$userType]['entity_model']);
+        if (empty($entityModel) || !$entityModel instanceof Mage_Core_Model_Abstract) {
+            throw new Exception('Entity is not model.');
         }
 
-        $this->_eavForm = Mage::getModel($this->_formPath);
-        if (empty($this->_eavForm) || !$this->_eavForm instanceof Mage_Eav_Model_Form) {
-            throw new Exception("Eav form '{$this->_formPath}' is not found.");
+        $this->_entity = $entityModel;
+
+        $formModel = Mage::getModel($this->_formPath);
+        if (empty($formModel) || !$formModel instanceof Mage_Eav_Model_Form) {
+            throw new Exception("Eav form '{$formModel}' is not found.");
         }
+
+        $this->_eavForm = $formModel;
+
         $this->_eavForm->setEntity($this->_entity)
             ->setFormCode($this->_formCode)
             ->ignoreInvisible(false);
@@ -121,19 +113,20 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
     /**
      * Validate attribute value for attributes with source models
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @param mixed $attrValue
+     * @param  mixed               $attrValue
      * @return array|bool
+     * @throws Mage_Core_Exception
      */
     protected function _validateAttributeWithSource(Mage_Eav_Model_Entity_Attribute_Abstract $attribute, $attrValue)
     {
-        $errors = array();
+        $errors = [];
 
         // validate attributes with source models
-        if (null !== $attrValue && $attribute->getSourceModel()) {
-            if ('multiselect' !== $attribute->getFrontendInput() && is_array($attrValue)) {
-                return array('Invalid value type for ' . $attribute->getAttributeCode());
+        if ($attrValue !== null && $attribute->getSourceModel()) {
+            if ($attribute->getFrontendInput() !== 'multiselect' && is_array($attrValue)) {
+                return ['Invalid value type for ' . $attribute->getAttributeCode()];
             }
+
             $possibleValues = $attribute->getSource()->getAllOptions(false);
 
             foreach ((array) $attrValue as $value) {
@@ -148,21 +141,22 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
                             break;
                         }
                     }
+
                     if (!$isValid) {
-                        $errors[] = 'Invalid value "' . $value . '" for '. $attribute->getAttributeCode();
+                        $errors[] = 'Invalid value "' . $value . '" for ' . $attribute->getAttributeCode();
                     }
                 } else {
                     $errors[] = 'Invalid value type for ' . $attribute->getAttributeCode();
                 }
             }
         }
+
         return $errors ? $errors : true;
     }
 
     /**
      * Filter request data.
      *
-     * @param  array $data
      * @return array Filtered data
      */
     public function filter(array $data)
@@ -178,21 +172,23 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
      * getErrors() will return an array of errors that explain why the
      * validation failed.
      *
-     * @param array $data
-     * @param bool $partial
+     * @param  bool                $partial
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function isValidData(array $data, $partial = false)
     {
-        $errors = array();
+        $errors = [];
         foreach ($this->_eavForm->getAttributes() as $attribute) {
             if ($partial && !array_key_exists($attribute->getAttributeCode(), $data)) {
                 continue;
             }
+
             if ($this->_eavForm->ignoreInvisible() && !$attribute->getIsVisible()) {
                 continue;
             }
-            $attrValue = isset($data[$attribute->getAttributeCode()]) ? $data[$attribute->getAttributeCode()] : null;
+
+            $attrValue = $data[$attribute->getAttributeCode()] ?? null;
 
             $result = Mage_Eav_Model_Attribute_Data::factory($attribute, $this->_eavForm->getEntity())
                 ->setExtractedData($data)
@@ -203,14 +199,15 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
             } else {
                 $result = $this->_validateAttributeWithSource($attribute, $attrValue);
 
-                if (true !== $result) {
+                if ($result !== true) {
                     $errors = array_merge($errors, $result);
                 }
             }
         }
+
         $this->_setErrors($errors);
 
-        return $errors ? false : true;
+        return !$errors;
     }
 
     /**
@@ -218,14 +215,21 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
      *
      * @return array
      */
+    #[Override]
     public function getErrors()
     {
         // business asked to avoid additional validation message, so we filter it here
-        $errors        = array();
-        $requiredAttrs = array();
-        $isRequiredRE  = '/^' . str_replace('%s', '(.+)', preg_quote(Mage::helper('eav')->__('"%s" is a required value.'))) . '$/';
+        $errors        = [];
+        $requiredAttrs = [];
+        $isRequiredRE  = '/^' . str_replace(
+            '%s',
+            '(.+)',
+            preg_quote(Mage::helper('eav')->__('"%s" is a required value.'), '/'),
+        ) . '$/';
         $greaterThanRE = '/^' . str_replace(
-            '%s', '(.+)', preg_quote(Mage::helper('eav')->__('"%s" length must be equal or greater than %s characters.'))
+            '%s',
+            '(.+)',
+            preg_quote(Mage::helper('eav')->__('"%s" length must be equal or greater than %s characters.'), '/'),
         ) . '$/';
 
         // find all required attributes labels
@@ -234,6 +238,7 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
                 $requiredAttrs[$matches[1]] = true;
             }
         }
+
         // exclude additional messages for required attributes been failed
         foreach ($this->_errors as $error) {
             if (preg_match($isRequiredRE, $error)
@@ -243,6 +248,7 @@ class Mage_Api2_Model_Resource_Validator_Eav extends Mage_Api2_Model_Resource_Va
                 $errors[] = $error;
             }
         }
+
         return $errors;
     }
 }

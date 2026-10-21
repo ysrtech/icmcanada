@@ -38,10 +38,10 @@ if($collection->getSize()): ?>
         <?php foreach($collection as $_item): ?>
             <li class="item">
                 <div class="product">
-                    <a href="<?php echo $_item->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_item->getName()) ?>" class="item-image">
-                    <img src="<?php echo $this->helper('catalog/image')->init($_item, 'thumbnail')->resize(120) ?>" width="120" height="120" alt="<?php echo $this->htmlEscape($_item->getName()) ?>" /></a>
+                    <a href="<?php echo $_item->getProductUrl() ?>" title="<?php echo $this->escapeHtml($_item->getName()) ?>" class="item-image">
+                    <img src="<?php echo $this->helper('catalog/image')->init($_item, 'thumbnail')->resize(120) ?>" width="120" height="120" alt="<?php echo $this->escapeHtml($_item->getName()) ?>" /></a>
                     <div class="item-details">
-                        <p class="item-name"><a href="<?php echo $_item->getProductUrl() ?>"><?php echo $this->htmlEscape($_item->getName()) ?></a></p>
+                        <p class="item-name"><a href="<?php echo $_item->getProductUrl() ?>"><?php echo $this->escapeHtml($_item->getName()) ?></a></p>
                         <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>
                         <?php echo $this->getPriceHtml($_item, true, '-related') ?>
                         <?php endif ?>

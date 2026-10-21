@@ -10,6 +10,7 @@ $separator = $this->getDataOr('separator', ', ');
 
 
 $_helper = $this->helper('dc_catalog/attributeInfo');
+$_urlHelper = $this->helper('dc_catalog');
 $attributeOptions = $this->getProduct()->getData($attributeCode);
 
 if (strpos($attributeOptions, ',') === false) {
@@ -82,15 +83,15 @@ for ($i = 0; $i < sizeof($attributeOptions); $i++) {
 				if ('block' == $img_align) {
 					$_imgHtml = '
 						<a href="'.$this->getUrl('/').$_attr->getAttributeCode().'/'.$_attr->getIdentifier().'"
-						title="'.$this->htmlEscape($_attr->getName()).'"
+						title="'.$this->escapeHtml($_attr->getName()).'"
 						style="display: block; background:url(\''.$_imgUrl.'\') no-repeat top center; height: '.($thumbnail_height ? $thumbnail_height : $height).'px">
 						</a>';
 				} else {
 					$_imgHtml = '<img
 						width="'.($thumbnail_width ? $thumbnail_width : $width) .'"
 						src="'.$_imgUrl.'"
-						alt="'.$this->htmlEscape($_attr->getValue()).'"
-						title="'.$this->htmlEscape($_attr->getValue()).'"
+						alt="'.$this->escapeHtml($_attr->getValue()).'"
+						title="'.$this->escapeHtml($_attr->getValue()).'"
 						align="'.$img_align.'"
 						class="product-attribute-image" />';
 				}
@@ -103,14 +104,14 @@ for ($i = 0; $i < sizeof($attributeOptions); $i++) {
 				$output[] = $_imgHtml;
 			} else {
 				$output[] = '<a
-					href="'. $this->getUrl('/').$_attr->getAttributeCode().'/'.$_attr->getIdentifier().'"
+					href="'. $this->getUrl('/').$_urlHelper->getAttributeUrlPrefix($_attr->getAttributeCode()).'/'.$_attr->getIdentifier().'"
 					title="'. $_attr->getName().'">'. $_imgHtml.'</a>';
 			}
 			$hasImages = true;
 		} elseif (!$image_only) {
 			$output[] = '<a
-					href="'. $this->getUrl('/').$_attr->getAttributeCode().'/'.$_attr->getIdentifier().'"
-					title="'. $this->htmlEscape($_attr->getName()).'">'.$_attr->getValue().'</a>';
+				href="'. $this->getUrl('/').$_urlHelper->getAttributeUrlPrefix($_attr->getAttributeCode()).'/'.$_attr->getIdentifier().'"
+					title="'. $this->escapeHtml($_attr->getName()).'">'.$_attr->getValue().'</a>';
 			$hasText = true;
 		}
 	}
@@ -120,7 +121,7 @@ for ($i = 0; $i < sizeof($attributeOptions); $i++) {
 if (sizeof($output) > 0) {
 	if ($hasText && !$hasImages && !$image_only) {
 		?><div class="attribute-specs">
-			<span class="label"><?php echo $this->htmlEscape($_attr->getFrontendLabel()) ?></span>
+			<span class="label"><?php echo $this->escapeHtml($_attr->getFrontendLabel()) ?></span>
 			<span class="data"><?php
 					echo join($separator, $output);
 			?></span>

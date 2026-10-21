@@ -114,6 +114,9 @@ blcg.Tools = {
         if (windowConfig.resizable) {
             windowConfig.windowClassName += ' blcg-resizable-popup-window';
         }
+        if (windowConfig.alwaysMaximized) {
+            windowConfig.windowClassName += ' blcg-maximized-popup-window';
+        }
         if (windowUrl) {
             // Dialog.info() doesn't care about url parameter, then always uses innerHTML even when it shouldn't
             windowConfig.url = '';
@@ -471,16 +474,29 @@ blcg.Tools = {
         } catch(e) {}
         
         return text;
+    },
+    
+    adaptPopupPageWrapper: function()
+    {
+        var wrapper = $$('#html-body .wrapper')[0];
+        var popupWrapper = $$('#html-body .wrapper-popup')[0];
+        
+        if (!wrapper && popupWrapper && !popupWrapper.hasClassName('wrapper')) {
+            popupWrapper.addClassName('wrapper');
+        }
     }
 };
 
 blcg.Grid.Tools = {
-    getGridObject: function(gridObject)
+    getGridObject: function(gridObject, parentWindow)
     {
+        var holdingWindow = (parentWindow ? window.top || window : window);
+        
         if (Object.isString(gridObject)) {
-            gridObject = (gridObject in window ? window[gridObject] : null);
+            gridObject = (gridObject in holdingWindow ? holdingWindow[gridObject] : null);
         }
-        return (gridObject instanceof varienGrid ? gridObject : null);
+        
+        return (gridObject instanceof holdingWindow.varienGrid ? gridObject : null);
     },
     
     getGridReloadUrl: function(gridObject, removableParams, additionalParams)
@@ -510,10 +526,10 @@ blcg.Grid.Tools = {
         return url;
     },
     
-    reloadGrid: function(gridObject, removableParams, additionalParams)
+    reloadGrid: function(gridObject, removableParams, additionalParams, parentWindow)
     {
         
-        if (!(gridObject = blcg.Grid.Tools.getGridObject(gridObject))) {
+        if (!(gridObject = blcg.Grid.Tools.getGridObject(gridObject, parentWindow))) {
             alert(blcg.Tools.translate('Could not reload the grid. Please reload it manually to apply any change'));
             return false;
         }
@@ -546,6 +562,676 @@ blcg.Grid.Tools = {
         }
     }
 };
+
+/**
+ * Searchable select
+ * 
+ * Adds a search field to a select element, which filters its options while typing.
+ * The original select element is kept as-is (and still holds the values), so that
+ * everything relying on it (form serialization, validation, native behaviours, ...)
+ * keeps on working the same way.
+ */
+blcg.SearchableSelect = Class.create();
+
+blcg.SearchableSelect.prototype = {
+    initialize: function(select, config)
+    {
+        this.config = Object.extend({
+            wrapperClassName: 'blcg-searchable-select',
+            layoutClassName: 'blcg-searchable-select-block',
+            searchClassName: 'blcg-searchable-select-search',
+            inputClassName: 'blcg-searchable-select-input',
+            counterClassName: 'blcg-searchable-select-counter',
+            noResultClassName: 'blcg-searchable-select-no-result',
+            enhancedClassName: 'blcg-searchable-select-enhanced',
+            noResultOptionClassName: 'blcg-searchable-select-no-result-option',
+            searchDelay: 100,
+            placeholder: null,
+            noResultLabel: null,
+            // Grid object on which to apply the filters when the ENTER key is pressed (grid filters)
+            gridObject: null,
+            // Callbacks called when the ENTER / ESCAPE key is pressed (respectively)
+            onEnter: null,
+            onEscape: null
+        }, config || {});
+        
+        if (!(this.select = $(select)) || this.select.retrieve(blcg.SearchableSelect.STORAGE_KEY, null)) {
+            return false;
+        }
+        
+        this.query = '';
+        this.searchTimeout   = null;
+        this.noResultOption  = null;
+        this.options         = this.extractOptions();
+        this.optionsCount    = this.countSelectableOptions(this.options);
+        this.selectedValues  = this.getSelectedValues();
+        this.matchingValues  = this.getSelectableValues(this.options);
+        
+        this.build();
+        this.select.store(blcg.SearchableSelect.STORAGE_KEY, this);
+    },
+    
+    /**
+     * Prepare and return the given string for searches
+     */
+    prepareSearchString: function(value)
+    {
+        return ('' + value).toLowerCase().replace(/\s+/g, ' ').strip();
+    },
+    
+    /**
+     * Return the description of the given option element
+     */
+    extractOption: function(element)
+    {
+        return {
+            isGroup: false,
+            element: element,
+            value: element.value,
+            isEmpty: blcg.Tools.isEmptyValue(element.value),
+            searchLabel: this.prepareSearchString(element.text)
+        };
+    },
+    
+    /**
+     * Return the descriptions of the options (and groups of options) held by the handled select element
+     */
+    extractOptions: function()
+    {
+        var options = [];
+        
+        $A(this.select.childNodes).each(function(node) {
+            var tagName = (node.tagName ? node.tagName.toLowerCase() : '');
+            
+            if (tagName == 'option') {
+                options.push(this.extractOption(node));
+            } else if (tagName == 'optgroup') {
+                var group = {
+                    isGroup: true,
+                    element: node,
+                    searchLabel: this.prepareSearchString(node.label || ''),
+                    options: []
+                };
+                
+                $A(node.childNodes).each(function(subNode) {
+                    if (subNode.tagName && (subNode.tagName.toLowerCase() == 'option')) {
+                        group.options.push(this.extractOption(subNode));
+                    }
+                }.bind(this));
+                
+                options.push(group);
+            }
+        }.bind(this));
+        
+        return options;
+    },
+    
+    /**
+     * Return the number of options that hold an actual value
+     */
+    countSelectableOptions: function(options)
+    {
+        return this.getSelectableValues(options).length;
+    },
+    
+    /**
+     * Return the values of the options that hold an actual value
+     */
+    getSelectableValues: function(options)
+    {
+        var values = [];
+        
+        $A(options).each(function(option) {
+            if (option.isGroup) {
+                values = values.concat(this.getSelectableValues(option.options));
+            } else if (!option.isEmpty) {
+                values.push(option.value);
+            }
+        }.bind(this));
+        
+        return values;
+    },
+    
+    /**
+     * Return the values that are currently selected in the handled select element
+     */
+    getSelectedValues: function()
+    {
+        var values = [];
+        
+        $A(this.select.options).each(function(option) {
+            if (option.selected) {
+                values.push(option.value);
+            }
+        });
+        
+        return values;
+    },
+    
+    /**
+     * Build the search field and its container, and move the handled select element into the latter
+     */
+    build: function()
+    {
+        var placeholder = this.getPlaceholder();
+        
+        this.wrapper = new Element('div', {
+            'class': this.config.wrapperClassName + ' ' + this.config.layoutClassName
+        });
+        
+        var searchBox = new Element('div', { 'class': this.config.searchClassName });
+        
+        this.input = new Element('input', {
+            'type': 'text',
+            'class': this.config.inputClassName,
+            'autocomplete': 'off',
+            'placeholder': placeholder,
+            'title': placeholder
+        });
+        
+        this.counter = new Element('span', { 'class': this.config.counterClassName });
+        
+        searchBox.appendChild(this.input);
+        searchBox.appendChild(this.counter);
+        this.wrapper.appendChild(searchBox);
+        
+        this.select.insert({ before: this.wrapper });
+        this.wrapper.appendChild(this.select);
+        this.select.addClassName(this.config.enhancedClassName);
+        
+        this.input.observe('keydown', this.onInputKeyDown.bind(this));
+        this.input.observe('keyup',   this.onInputChange.bind(this));
+        this.input.observe('input',   this.onInputChange.bind(this));
+        this.select.observe('change', this.onSelectChange.bind(this));
+        
+        this.updateCounter(this.optionsCount);
+    },
+    
+    getPlaceholder: function()
+    {
+        return (this.config.placeholder ? this.config.placeholder : blcg.Tools.translate('Filter options'));
+    },
+    
+    getNoResultLabel: function()
+    {
+        return (this.config.noResultLabel ? this.config.noResultLabel : blcg.Tools.translate('No matching option'));
+    },
+    
+    /**
+     * Return whether the given option matches all the given search tokens
+     */
+    isMatchingOption: function(option, tokens, isMatchingGroup)
+    {
+        if ((tokens.length === 0) || isMatchingGroup) {
+            return true;
+        }
+        for (var i = 0, l = tokens.length; i < l; i++) {
+            if (option.searchLabel.indexOf(tokens[i]) < 0) {
+                return false;
+            }
+        }
+        return true;
+    },
+    
+    /**
+     * Return whether the given option must be displayed.
+     * Empty and selected options are always kept, so that the current value can neither be lost nor be unresettable
+     */
+    isKeptOption: function(option, isMatching)
+    {
+        return isMatching
+            || option.isEmpty
+            || (this.selectedValues.indexOf(option.value) >= 0);
+    },
+    
+    /**
+     * Detach all the child nodes from the given element
+     */
+    emptyElement: function(element)
+    {
+        while (element.firstChild) {
+            element.removeChild(element.firstChild);
+        }
+    },
+    
+    /**
+     * Rebuild the options of the handled select element, keeping only those matching the given search query
+     */
+    applyFilter: function(query)
+    {
+        var tokens = (query === '' ? [] : query.split(' ').without(''));
+        var fragment = document.createDocumentFragment();
+        var matchingValues = [];
+        
+        this.query = query;
+        this.selectedValues = this.getSelectedValues();
+        this.emptyElement(this.select);
+        this.noResultOption = null;
+        
+        this.options.each(function(option) {
+            if (option.isGroup) {
+                var isMatchingGroup = this.isMatchingOption(option, tokens, false);
+                var keptOptions = [];
+                
+                option.options.each(function(subOption) {
+                    var isMatching = this.isMatchingOption(subOption, tokens, isMatchingGroup);
+                    
+                    if (this.isKeptOption(subOption, isMatching)) {
+                        keptOptions.push(subOption);
+                        
+                        if (isMatching && !subOption.isEmpty) {
+                            matchingValues.push(subOption.value);
+                        }
+                    }
+                }.bind(this));
+                
+                if (keptOptions.length > 0) {
+                    this.emptyElement(option.element);
+                    keptOptions.each(function(keptOption) {
+                        option.element.appendChild(keptOption.element);
+                    });
+                    fragment.appendChild(option.element);
+                }
+            } else {
+                var isMatching = this.isMatchingOption(option, tokens, false);
+                
+                if (this.isKeptOption(option, isMatching)) {
+                    fragment.appendChild(option.element);
+                    
+                    if (isMatching && !option.isEmpty) {
+                        matchingValues.push(option.value);
+                    }
+                }
+            }
+        }.bind(this));
+        
+        this.select.appendChild(fragment);
+        this.matchingValues = matchingValues;
+        
+        if (matchingValues.length === 0) {
+            this.noResultOption = new Element('option', {
+                'value': '',
+                'disabled': 'disabled',
+                'class': this.config.noResultOptionClassName
+            });
+            this.noResultOption.appendChild(document.createTextNode(this.getNoResultLabel()));
+            this.select.appendChild(this.noResultOption);
+            this.wrapper.addClassName(this.config.noResultClassName);
+        } else {
+            this.wrapper.removeClassName(this.config.noResultClassName);
+        }
+        
+        this.restoreSelection();
+        this.updateCounter(matchingValues.length);
+    },
+    
+    /**
+     * Re-apply the selected values to the currently displayed options
+     */
+    restoreSelection: function()
+    {
+        var values = this.selectedValues;
+        
+        $A(this.select.options).each(function(option) {
+            option.selected = (option !== this.noResultOption) && (values.indexOf(option.value) >= 0);
+        }.bind(this));
+    },
+    
+    /**
+     * Update the counter of matching options
+     */
+    updateCounter: function(matchesCount)
+    {
+        if (this.query === '') {
+            this.counter.update('');
+            this.counter.hide();
+        } else {
+            this.counter.update(matchesCount + '/' + this.optionsCount);
+            this.counter.show();
+        }
+    },
+    
+    /**
+     * Fire a change event on the handled select element, so that any external handler can be aware of the new value
+     */
+    fireSelectChange: function()
+    {
+        if (document.createEvent) {
+            var event = document.createEvent('HTMLEvents');
+            event.initEvent('change', true, true);
+            this.select.dispatchEvent(event);
+        } else if (this.select.fireEvent) {
+            this.select.fireEvent('onchange');
+        }
+    },
+    
+    onSelectChange: function()
+    {
+        this.selectedValues = this.getSelectedValues();
+    },
+    
+    onInputChange: function()
+    {
+        this.stopSearchTimeout();
+        this.searchTimeout = window.setTimeout(this.runSearch.bind(this), this.config.searchDelay);
+    },
+    
+    stopSearchTimeout: function()
+    {
+        if (this.searchTimeout) {
+            window.clearTimeout(this.searchTimeout);
+            this.searchTimeout = null;
+        }
+    },
+    
+    /**
+     * Apply the search query currently held by the search field, if it did change
+     */
+    runSearch: function()
+    {
+        this.stopSearchTimeout();
+        var query = this.prepareSearchString(this.input.value);
+        
+        if (query !== this.query) {
+            this.applyFilter(query);
+        }
+    },
+    
+    onInputKeyDown: function(event)
+    {
+        switch (event.keyCode) {
+            case Event.KEY_RETURN:
+                event.stop();
+                this.onEnterKey();
+                break;
+                
+            case Event.KEY_ESC:
+                if (this.input.value !== '') {
+                    event.stop();
+                    this.clear();
+                } else if (this.config.onEscape) {
+                    event.stop();
+                    this.config.onEscape(this);
+                }
+                break;
+                
+            case Event.KEY_DOWN:
+                event.stop();
+                this.runSearch();
+                this.focusSelect();
+                break;
+        }
+    },
+    
+    /**
+     * Select the only matching option if there is just one left, then let the context handle the key press
+     */
+    onEnterKey: function()
+    {
+        this.runSearch();
+        var hasAppliedValue = false;
+        
+        if (!this.select.multiple && (this.matchingValues.length == 1)) {
+            this.selectedValues = [this.matchingValues[0]];
+            this.restoreSelection();
+            this.fireSelectChange();
+            hasAppliedValue = true;
+        }
+        
+        if (this.config.gridObject) {
+            try {
+                this.config.gridObject.doFilter();
+            } catch (e) {}
+        }
+        if (this.config.onEnter) {
+            this.config.onEnter(this, hasAppliedValue);
+        }
+    },
+    
+    /**
+     * Reset the search field and display back all the options
+     */
+    clear: function()
+    {
+        this.stopSearchTimeout();
+        this.input.value = '';
+        
+        if (this.query !== '') {
+            this.applyFilter('');
+        }
+    },
+    
+    focusSearch: function()
+    {
+        this.input.activate();
+    },
+    
+    focusSelect: function()
+    {
+        this.select.focus();
+    }
+};
+
+Object.extend(blcg.SearchableSelect, {
+    STORAGE_KEY: 'blcg.searchableSelect',
+    
+    config: {
+        enabled: true,
+        minOptions: 10,
+        gridFilters: true,
+        editors: true,
+        /* "combo" renders the grid filters with blcg.SelectWidget, "legacy" with this widget */
+        style: 'combo'
+    },
+    
+    setConfig: function(config)
+    {
+        Object.extend(this.config, config || {});
+    },
+    
+    isEnabled: function()
+    {
+        return !!this.config.enabled;
+    },
+    
+    getMinOptions: function()
+    {
+        var minOptions = parseInt(this.config.minOptions, 10);
+        return (isNaN(minOptions) || (minOptions < 1) ? 1 : minOptions);
+    },
+    
+    /**
+     * Return the number of options holding an actual value in the given select element
+     */
+    countSelectableOptions: function(select)
+    {
+        var count = 0;
+        
+        $A(select.options).each(function(option) {
+            if (!blcg.Tools.isEmptyValue(option.value)) {
+                count++;
+            }
+        });
+        
+        return count;
+    },
+    
+    /**
+     * Return whether the given select element should be made searchable
+     */
+    isEligible: function(select)
+    {
+        return (select = $(select))
+            && !select.retrieve(this.STORAGE_KEY, null)
+            && (select.readAttribute('blcg-searchable') !== '0')
+            && (this.countSelectableOptions(select) > this.getMinOptions());
+    },
+    
+    /**
+     * Make the given select element searchable, if it is eligible
+     */
+    apply: function(select, config)
+    {
+        return (this.isEnabled() && this.isEligible(select))
+            ? new blcg.SearchableSelect(select, config)
+            : null;
+    },
+    
+    /**
+     * Make all the eligible select elements from the given container searchable
+     */
+    applyToContainer: function(container, config, selector)
+    {
+        var widgets = [];
+        
+        if (!this.isEnabled() || !(container = $(container))) {
+            return widgets;
+        }
+        
+        container.select(selector || 'select').each(function(select) {
+            var widget = this.apply(select, config);
+            
+            if (widget) {
+                widgets.push(widget);
+            }
+        }.bind(this));
+        
+        return widgets;
+    }
+});
+
+/**
+ * Handler in charge of making the dropdown filters of the admin grids searchable,
+ * either at page load or after a grid has been reloaded with AJAX
+ */
+blcg.SearchableSelect.GridFilters = {
+    /**
+     * @param string string
+     * @return string
+     */
+    translate: function(string)
+    {
+        return (typeof(Translator) != 'undefined') ? Translator.translate(string) : string;
+    },
+    
+    isInitialized: false,
+    selector: 'tr.filter select',
+    
+    init: function()
+    {
+        if (this.isInitialized) {
+            return;
+        }
+        
+        this.isInitialized = true;
+        this.wrapGridInit();
+        this.applyTo(document.body);
+    },
+    
+    /**
+     * Wrap varienGrid.initGrid(), which is also called each time a grid is reloaded with AJAX,
+     * so that the newly displayed filters can be handled too
+     */
+    wrapGridInit: function()
+    {
+        if ((typeof(varienGrid) == 'undefined')
+            || !varienGrid.prototype
+            || varienGrid.prototype.blcgHasSearchableFilters) {
+            return;
+        }
+        
+        var baseInitGrid = varienGrid.prototype.initGrid;
+        var handler = this;
+        
+        varienGrid.prototype.initGrid = function() {
+            var result = baseInitGrid.apply(this, arguments);
+            
+            try {
+                handler.applyTo($(this.containerId), this);
+            } catch (e) {}
+            
+            return result;
+        };
+        
+        varienGrid.prototype.blcgHasSearchableFilters = true;
+    },
+    
+    applyTo: function(container, gridObject)
+    {
+        if (!blcg.SearchableSelect.isEnabled()
+            || !blcg.SearchableSelect.config.gridFilters
+            || !(container = $(container))) {
+            return [];
+        }
+        
+        var widgets = [];
+        
+        /*
+         * The combobox rendering replaces this widget in the filter row - see
+         * select-widget.js. It falls back to this one if that file failed to
+         * load, so a missing asset never leaves a grid without a way to search
+         * its filters.
+         */
+        var useCombo = (blcg.SearchableSelect.config.style != 'legacy')
+            && (typeof(blcg.SelectWidget) != 'undefined');
+        
+        container.select(this.selector).each(function(select) {
+            if (useCombo && blcg.SelectWidget.apply(select, { placeholder: this.translate('Any') })) {
+                return;
+            }
+            
+            var widget = blcg.SearchableSelect.apply(select, {
+                layoutClassName: 'blcg-searchable-select-block',
+                gridObject: (gridObject ? gridObject : this.findGridObject(select))
+            });
+            
+            if (widget) {
+                widgets.push(widget);
+            }
+        }.bind(this));
+        
+        return widgets;
+    },
+    
+    /**
+     * Return the grid object to which belongs the given element, if it can be found
+     * (grid objects are named after the ID of their container, as done by Mage_Adminhtml_Block_Widget_Grid)
+     */
+    findGridObject: function(element)
+    {
+        var gridObject = null;
+        var table = element.up('table');
+        var tableId = (table ? table.id : '');
+        
+        if (tableId && (tableId.length > 6) && (tableId.substring(tableId.length - 6) == '_table')) {
+            gridObject = this.getGridObject(tableId.substring(0, tableId.length - 6));
+        }
+        
+        var container = element.up();
+        
+        while (!gridObject && container && (container.tagName.toLowerCase() != 'body')) {
+            if (container.id) {
+                gridObject = this.getGridObject(container.id);
+            }
+            container = container.up();
+        }
+        
+        return gridObject;
+    },
+    
+    getGridObject: function(containerId)
+    {
+        try {
+            return blcg.Grid.Tools.getGridObject(containerId + 'JsObject');
+        } catch (e) {}
+        
+        return null;
+    }
+};
+
+document.observe('dom:loaded', function() {
+    blcg.SearchableSelect.GridFilters.init();
+});
 
 blcg.EventsManager = Class.create();
 blcg.EventsManager.prototype = {
@@ -1454,7 +2140,8 @@ blcg.Grid.ProfilesBar.prototype = {
             baseClassName: 'blcg-base',
             disabledClassName: 'blcg-disabled',
             hiddenClassName: 'blcg-no-display',
-            maxDisplayedCount: 8
+            maxDisplayedCountRatio: 140,
+            defaultMaxDisplayedCount: 8
         }, config || {});
         
         this.barId = barId;
@@ -1468,11 +2155,12 @@ blcg.Grid.ProfilesBar.prototype = {
         this.sortedIds = $A(sortedIds); // Hash.each() may not keep initial order
         this.profiles  = $H(profiles);
         this.actions   = $H(actions);
-        this.baseProfileId    = null;
-        this.currentProfile   = null;
-        this.currentProfileId = null;
-        this.isActionRunning  = false;
-        this.isInitializing   = true;
+        this.baseProfileId     = null;
+        this.currentProfile    = null;
+        this.currentProfileId  = null;
+        this.isActionRunning   = false;
+        this.maxDisplayedCount = this.config.defaultMaxDisplayedCount;
+        this.isInitializing    = true;
         
         this.sortedIds.each(function(profileId) {
             var profile = this.getProfile(profileId);
@@ -1490,8 +2178,9 @@ blcg.Grid.ProfilesBar.prototype = {
             }
         }.bind(this));
         
-        this.isInitializing = true;
         this.currentDisplayIndex = 0;
+        this.userScrollDirection = 'left';
+        this.userScrollOutmostIndex = 0;
         this.refreshProfilesCount();
         
         if (this.currentProfile) {
@@ -1541,6 +2230,9 @@ blcg.Grid.ProfilesBar.prototype = {
         this.isInitializing = false;
         this.previousArrow.observe('click', function(e) { this.scrollToPrevious(); }.bind(this));
         this.nextArrow.observe('click', function(e) { this.scrollToNext(); }.bind(this));
+        
+        this.refreshMaxDisplayedCount();
+        new PeriodicalExecuter(this.refreshMaxDisplayedCount.bind(this), 1);
     },
     
     refreshProfilesCount: function()
@@ -1552,10 +2244,10 @@ blcg.Grid.ProfilesBar.prototype = {
         }.bind(this));
         
         this.profilesCount = this.profiles.size();
-        var listClassCount = Math.min(this.profilesCount, this.config.maxDisplayedCount);
+        var listClassCount = Math.min(this.profilesCount, this.maxDisplayedCount);
         this.profilesList.addClassName('' + this.config.listCountBaseClassName + listClassCount);
         
-        if (listClassCount == this.config.maxDisplayedCount) {
+        if (listClassCount == this.maxDisplayedCount) {
             this.profilesList.addClassName(this.config.listFullClassName);
         } else {
             this.profilesList.removeClassName(this.config.listFullClassName);
@@ -1564,7 +2256,7 @@ blcg.Grid.ProfilesBar.prototype = {
     
     refreshListArrows: function()
     {
-        if (this.profilesCount < this.config.maxDisplayedCount) {
+        if (this.profilesCount < this.maxDisplayedCount) {
             this.previousArrow.addClassName(this.config.hiddenClassName);
             this.nextArrow.addClassName(this.config.hiddenClassName);
         } else {
@@ -1576,8 +2268,8 @@ blcg.Grid.ProfilesBar.prototype = {
             } else {
                 this.previousArrow.removeClassName(this.config.disabledClassName);
             }
-            if (this.profilesCount >= this.config.maxDisplayedCount) {
-                if (this.currentDisplayIndex + this.config.maxDisplayedCount < this.profilesCount) {
+            if (this.profilesCount >= this.maxDisplayedCount) {
+                if (this.currentDisplayIndex + this.maxDisplayedCount < this.profilesCount) {
                     this.nextArrow.removeClassName(this.config.disabledClassName);
                 } else {
                     this.nextArrow.addClassName(this.config.disabledClassName);
@@ -1590,7 +2282,7 @@ blcg.Grid.ProfilesBar.prototype = {
     {
         this.currentDisplayIndex = index;
         var hideableSelector = 'li:nth-child(-n+' + index + ')';
-        hideableSelector += ',li:nth-child(n+' + (index + this.config.maxDisplayedCount + 1) + ')';
+        hideableSelector += ',li:nth-child(n+' + (index + this.maxDisplayedCount + 1) + ')';
         this.profilesList.select('li').invoke('removeClassName', 'blcg-no-display');
         this.profilesList.select(hideableSelector).invoke('addClassName', 'blcg-no-display');
         this.refreshListArrows();
@@ -1599,23 +2291,32 @@ blcg.Grid.ProfilesBar.prototype = {
     scrollToPrevious: function()
     {
         this.currentDisplayIndex = Math.max(0, this.currentDisplayIndex - 1);
+        this.userScrollDirection = 'previous';
+        this.userScrollOutmostIndex = this.currentDisplayIndex;
         this.scrollToIndex(this.currentDisplayIndex);
     },
     
     scrollToNext: function()
     {
         this.currentDisplayIndex = Math.min(
-            this.profilesCount - this.config.maxDisplayedCount,
+            this.profilesCount - this.maxDisplayedCount,
             this.currentDisplayIndex + 1
         );
+        
+        this.userScrollDirection = 'next';
+        this.userScrollOutmostIndex = Math.min(
+            this.currentDisplayIndex + this.maxDisplayedCount - 1,
+            this.profilesCount - 1
+        );
+        
         this.scrollToIndex(this.currentDisplayIndex);
     },
     
     scrollToProfile: function(profileId)
     {
         var profileIndex   = this.getProfileIndex(profileId),
-            leftMostIndex  = Math.min(profileIndex, this.profilesCount - this.config.maxDisplayedCount)
-            rightMostIndex = Math.max(0, profileIndex - this.config.maxDisplayedCount + 1);
+            leftMostIndex  = Math.min(profileIndex, this.profilesCount - this.maxDisplayedCount)
+            rightMostIndex = Math.max(0, profileIndex - this.maxDisplayedCount + 1);
         
         if (Math.abs(this.currentDisplayIndex - leftMostIndex) > Math.abs(this.currentDisplayIndex - rightMostIndex)) {
             this.currentDisplayIndex = rightMostIndex;
@@ -1626,16 +2327,35 @@ blcg.Grid.ProfilesBar.prototype = {
         this.scrollToIndex(this.currentDisplayIndex);
     },
     
+    refreshMaxDisplayedCount: function()
+    {
+        var listWidth = this.profilesList.getWidth();
+        var maxDisplayedCount = Math.floor(listWidth / this.config.maxDisplayedCountRatio);
+        
+        if (this.maxDisplayedCount !== maxDisplayedCount) {
+            this.maxDisplayedCount = maxDisplayedCount;
+            this.refreshProfilesCount();
+            this.refreshScroll();
+        }
+    },
+    
     refreshScroll: function()
     {
         this.currentDisplayIndex = Math.max(
             0,
             Math.min(
-                this.profilesCount - this.config.maxDisplayedCount,
-                this.currentDisplayIndex
+                this.profilesCount - this.maxDisplayedCount,
+                Math.max(this.currentDisplayIndex, this.getUserScrollDisplayIndex())
             )
         );
         this.scrollToIndex(this.currentDisplayIndex);
+    },
+    
+    getUserScrollDisplayIndex: function()
+    {
+        return (this.userScrollDirection === 'previous')
+            ? this.userScrollOutmostIndex
+            : this.userScrollOutmostIndex - this.maxDisplayedCount + 1;
     },
     
     getProfileIndex: function(profileId)
@@ -1935,8 +2655,9 @@ blcg.Grid.ConfigForm.prototype = {
     }
 };
 
-blcg.Grid.ColumnsConfigForm = Class.create(blcg.Grid.Form, {
-    initialize: function($super, containerId, rowClassName, saveUrl, config)
+blcg.Grid.ColumnsListConfig = Class.create();
+blcg.Grid.ColumnsListConfig.prototype = {
+    initialize: function(containerId, rowClassName, config)
     {
         this.config = Object.extend({
             tableIdSuffix: '-table',
@@ -1955,16 +2676,8 @@ blcg.Grid.ColumnsConfigForm = Class.create(blcg.Grid.Form, {
             maxOrder: 0,
             orderPitch: 1,
             useDnd: false,
-            dndHandleClassName: 'blcg-drag-handle',
-            gridObjectName: '',
-            additionalSaveParams: {}
+            dndHandleClassName: 'blcg-drag-handle'
         }, config || {});
-        
-        $super(containerId, saveUrl, {
-            gridObjectName: this.config.gridObjectName,
-            additionalParams: this.config.additionalSaveParams,
-            submitMethod: 'post'
-        });
         
         this.config.newRowClassNames = $A(this.config.newRowClassNames);
         this.config.newRowColumns    = $A(this.config.newRowColumns);
@@ -1991,7 +2704,6 @@ blcg.Grid.ColumnsConfigForm = Class.create(blcg.Grid.Form, {
         
         this.containerId  = containerId;
         this.rowClassName = rowClassName;
-        this.saveUrl = saveUrl;
         
         this.container = $(this.containerId);
         this.table     = $(this.containerId + this.config.tableIdSuffix);
@@ -2300,18 +3012,8 @@ blcg.Grid.ColumnsConfigForm = Class.create(blcg.Grid.Form, {
         this.checkedFilterValues = $A();
         this.updateCount();
         return false;
-    },
-    
-    saveColumns: function()
-    {
-        if ((this.checkedValues.size() == 0)
-            || (this.checkedValues.size() == this.checkedFilterValues.size())) {
-            alert(blcg.Tools.translate('At least one column must be fully visible'));
-            return false;
-        }
-        return this.save();
     }
-});
+};
 
 blcg.Grid.Renderer.ConfigForm = Class.create(blcg.Grid.ConfigForm);
 
@@ -2636,7 +3338,8 @@ blcg.Grid.Editor.prototype = {
             requiredCellClassName: 'blcg-column-editor-editing-required',
             updatedCellClassName: 'blcg-column-editor-updated', 
             requiredMarkerSelector: '.blcg-editor-required-marker',
-            inputtableFieldsSelector: '.select, .required-entry, .input-text'
+            inputtableFieldsSelector: '.select, .required-entry, .input-text',
+            searchableSelects: true
         }, config || {});
         
         if (!Object.isArray(this.config.additionalParams)) {
@@ -2657,6 +3360,7 @@ blcg.Grid.Editor.prototype = {
         
         this.editWindow = null;
         this.isRequestRunning = false;
+        this.editedCellClickHandler = null;
         
         if (!this.table
             || (this.cells.length == 0) 
@@ -2945,6 +3649,39 @@ blcg.Grid.Editor.prototype = {
         }
     },
     
+    /**
+     * Make the dropdowns with lots of options from the given edit form searchable
+     * 
+     * @param Element form Edit form
+     * @return blcg.SearchableSelect[]
+     */
+    initFormSearchableSelects: function(form)
+    {
+        if (!this.config.searchableSelects
+            || (typeof(blcg.SearchableSelect) == 'undefined')
+            || !blcg.SearchableSelect.config.editors) {
+            return [];
+        }
+        
+        return blcg.SearchableSelect.applyToContainer(form, {
+            layoutClassName: 'blcg-searchable-select-inline',
+            
+            onEnter: function(searchableSelect, hasAppliedValue) {
+                if (hasAppliedValue) {
+                    // Behave like the other fields, for which the ENTER key validates the edition
+                    this.validateEdit();
+                } else {
+                    // Several options are still matching : let the user choose the right one
+                    searchableSelect.focusSelect();
+                }
+            }.bind(this),
+            
+            onEscape: function() {
+                this.cancelEdit();
+            }.bind(this)
+        });
+    },
+    
     editCell: function(cell)
     {
         if (this.isRequestRunning) {
@@ -2954,13 +3691,13 @@ blcg.Grid.Editor.prototype = {
             this.cancelEdit();
             this.editedCell = cell;
             var cellConfig  = this.cells[this.getElementIndex(cell)];
-            var editUrl     = cellConfig.editUrl;
+            var formUrl     = cellConfig.formUrl;
             var editParams  = this.getCellParamsHash(this.editedCell);
             
             if (cellConfig.inGrid) {
                 this.isRequestRunning = true;
                 
-                new Ajax.Request(blcg.Tools.getAjaxUrl(editUrl), {
+                new Ajax.Request(blcg.Tools.getAjaxUrl(formUrl), {
                     method: 'post',
                     parameters: editParams,
                     
@@ -2986,9 +3723,21 @@ blcg.Grid.Editor.prototype = {
                                 cell.innerHTML = '';
                                 cell.appendChild(form);
                                 blcg.Tools.executeNodeJS(cell);
+                                this.initFormSearchableSelects(form);
                                 
                                 this.fillCellOverlay(cell);
                                 this.positionCellOverlay(cell, null, this.compareCells(cell, this.shortHoveredCell));
+                                
+                                this.editedCellClickHandler = cell.observe('click', function(e) {
+                                    var element = e.findElement();
+                                    
+                                    if (!element.match('input[type="checkbox"]') && !element.match('label')) {
+                                        // Prevent the base row click callback from being applied to elements
+                                        // that are not skipped, such as optgroups or textareas
+                                        // In the meantime, ensure that checkboxes and labels keep their behaviour
+                                        e.stop();
+                                    }
+                                });
                                 
                                 cell.select(this.config.requiredMarkerSelector).each(function(element) {
                                     element.hide();
@@ -3013,7 +3762,15 @@ blcg.Grid.Editor.prototype = {
                                 }.bind(this));
                                 
                                 if (formInputs.size() > 0) {
-                                    formInputs.first().activate();
+                                    var firstInput = formInputs.first();
+                                    var searchableSelect = firstInput.retrieve(blcg.SearchableSelect.STORAGE_KEY, null);
+                                    
+                                    if (searchableSelect) {
+                                        // Let the value be searched for right away, rather than only selectable
+                                        searchableSelect.focusSearch();
+                                    } else {
+                                        firstInput.activate();
+                                    }
                                 }
                             } catch (e) {
                                 this.cancelEdit();
@@ -3041,8 +3798,8 @@ blcg.Grid.Editor.prototype = {
                     minHeight: 'height'
                 });
                 
-                editUrl += (editUrl.match(new RegExp('\\?')) ? '&' : '?') + editParams.toQueryString();
-                this.editWindow = blcg.Tools.openIframeDialog(editUrl, windowConfig.toObject(), true);
+                formUrl += (formUrl.match(new RegExp('\\?')) ? '&' : '?') + editParams.toQueryString();
+                this.editWindow = blcg.Tools.openIframeDialog(formUrl, windowConfig.toObject(), true);
             }
         }
     },
@@ -3103,6 +3860,11 @@ blcg.Grid.Editor.prototype = {
                                 cell.innerHTML = response.content;
                                 blcg.Tools.executeNodeJS(cell);
                                 
+                                if (this.editedCellClickHandler) {
+                                    cell.stopObserving('click', this.editedCellClickHandler);
+                                    this.editedCellClickHandler = null;
+                                }
+                                
                                 this.previousValue = null;
                                 this.hasPreviousValue = false;
                                 this.editedCell = null;
@@ -3120,7 +3882,8 @@ blcg.Grid.Editor.prototype = {
                     
                     onFailure: function(transport) {
                         this.isRequestRunning = false;
-                        this.cancelEdit(false, blcg.Tools.translate('An error occurred while editing the value'));
+                        this.cancelEdit();
+                        alert(blcg.Tools.translate('An error occurred while editing the value'));
                     }.bind(this)
                 });
             } else {
@@ -3147,6 +3910,12 @@ blcg.Grid.Editor.prototype = {
             this.editedCell.removeClassName(this.config.requiredCellClassName);
             this.fillCellOverlay(this.editedCell);
             this.positionCellOverlay(this.editedCell);
+            
+            if (this.editedCellClickHandler) {
+                this.editedCell.stopObserving('click', this.editedCellClickHandler);
+                this.editedCellClickHandler = null;
+            }
+            
             this.editedCell = null;
             
             if (!cellConfig.inGrid && !fromDialog) {

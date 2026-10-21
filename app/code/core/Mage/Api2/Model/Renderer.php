@@ -1,54 +1,34 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api2
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api2
  */
 
 /**
  * Webservice API2 renderer factory model
  *
- * @category   Mage
  * @package    Mage_Api2
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 abstract class Mage_Api2_Model_Renderer
 {
     /**
      * Get Renderer of given type
      *
-     * @param array|string $acceptTypes
+     * @param  array|string                   $acceptTypes
+     * @return false|Mage_Core_Model_Abstract
      * @throws Mage_Api2_Exception
-     * @throws Exception
-     * @return Mage_Api2_Model_Renderer_Interface
      */
     public static function factory($acceptTypes)
     {
-        /** @var $helper Mage_Api2_Helper_Data */
+        /** @var Mage_Api2_Helper_Data $helper */
         $helper   = Mage::helper('api2');
         $adapters = $helper->getResponseRenderAdapters();
 
         if (!is_array($acceptTypes)) {
-            $acceptTypes = array($acceptTypes);
+            $acceptTypes = [$acceptTypes];
         }
 
         $type = null;
@@ -56,9 +36,7 @@ abstract class Mage_Api2_Model_Renderer
         foreach ($acceptTypes as $type) {
             foreach ($adapters as $item) {
                 $itemType = $item->type;
-                if ($type == $itemType
-                    || $type == current(explode('/', $itemType)) . '/*' || $type == '*/*'
-                ) {
+                if (in_array($type, [$itemType, current(explode('/', $itemType)) . '/*', '*/*'])) {
                     $adapterPath = $item->model;
                     break 2;
                 }
@@ -66,10 +44,10 @@ abstract class Mage_Api2_Model_Renderer
         }
 
         //if server can't respond in any of accepted types it SHOULD send 406(not acceptable)
-        if (null === $adapterPath) {
+        if ($adapterPath === null) {
             throw new Mage_Api2_Exception(
                 'Server can not understand Accept HTTP header media type.',
-                Mage_Api2_Model_Server::HTTP_NOT_ACCEPTABLE
+                Mage_Api2_Model_Server::HTTP_NOT_ACCEPTABLE,
             );
         }
 

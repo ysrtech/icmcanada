@@ -110,6 +110,20 @@ class DC_Catalog_Admin_ManufacturerController extends Mage_Adminhtml_Controller_
             // init model and set data
             $model = Mage::getModel('dc_catalog/manufacturer');
 
+            // Process use_default_* flags for translatable fields.
+            // When a field is set to "use default", clear its value so the resource
+            // model will fall back to the default-store page at load time.
+            $translatableFields = array('description', 'page_title', 'meta_keywords', 'meta_description', 'description_in_page');
+            foreach ($translatableFields as $field) {
+                $flagKey = 'use_default_' . $field;
+                if (!empty($data[$flagKey])) {
+                    $data[$flagKey] = 1;
+                    $data[$field]   = '';
+                } else {
+                    $data[$flagKey] = 0;
+                }
+            }
+
             $model->setData($data);
 	        if (!$this->getRequest()->getParam('attribute_page_id')) {
 	            $model->setData('attribute_code', $this->getRequest()->getParam('attribute_code'));
@@ -124,6 +138,13 @@ class DC_Catalog_Admin_ManufacturerController extends Mage_Adminhtml_Controller_
             try {
                 // save the data
                 $model->save();
+
+                // Save per-store translations submitted from the Translations tab.
+                // Each entry in translations[store_id][field] is saved as a separate
+                // row in catalog_attribute_page with attribute_value_store_id = store_id.
+                if (!empty($data['translations']) && is_array($data['translations'])) {
+                    $this->_saveTranslations($model, $data['translations']);
+                }
 
                 // display success message
                 Mage::getSingleton('adminhtml/session')->addSuccess(Mage::helper('adminhtml')->__('The attribute info was successfully saved'));
@@ -201,11 +222,149 @@ class DC_Catalog_Admin_ManufacturerController extends Mage_Adminhtml_Controller_
     }
 
     /**
-     * Check the permission to run it
+     * Save per-store translations that were submitted via the Translations tab.
      *
-     * @return boolean
+     * Writes directly to the DB (INSERT or UPDATE) to bypass _beforeSave validation
+     * (identifier uniqueness, image upload processing) which is only relevant for the
+     * main admin form, not for programmatic translation saves.
+     *
+     * @param DC_Catalog_Model_Manufacturer $defaultModel  The already-saved default (store=0) model
+     * @param array                         $translations  ['store_id' => ['field' => 'value', ...], ...]
      */
-    protected function _isAllowed()
+    protected function _saveTranslations($defaultModel, array $translations)
+    {
+        $translatableFields = array(
+            'description', 'page_title', 'meta_keywords', 'meta_description', 'description_in_page'
+        );
+
+        /** @var Mage_Core_Model_Resource $resource */
+        $resource = Mage::getSingleton('core/resource');
+        $read     = $resource->getConnection('core_read');
+        $write    = $resource->getConnection('core_write');
+        $table    = $resource->getTableName('dc_catalog/manufacturer');
+
+        // When editing an existing page, attribute_code and attribute_option_id may not
+        // be in POST (only attribute_page_id is). Resolve them from the DB.
+        $attrCode = $defaultModel->getAttributeCode();
+        $optionId = (int)$defaultModel->getAttributeOptionId();
+
+        if ((!$attrCode || !$optionId) && $defaultModel->getId()) {
+            $fallback = $read->fetchRow(
+                $read->select()
+                    ->from($table, array('attribute_code', 'attribute_option_id'))
+                    ->where('attribute_page_id = ?', (int)$defaultModel->getId())
+                    ->limit(1)
+            );
+            if ($fallback) {
+                if (!$attrCode) { $attrCode = $fallback['attribute_code']; }
+                if (!$optionId) { $optionId = (int)$fallback['attribute_option_id']; }
+            }
+        }
+
+        if (!$attrCode || !$optionId) {
+            Mage::getSingleton('adminhtml/session')->addError(
+                Mage::helper('dc_catalog')->__('Could not resolve attribute code / option ID — translations not saved.')
+            );
+            return;
+        }
+
+        // Load the default row to copy structural fields for new store rows
+        $defaultRow = $read->fetchRow(
+            $read->select()
+                ->from($table)
+                ->where('attribute_code = ?',           $attrCode)
+                ->where('attribute_option_id = ?',      $optionId)
+                ->where('attribute_value_store_id = ?', 0)
+                ->limit(1)
+        );
+
+        $now = Mage::getSingleton('core/date')->gmtDate();
+
+        foreach ($translations as $storeId => $storeData) {
+            $storeId = (int)$storeId;
+            if ($storeId <= 0) {
+                continue;
+            }
+
+            // Determine if there is any actual translated content submitted
+            $hasContent = false;
+            foreach ($translatableFields as $field) {
+                if (empty($storeData['use_default_' . $field]) && trim((string)$storeData[$field]) !== '') {
+                    $hasContent = true;
+                    break;
+                }
+            }
+
+            // Check if a store-specific row already exists
+            $existingRow = $read->fetchRow(
+                $read->select()
+                    ->from($table)
+                    ->where('attribute_code = ?',           $attrCode)
+                    ->where('attribute_option_id = ?',      $optionId)
+                    ->where('attribute_value_store_id = ?', $storeId)
+                    ->limit(1)
+            );
+
+            // Don't create a new row if there is nothing to translate
+            if (!$existingRow && !$hasContent) {
+                continue;
+            }
+
+            // Build the translatable columns to write
+            $translationData = array('update_time' => $now);
+            foreach ($translatableFields as $field) {
+                $flagKey = 'use_default_' . $field;
+                if (!empty($storeData[$flagKey])) {
+                    $translationData[$flagKey] = 1;
+                    $translationData[$field]   = '';
+                } else {
+                    $translationData[$flagKey] = 0;
+                    $translationData[$field]   = isset($storeData[$field]) ? (string)$storeData[$field] : '';
+                }
+            }
+
+            try {
+                if ($existingRow) {
+                    // UPDATE existing store row — only touch translatable columns
+                    $write->update(
+                        $table,
+                        $translationData,
+                        array('attribute_page_id = ?' => (int)$existingRow['attribute_page_id'])
+                    );
+                } else {
+                    // INSERT new store row — copy structural fields from default row
+                    $insertData = array_merge(
+                        array(
+                            'attribute_code'           => $attrCode,
+                            'attribute_option_id'      => $optionId,
+                            'attribute_value_store_id' => $storeId,
+                            'name'                     => $defaultRow ? $defaultRow['name']               : '',
+                            'identifier'               => $defaultRow ? $defaultRow['identifier']         : '',
+                            'is_active'                => $defaultRow ? $defaultRow['is_active']          : 1,
+                            'favorite'                 => $defaultRow ? $defaultRow['favorite']           : null,
+                            'image'                    => $defaultRow ? $defaultRow['image']              : '',
+                            'banner'                   => $defaultRow ? $defaultRow['banner']             : '',
+                            'external_url'             => $defaultRow ? $defaultRow['external_url']       : '',
+                            'external_url_label'       => $defaultRow ? $defaultRow['external_url_label'] : '',
+                            'root_template'            => $defaultRow ? $defaultRow['root_template']      : '',
+                            'creation_time'            => $now,
+                        ),
+                        $translationData
+                    );
+                    $write->insert($table, $insertData);
+                }
+            } catch (Exception $e) {
+                Mage::getSingleton('adminhtml/session')->addError(
+                    Mage::helper('dc_catalog')->__('Error saving translation for store ID %s: %s', $storeId, $e->getMessage())
+                );
+            }
+        }
+    }
+
+    /**
+     * Check the permission to run it
+     */
+    protected function _isAllowed(): bool
     {
         return Mage::getSingleton('admin/session')->isAllowed('dc_catalog/manufacturer');
     }

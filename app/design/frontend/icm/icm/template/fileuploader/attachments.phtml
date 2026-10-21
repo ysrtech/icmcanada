@@ -15,7 +15,7 @@
 <?php
 $_product = Mage::registry('current_product');
 $attachments = $this->getProductAttachments($_product->getId());
-if (count($attachments) > 0):
+if (!empty($attachments)):
 ?>
     <div class="collateral-box">
         <div class="head">

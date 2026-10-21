@@ -19,7 +19,7 @@ if ($totalFiles > 0) {
     }
 }
 ?>
-<?php if (count($inline_attachments) > 0): ?>
+<?php if (!empty($inline_attachments)): ?>
     <div class="all-videos ">
         <h2 class="block-title">Product Videos</h2>
         <div class="videos-container">
@@ -31,7 +31,7 @@ if ($totalFiles > 0) {
                         $thumbnail = str_replace('custom/upload/','',$inline_attachment["thumbnail"]);
                             $title = $inline_attachment['title'];
                             $playerPath = Mage::getBaseUrl('media') . '/custom/upload/player/';
-                            $ext = strtolower(end(explode('.',$url)));
+                            $ext = strtolower(pathinfo($url, PATHINFO_EXTENSION));
                                 if ($ext == 'avi') {
                                     $onclick = "javascript:playerAviOpen('" . $title . "',this.rel); return false;";
                                 } else if ($ext == 'flv') {

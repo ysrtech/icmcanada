@@ -34,7 +34,7 @@
  * @method int getIsOnlyFilterable() Return whether this column should only be filterable
  */
 
-class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
+class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Model_Grid_Element
 {
     /**
      * Possible column alignments values
@@ -72,25 +72,7 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
      */
     public function getId()
     {
-        return $this->_getData('column_id');
-    }
-    
-    /**
-     * Return the grid model corresponding to this column
-     *
-     * @param bool $graceful Whether to throw an exception if the grid model is invalid, otherwise return null
-     * @return BL_CustomGrid_Model_Grid|null
-     */
-    public function getGridModel($graceful = false)
-    {
-        if (($gridModel = $this->_getData('grid_model')) instanceof BL_CustomGrid_Model_Grid) {
-            return $gridModel;
-        } elseif (!$graceful) {
-            /** @var $helper BL_CustomGrid_Helper_Data */
-            $helper = Mage::helper('customgrid');
-            Mage::throwException($helper->__('Invalid grid model'));
-        }
-        return null;
+        return (int) $this->_getData('column_id');
     }
     
     /**
@@ -140,7 +122,7 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
      */
     public function isEditable()
     {
-        return ($this->_getData('edit_config') instanceof BL_CustomGrid_Object);
+        return ($this->_getData('editor_config') instanceof BL_CustomGrid_Model_Grid_Editor_Value_Config);
     }
     
     /**
@@ -158,7 +140,7 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
         }
         if (!$customColumn instanceof BL_CustomGrid_Model_Custom_Column_Abstract) {
             if (!$graceful) {
-                Mage::throwException(Mage::helper('customgrid')->__('Invalid custom column model'));
+                Mage::throwException('Invalid custom column model');
             }
             $customColumn = null;
         }
@@ -173,7 +155,11 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
      */
     public function getAllowStore()
     {
-        return ($this->isCollection() || ($this->isCustom() && $this->getCustomColumnModel(false)->getAllowStore()));
+        if ($this->isCollection()) {
+            return true;
+        }
+        $customColumn = ($this->isCustom() ? $this->getCustomColumnModel() : null);
+        return ($customColumn && $customColumn->getAllowStore());
     }
     
     /**
@@ -183,9 +169,11 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
      */
     public function getAllowRenderer()
     {
-        return $this->isCollection()
-            || $this->isAttribute()
-            || ($this->isCustom() && $this->getCustomColumnModel(false)->getAllowRenderers());
+        if ($this->isCollection() || $this->isAttribute()) {
+            return true;
+        }
+        $customColumn = ($this->isCustom() ? $this->getCustomColumnModel() : null);
+        return ($customColumn && $customColumn->getAllowRenderers());
     }
     
     /**
@@ -429,14 +417,9 @@ class BL_CustomGrid_Model_Grid_Column extends BL_CustomGrid_Object
     {
         $gridModel->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_CUSTOMIZE_COLUMNS, false);
         
-        if ($typeModel = $gridModel->getTypeModel()) {
-            $typeCode = $typeModel->getCode();
-        } else {
-            return $gridModel;
-        }
-        
-        $helper  = $gridModel->getHelper();
-        $columns = $gridModel->getColumns();
+        $helper   = $gridModel->getHelper();
+        $columns  = $gridModel->getColumns();
+        $typeCode = $gridModel->getTypeModel()->getCode();
         $originalBlockIds = $gridModel->getColumnBlockIdsByOrigin(self::ORIGIN_CUSTOM);
         
         $availableCustomColumns = $gridModel->getAvailableCustomColumns();

@@ -1,37 +1,17 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  *  Website Payments Pro Hosted Solution request model to get token.
  *
- * @category    Mage
- * @package     Mage_Paypal
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
-
 class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
 {
     /**
@@ -49,19 +29,19 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     protected $_paymentMethod;
 
     /**
-     * Name formate for button variables
+     * Name format for button variables
      *
      * @var string
      */
     protected $_buttonVarFormat = 'L_BUTTONVAR%d';
 
     /**
-     * Request Parameters which dont have to wrap as button vars
+     * Request Parameters which don't have to wrap as button vars
      *
      * @var array
      */
-    protected $_notButtonVars = array (
-        'METHOD', 'BUTTONCODE', 'BUTTONTYPE');
+    protected $_notButtonVars = [
+        'METHOD', 'BUTTONCODE', 'BUTTONTYPE'];
 
     /**
      * Build and return request array from object data
@@ -70,7 +50,7 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
      */
     public function getRequestData()
     {
-        $requestData = array();
+        $requestData = [];
         if (!empty($this->_data)) {
             // insert params to request as additional button variables,
             // except special params from _notButtonVars list
@@ -92,8 +72,8 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Append payment data to request
      *
-     * @param Mage_Paypal_Model_Hostedpro $paymentMethod
-     * @return Mage_Paypal_Model_Hostedpro_Request
+     * @param  Mage_Paypal_Model_Hostedpro $paymentMethod
+     * @return $this
      */
     public function setPaymentMethod($paymentMethod)
     {
@@ -107,8 +87,8 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Append order data to request
      *
-     * @param Mage_Sales_Model_Order $order
-     * @return Mage_Paypal_Model_Hostedpro_Request
+     * @param  Mage_Sales_Model_Order $order
+     * @return $this
      */
     public function setOrder($order)
     {
@@ -122,12 +102,11 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Get peymet request data as array
      *
-     * @param Mage_Paypal_Model_Hostedpro $paymentMethod
-     * @return array
+     * @return array<string, string>
      */
     protected function _getPaymentData(Mage_Paypal_Model_Hostedpro $paymentMethod)
     {
-        $request = array(
+        return [
             'paymentaction' => strtolower($paymentMethod->getConfigData('payment_action')),
             'notify_url'    => $paymentMethod->getNotifyUrl(),
             'cancel_return' => $paymentMethod->getCancelUrl(),
@@ -141,23 +120,20 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
             'showBillingPhone'      => 'false',
             'showCustomerName'      => 'false',
             'showCardInfo'          => 'true',
-            'showHostedThankyouPage'=> 'false'
-        );
-
-        return $request;
+            'showHostedThankyouPage' => 'false',
+        ];
     }
 
     /**
      * Get order request data as array
      *
-     * @param Mage_Sales_Model_Order $order
      * @return array
      */
     protected function _getOrderData(Mage_Sales_Model_Order $order)
     {
-        $request = array(
+        $request = [
             'subtotal'      => $this->_formatPrice($order->getBaseSubtotal()),
-            'tax'           => $this->_formatPrice($order->getBaseTaxAmount()),
+            'tax'           => $this->_formatPrice($order->getBaseTaxAmount() + $order->getHiddenTaxAmount()),
             'shipping'      => $this->_formatPrice($order->getBaseShippingAmount()),
             'invoice'       => $order->getIncrementId(),
             'address_override' => 'true',
@@ -166,9 +142,9 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
             'discount'         => $this->_formatPrice(
                 $order->getBaseGiftCardsAmount()
                 + abs($order->getBaseDiscountAmount())
-                + $order->getBaseCustomerBalanceAmount()
+                + $order->getBaseCustomerBalanceAmount(),
             ),
-        );
+        ];
 
         // append to request billing address data
         if ($billingAddress = $order->getBillingAddress()) {
@@ -177,7 +153,7 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
 
         // append to request shipping address data
         if ($shippingAddress = $order->getShippingAddress()) {
-            $request = array_merge($request, $this->_getShippingAddress($shippingAddress));
+            return array_merge($request, $this->_getShippingAddress($shippingAddress));
         }
 
         return $request;
@@ -186,26 +162,25 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Get shipping address request data
      *
-     * @param Varien_Object $address
-     * @return array
+     * @return array<string, mixed>
      */
     protected function _getShippingAddress(Varien_Object $address)
     {
-        $request = array(
-            'first_name'=> $address->getFirstname(),
+        $request = [
+            'first_name' => $address->getFirstname(),
             'last_name' => $address->getLastname(),
             'city'      => $address->getCity(),
             'state'     => $address->getRegionCode() ? $address->getRegionCode() : $address->getCity(),
             'zip'       => $address->getPostcode(),
             'country'   => $address->getCountry(),
-        );
+        ];
 
         // convert streets to tow lines format
         $street = Mage::helper('customer/address')
             ->convertStreetLines($address->getStreet(), 2);
 
-        $request['address1'] = isset($street[0]) ? $street[0]: '';
-        $request['address2'] = isset($street[1]) ? $street[1]: '';
+        $request['address1'] = $street[0] ?? '';
+        $request['address2'] = $street[1] ?? '';
 
         return $request;
     }
@@ -213,26 +188,25 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Get billing address request data
      *
-     * @param Varien_Object $address
-     * @return array
+     * @return array<string, mixed>
      */
     protected function _getBillingAddress(Varien_Object $address)
     {
-        $request = array(
-            'billing_first_name'=> $address->getFirstname(),
+        $request = [
+            'billing_first_name' => $address->getFirstname(),
             'billing_last_name' => $address->getLastname(),
             'billing_city'      => $address->getCity(),
             'billing_state'     => $address->getRegionCode() ? $address->getRegionCode() : $address->getCity(),
             'billing_zip'       => $address->getPostcode(),
             'billing_country'   => $address->getCountry(),
-        );
+        ];
 
         // convert streets to tow lines format
         $street = Mage::helper('customer/address')
             ->convertStreetLines($address->getStreet(), 2);
 
-        $request['billing_address1'] = isset($street[0]) ? $street[0]: '';
-        $request['billing_address2'] = isset($street[1]) ? $street[1]: '';
+        $request['billing_address1'] = $street[0] ?? '';
+        $request['billing_address2'] = $street[1] ?? '';
 
         return $request;
     }
@@ -240,8 +214,8 @@ class Mage_Paypal_Model_Hostedpro_Request extends Varien_Object
     /**
      * Format price string
      *
-     * @param mixed $string
-     * @return mixed
+     * @param  float|int|string $string
+     * @return string
      */
     protected function _formatPrice($string)
     {

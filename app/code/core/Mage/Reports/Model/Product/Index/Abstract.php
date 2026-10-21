@@ -1,36 +1,29 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Reports Product Index Abstract Model
  *
- * @category   Mage
  * @package    Mage_Reports
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Reports_Model_Resource_Product_Index_Abstract            _getResource()
+ * @method Mage_Reports_Model_Resource_Product_Index_Collection_Abstract getCollection()
+ * @method Mage_Reports_Model_Resource_Product_Index_Abstract            getResource()
+ * @method Mage_Reports_Model_Resource_Product_Index_Collection_Abstract getResourceCollection()
+ * @method bool                                                          hasAddedAt()
+ * @method bool                                                          hasCustomerId()
+ * @method bool                                                          hasStoreId()
+ * @method bool                                                          hasVisitorId()
+ * @method $this                                                         setAddedAt(string $value)
+ * @method $this                                                         setCustomerId(int $value)
+ * @method $this                                                         setStoreId(int $value)
+ * @method $this                                                         setVisitorId(int $value)
  */
 abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model_Abstract
 {
@@ -44,22 +37,26 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     /**
      * Save object data
      *
+     * @return $this
      * @see Mage_Core_Model_Abstract::save()
-     * @return Mage_Reports_Model_Product_Index_Abstract
      */
+    #[Override]
     public function save()
     {
         if (!$this->hasVisitorId()) {
             $this->setVisitorId($this->getVisitorId());
         }
+
         if (!$this->hasCustomerId()) {
             $this->setCustomerId($this->getCustomerId());
         }
+
         if (!$this->hasStoreId()) {
             $this->setStoreId($this->getStoreId());
         }
+
         if (!$this->hasAddedAt()) {
-            $this->setAddedAt(now());
+            $this->setAddedAt(Varien_Date::now());
         }
 
         // Thanks to new performance tweaks it is possible to switch off visitor logging
@@ -90,8 +87,9 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     public function getVisitorId()
     {
         if ($this->hasData('visitor_id')) {
-            return $this->getData('visitor_id');
+            return $this->getDataByKey('visitor_id');
         }
+
         return Mage::getSingleton('log/visitor')->getId();
     }
 
@@ -105,8 +103,9 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     public function getCustomerId()
     {
         if ($this->hasData('customer_id')) {
-            return $this->getData('customer_id');
+            return $this->getDataByKey('customer_id');
         }
+
         return Mage::getSingleton('customer/session')->getCustomerId();
     }
 
@@ -120,25 +119,16 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     public function getStoreId()
     {
         if ($this->hasData('store_id')) {
-            return $this->getData('store_id');
+            return (int) $this->getDataByKey('store_id');
         }
+
         return Mage::app()->getStore()->getId();
     }
 
     /**
-     * Retrieve resource instance wrapper
+     * On customer login merge visitor/customer index
      *
-     * @return Mage_Reports_Model_Mysql4_Product_Index_Abstract
-     */
-    protected function _getResource()
-    {
-        return parent::_getResource();
-    }
-
-    /**
-     * On customer loggin merge visitor/customer index
-     *
-     * @return Mage_Reports_Model_Product_Index_Abstract
+     * @return $this
      */
     public function updateCustomerFromVisitor()
     {
@@ -149,7 +139,7 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     /**
      * Purge visitor data by customer (logout)
      *
-     * @return Mage_Reports_Model_Product_Index_Abstract
+     * @return $this
      */
     public function purgeVisitorByCustomer()
     {
@@ -170,16 +160,14 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     /**
      * Calculate count of product index items cache
      *
-     * @return Mage_Reports_Model_Product_Index_Abstract
+     * @return $this
      */
     public function calculate()
     {
         $collection = $this->getCollection()
             ->setCustomerId($this->getCustomerId())
+            ->setVisibility(Mage::getSingleton('catalog/product_visibility')::getVisibleInSiteIds())
             ->addIndexFilter();
-
-        Mage::getSingleton('catalog/product_visibility')
-            ->addVisibleInSiteFilterToCollection($collection);
 
         $count = $collection->getSize();
         $this->_getSession()->setData($this->_countCacheKey, $count);
@@ -189,11 +177,11 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     /**
      * Retrieve Exclude Product Ids List for Collection
      *
-     * @return array
+     * @return array<int, int>|array<void>
      */
     public function getExcludeProductIds()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -217,7 +205,7 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
     /**
      * Clean index (visitors)
      *
-     * @return Mage_Reports_Model_Product_Index_Abstract
+     * @return $this
      */
     public function clean()
     {
@@ -227,8 +215,8 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
 
     /**
      * Add product ids to current visitor/customer log
-     * @param array $productIds
-     * @return Mage_Reports_Model_Product_Index_Abstract
+     * @param  array $productIds
+     * @return $this
      */
     public function registerIds($productIds)
     {
@@ -242,6 +230,7 @@ abstract class Mage_Reports_Model_Product_Index_Abstract extends Mage_Core_Model
                 Mage::logException($exception);
             }
         }
+
         $this->_getSession()->unsData($this->_countCacheKey);
         return $this;
     }

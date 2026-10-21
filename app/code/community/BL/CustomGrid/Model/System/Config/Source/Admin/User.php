@@ -28,7 +28,7 @@ class BL_CustomGrid_Model_System_Config_Source_Admin_User
     public function toOptionArray()
     {
         if (is_null($this->_optionArray)) {
-            /** @var $collection Mage_Admin_Model_Mysql4_User_Collection */
+            /** @var $collection Mage_Admin_Model_Resource_User_Collection */
             $collection = Mage::getModel('admin/user')->getCollection();
             
             foreach ($collection as $user) {

@@ -1,71 +1,62 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Url rewrite model class
  *
- * @method Mage_Core_Model_Resource_Url_Rewrite _getResource()
- * @method Mage_Core_Model_Resource_Url_Rewrite getResource()
- * @method Mage_Core_Model_Url_Rewrite setStoreId(int $value)
- * @method int getCategoryId()
- * @method Mage_Core_Model_Url_Rewrite setCategoryId(int $value)
- * @method int getProductId()
- * @method Mage_Core_Model_Url_Rewrite setProductId(int $value)
- * @method string getIdPath()
- * @method Mage_Core_Model_Url_Rewrite setIdPath(string $value)
- * @method string getRequestPath()
- * @method Mage_Core_Model_Url_Rewrite setRequestPath(string $value)
- * @method string getTargetPath()
- * @method Mage_Core_Model_Url_Rewrite setTargetPath(string $value)
- * @method int getIsSystem()
- * @method Mage_Core_Model_Url_Rewrite setIsSystem(int $value)
- * @method string getOptions()
- * @method Mage_Core_Model_Url_Rewrite setOptions(string $value)
- * @method string getDescription()
- * @method Mage_Core_Model_Url_Rewrite setDescription(string $value)
+ * @package    Mage_Core
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Core_Model_Resource_Url_Rewrite            _getResource()
+ * @method int                                             getCategoryId()
+ * @method Mage_Core_Model_Resource_Url_Rewrite_Collection getCollection()
+ * @method string                                          getDescription()
+ * @method string                                          getIdPath()
+ * @method int                                             getIsSystem()
+ * @method string                                          getOptions()
+ * @method int                                             getProductId()
+ * @method string                                          getRequestPath()
+ * @method Mage_Core_Model_Resource_Url_Rewrite            getResource()
+ * @method Mage_Core_Model_Resource_Url_Rewrite_Collection getResourceCollection()
+ * @method array|string                                    getTags()
+ * @method string                                          getTargetPath()
+ * @method bool                                            hasCategoryId()
+ * @method $this                                           setCategoryId(int $value)
+ * @method $this                                           setDescription(string $value)
+ * @method $this                                           setIdPath(string $value)
+ * @method $this                                           setIsSystem(int $value)
+ * @method $this                                           setOptions(string $value)
+ * @method $this                                           setProductId(int $value)
+ * @method $this                                           setRequestPath(string $value)
+ * @method $this                                           setStoreId(int $value)
+ * @method $this                                           setTags(array|string $value)
+ * @method $this                                           setTargetPath(string $value)
  */
 class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Mage_Core_Model_Url_Rewrite_Interface
 {
-    const TYPE_CATEGORY = 1;
-    const TYPE_PRODUCT  = 2;
-    const TYPE_CUSTOM   = 3;
-    const REWRITE_REQUEST_PATH_ALIAS = 'rewrite_request_path';
+    public const TYPE_CATEGORY = 1;
+
+    public const TYPE_PRODUCT  = 2;
+
+    public const TYPE_CUSTOM   = 3;
+
+    public const REWRITE_REQUEST_PATH_ALIAS = 'rewrite_request_path';
 
     /**
      * Cache tag for clear cache in after save and after delete
      *
-     * @var mixed | array | string | boolean
+     * @var array|bool|string
      */
     protected $_cacheTag = false;
 
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('core/url_rewrite');
@@ -74,12 +65,13 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
     /**
      * Clean cache for front-end menu
      *
-     * @return  Mage_Core_Model_Url_Rewrite
+     * @return $this
      */
+    #[Override]
     protected function _afterSave()
     {
         if ($this->hasCategoryId()) {
-            $this->_cacheTag = array(Mage_Catalog_Model_Category::CACHE_TAG, Mage_Core_Model_Store_Group::CACHE_TAG);
+            $this->_cacheTag = [Mage_Catalog_Model_Category::CACHE_TAG, Mage_Core_Model_Store_Group::CACHE_TAG];
         }
 
         parent::_afterSave();
@@ -91,8 +83,9 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
      * Load rewrite information for request
      * If $path is array - we must load possible records and choose one matching earlier record in array
      *
-     * @param   mixed $path
-     * @return  Mage_Core_Model_Url_Rewrite
+     * @param  mixed               $path
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function loadByRequestPath($path)
     {
@@ -104,12 +97,22 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         return $this;
     }
 
+    /**
+     * @param  string              $path
+     * @return $this
+     * @throws Mage_Core_Exception
+     */
     public function loadByIdPath($path)
     {
         $this->setId(null)->load($path, 'id_path');
         return $this;
     }
 
+    /**
+     * @param  array|string        $tags
+     * @return $this
+     * @throws Mage_Core_Exception
+     */
     public function loadByTags($tags)
     {
         $this->setId(null);
@@ -117,19 +120,22 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         $loadTags = is_array($tags) ? $tags : explode(',', $tags);
 
         $search = $this->getResourceCollection();
-        foreach ($loadTags as $k=>$t) {
-            if (!is_numeric($k)) {
-                $t = $k.'='.$t;
+        foreach ($loadTags as $key => $value) {
+            if (!is_numeric($key)) {
+                $value = $key . '=' . $value;
             }
-            $search->addTagsFilter($t);
+
+            $search->addTagsFilter($value);
         }
+
         if (!is_null($this->getStoreId())) {
             $search->addStoreFilter($this->getStoreId());
         }
 
         $search->setPageSize(1)->load();
 
-        if ($search->getSize()>0) {
+        if ($search->getSize() > 0) {
+            /** @var Mage_Core_Model_Url_Rewrite $rewrite */
             foreach ($search as $rewrite) {
                 $this->setData($rewrite->getData());
             }
@@ -138,25 +144,34 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         return $this;
     }
 
+    /**
+     * @param  string $key
+     * @return bool
+     */
     public function hasOption($key)
     {
-        $optArr = explode(',', $this->getOptions());
+        $optArr = explode(',', (string) $this->getOptions());
 
-        return array_search($key, $optArr) !== false;
+        return in_array($key, $optArr);
     }
 
+    /**
+     * @param  array|string $tags
+     * @return $this
+     */
     public function addTag($tags)
     {
         $curTags = $this->getTags();
 
         $addTags = is_array($tags) ? $tags : explode(',', $tags);
 
-        foreach ($addTags as $k=>$t) {
-            if (!is_numeric($k)) {
-                $t = $k.'='.$t;
+        foreach ($addTags as $key => $value) {
+            if (!is_numeric($key)) {
+                $value = $key . '=' . $value;
             }
-            if (!in_array($t, $curTags)) {
-                $curTags[] = $t;
+
+            if (!in_array($value, $curTags)) {
+                $curTags[] = $value;
             }
         }
 
@@ -165,17 +180,23 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         return $this;
     }
 
+    /**
+     * @param  array|string $tags
+     * @return $this
+     */
     public function removeTag($tags)
     {
         $curTags = $this->getTags();
 
         $removeTags = is_array($tags) ? $tags : explode(',', $tags);
 
-        foreach ($removeTags as $t) {
-            if (!is_numeric($k)) {
-                $t = $k.'='.$t;
+        foreach ($removeTags as $tagKey => $value) {
+            if (!is_numeric($tagKey)) {
+                $value = $tagKey . '=' . $value;
             }
-            if ($key = array_search($t, $curTags)) {
+
+            $key = array_search($value, $curTags);
+            if ($key !== false) {
                 unset($curTags[$key]);
             }
         }
@@ -188,23 +209,28 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
     /**
      * Implement logic of custom rewrites
      *
-     * @param   Zend_Controller_Request_Http $request
-     * @param   Zend_Controller_Response_Http $response
-     * @return  Mage_Core_Model_Url
+     * @return bool
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
+     * @throws Zend_Controller_Response_Exception
      * @deprecated since 1.7.0.2. Refactored and moved to Mage_Core_Controller_Request_Rewrite
+     * @SuppressWarnings("PHPMD.Superglobals")
      */
-    public function rewrite(Zend_Controller_Request_Http $request=null, Zend_Controller_Response_Http $response=null)
+    public function rewrite(?Zend_Controller_Request_Http $request = null, ?Zend_Controller_Response_Http $response = null)
     {
         if (!Mage::isInstalled()) {
             return false;
         }
+
         if (is_null($request)) {
             $request = Mage::app()->getFrontController()->getRequest();
         }
+
         if (is_null($response)) {
             $response = Mage::app()->getFrontController()->getResponse();
         }
-        if (is_null($this->getStoreId()) || false===$this->getStoreId()) {
+
+        if (is_null($this->getStoreId()) || $this->getStoreId() === false) {
             $this->setStoreId(Mage::app()->getStore()->getId());
         }
 
@@ -213,10 +239,11 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
          * Each of them matches two url rewrite request paths - with and without slashes at the end ("/somepath/" and "/somepath").
          * Choose any matched rewrite, but in priority order that depends on same presence of slash and query params.
          */
-        $requestCases = array();
+        $requestCases = [];
         $pathInfo = $request->getPathInfo();
-        $origSlash = (substr($pathInfo, -1) == '/') ? '/' : '';
+        $origSlash = (str_ends_with($pathInfo, '/')) ? '/' : '';
         $requestPath = trim($pathInfo, '/');
+        $targetUrl = '';
 
         // If there were final slash - add nothing to less priority paths. And vice versa.
         $altSlash = $origSlash ? '' : '/';
@@ -226,6 +253,7 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
             $requestCases[] = $requestPath . $origSlash . '?' . $queryString;
             $requestCases[] = $requestPath . $altSlash . '?' . $queryString;
         }
+
         $requestCases[] = $requestPath . $origSlash;
         $requestCases[] = $requestPath . $altSlash;
 
@@ -237,8 +265,7 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         if (!$this->getId() && isset($_GET['___from_store'])) {
             try {
                 $fromStoreId = Mage::app()->getStore($_GET['___from_store'])->getId();
-            }
-            catch (Exception $e) {
+            } catch (Exception) {
                 return false;
             }
 
@@ -246,11 +273,12 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
             if (!$this->getId()) {
                 return false;
             }
+
             $currentStore = Mage::app()->getStore();
             $this->setStoreId($currentStore->getId())->loadByIdPath($this->getIdPath());
 
             Mage::app()->getCookie()->set(Mage_Core_Model_Store::COOKIE_NAME, $currentStore->getCode(), true);
-            $targetUrl = $request->getBaseUrl(). '/' . $this->getRequestPath();
+            $targetUrl = $request->getBaseUrl() . '/' . $this->getRequestPath();
 
             $this->_sendRedirectHeaders($targetUrl, true);
         }
@@ -258,7 +286,6 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
         if (!$this->getId()) {
             return false;
         }
-
 
         $request->setAlias(self::REWRITE_REQUEST_PATH_ALIAS, $this->getRequestPath());
         $external = substr($this->getTargetPath(), 0, 6);
@@ -269,24 +296,25 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
 
             $this->_sendRedirectHeaders($this->getTargetPath(), $isPermanentRedirectOption);
         } else {
-            $targetUrl = $request->getBaseUrl(). '/' . $this->getTargetPath();
+            $targetUrl = $request->getBaseUrl() . '/' . $this->getTargetPath();
         }
+
         $isRedirectOption = $this->hasOption('R');
         if ($isRedirectOption || $isPermanentRedirectOption) {
-            if (Mage::getStoreConfig('web/url/use_store') && $storeCode = Mage::app()->getStore()->getCode()) {
-                $targetUrl = $request->getBaseUrl(). '/' . $storeCode . '/' .$this->getTargetPath();
+            if (Mage::getStoreConfig(Mage_Core_Model_Store::XML_PATH_STORE_IN_URL) && $storeCode = Mage::app()->getStore()->getCode()) {
+                $targetUrl = $request->getBaseUrl() . '/' . $storeCode . '/' . $this->getTargetPath();
             }
 
             $this->_sendRedirectHeaders($targetUrl, $isPermanentRedirectOption);
         }
 
-        if (Mage::getStoreConfig('web/url/use_store') && $storeCode = Mage::app()->getStore()->getCode()) {
-                $targetUrl = $request->getBaseUrl(). '/' . $storeCode . '/' .$this->getTargetPath();
-            }
+        if (Mage::getStoreConfig(Mage_Core_Model_Store::XML_PATH_STORE_IN_URL) && $storeCode = Mage::app()->getStore()->getCode()) {
+            $targetUrl = $request->getBaseUrl() . '/' . $storeCode . '/' . $this->getTargetPath();
+        }
 
         $queryString = $this->_getQueryString();
         if ($queryString) {
-            $targetUrl .= '?'.$queryString;
+            $targetUrl .= '?' . $queryString;
         }
 
         $request->setRequestUri($targetUrl);
@@ -300,29 +328,34 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
      *
      * @return bool|string
      * @deprecated since 1.7.0.2. Refactored and moved to Mage_Core_Controller_Request_Rewrite
+     * @SuppressWarnings("PHPMD.Superglobals")
      */
     protected function _getQueryString()
     {
         if (!empty($_SERVER['QUERY_STRING'])) {
-            $queryParams = array();
+            $queryParams = [];
             parse_str($_SERVER['QUERY_STRING'], $queryParams);
             $hasChanges = false;
-            foreach ($queryParams as $key=>$value) {
-                if (substr($key, 0, 3) === '___') {
+            foreach (array_keys($queryParams) as $key) {
+                if (str_starts_with($key, '___')) {
                     unset($queryParams[$key]);
                     $hasChanges = true;
                 }
             }
+
             if ($hasChanges) {
                 return http_build_query($queryParams);
             }
-            else {
-                return $_SERVER['QUERY_STRING'];
-            }
+
+            return $_SERVER['QUERY_STRING'];
         }
+
         return false;
     }
 
+    /**
+     * @return null|int
+     */
     public function getStoreId()
     {
         return $this->_getData('store_id');
@@ -332,8 +365,9 @@ class Mage_Core_Model_Url_Rewrite extends Mage_Core_Model_Abstract implements Ma
      * Add location header and disable browser page caching
      *
      * @param string $url
-     * @param bool $isPermanent
+     * @param bool   $isPermanent
      * @deprecated since 1.7.0.2. Refactored and moved to Mage_Core_Controller_Request_Rewrite
+     * @SuppressWarnings("PHPMD.ExitExpression")
      */
     protected function _sendRedirectHeaders($url, $isPermanent = false)
     {

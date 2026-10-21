@@ -19,7 +19,7 @@
     <div class="print-head">
         <img src="<?php echo $this->getPrintLogoUrl() ? $this->getPrintLogoUrl() : $this->getSkinUrl('images/logo_print.gif') ?>" class="logo" alt="" />
         <?php if ($this->getPrintLogoText()):?>
-            <address><?php echo nl2br($this->htmlEscape($this->getPrintLogoText())) ?></address>
+            <address><?php echo nl2br($this->escapeHtml($this->getPrintLogoText())) ?></address>
         <?php endif;?>
 
         <a href="javascript:window.print();" class="print"><img class="ic_print" height="16" width="16" alt="" title="" src="<? echo $this->getSkinUrl('images/i_print.gif'); ?>"><?php echo $this->__('Print') ?></a>

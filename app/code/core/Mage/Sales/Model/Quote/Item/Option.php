@@ -1,55 +1,42 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Item option model
  *
- * @method Mage_Sales_Model_Resource_Quote_Item_Option _getResource()
- * @method Mage_Sales_Model_Resource_Quote_Item_Option getResource()
- * @method int getItemId()
- * @method Mage_Sales_Model_Quote_Item_Option setItemId(int $value)
- * @method int getProductId()
- * @method Mage_Sales_Model_Quote_Item_Option setProductId(int $value)
- * @method string getCode()
- * @method Mage_Sales_Model_Quote_Item_Option setCode(string $value)
- * @method string getValue()
- * @method Mage_Sales_Model_Quote_Item_Option setValue(string $value)
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Quote_Item_Option            _getResource()
+ * @method string                                                 getCode()
+ * @method Mage_Sales_Model_Resource_Quote_Item_Option_Collection getCollection()
+ * @method int                                                    getItemId()
+ * @method int                                                    getProductId()
+ * @method Mage_Sales_Model_Resource_Quote_Item_Option            getResource()
+ * @method Mage_Sales_Model_Resource_Quote_Item_Option_Collection getResourceCollection()
+ * @method $this                                                  setBackorders(float $value)
+ * @method $this                                                  setCode(string $value)
+ * @method $this                                                  setHasError(bool $value)
+ * @method $this                                                  setHasQtyOptionUpdate(bool $value)
+ * @method $this                                                  setIsQtyDecimal(bool $value)
+ * @method $this                                                  setItemId(int $value)
+ * @method $this                                                  setMessage(string $value)
+ * @method $this                                                  setProductId(int $value)
+ * @method $this                                                  setValue(string $value)
  */
-class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract
-    implements Mage_Catalog_Model_Product_Configuration_Item_Option_Interface
+class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract implements Mage_Catalog_Model_Product_Configuration_Item_Option_Interface
 {
     protected $_item;
+
     protected $_product;
 
     /**
-     * Initialize resource model
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -59,8 +46,9 @@ class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract
     /**
      * Checks that item option model has data changes
      *
-     * @return boolean
+     * @return bool
      */
+    #[Override]
     protected function _hasModelChanged()
     {
         if (!$this->hasDataChanges()) {
@@ -73,13 +61,16 @@ class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract
     /**
      * Set quote item
      *
-     * @param   Mage_Sales_Model_Quote_Item $item
-     * @return  Mage_Sales_Model_Quote_Item_Option
+     * @param  Mage_Sales_Model_Quote_Item $item
+     * @return $this
      */
     public function setItem($item)
     {
-        $this->setItemId($item->getId());
         $this->_item = $item;
+        if ($this->getItemId() != $item->getId()) {
+            $this->setItemId($item->getId());
+        }
+
         return $this;
     }
 
@@ -96,13 +87,16 @@ class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract
     /**
      * Set option product
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  Mage_Sales_Model_Quote_Item_Option
+     * @param  Mage_Catalog_Model_Product $product
+     * @return $this
      */
     public function setProduct($product)
     {
-        $this->setProductId($product->getId());
         $this->_product = $product;
+        if ($this->getProductId() != $product->getId()) {
+            $this->setProductId($product->getId());
+        }
+
         return $this;
     }
 
@@ -129,25 +123,24 @@ class Mage_Sales_Model_Quote_Item_Option extends Mage_Core_Model_Abstract
     /**
      * Initialize item identifier before save data
      *
-     * @return Mage_Sales_Model_Quote_Item_Option
+     * @inheritDoc
      */
+    #[Override]
     protected function _beforeSave()
     {
         if ($this->getItem()) {
             $this->setItemId($this->getItem()->getId());
         }
+
         return parent::_beforeSave();
     }
 
     /**
      * Clone option object
-     *
-     * @return Mage_Sales_Model_Quote_Item_Option
      */
     public function __clone()
     {
         $this->setId(null);
         $this->_item    = null;
-        return $this;
     }
 }

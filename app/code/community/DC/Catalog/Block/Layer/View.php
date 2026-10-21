@@ -33,21 +33,40 @@
  */
 class DC_Catalog_Block_Layer_View extends Mage_Catalog_Block_Layer_View
 {
+    /**
+     * Get all filterable attributes of current category, excluding the
+     * attribute the current attribute info page is built on.
+     *
+     * Mage_Catalog_Model_Layer::getFilterableAttributes() returns either a
+     * Varien_Data_Collection or a plain array (e.g. when the layer's product
+     * collection has no attribute sets), so both cases are handled here.
+     *
+     * @return Mage_Catalog_Model_Resource_Product_Attribute_Collection|array
+     */
     protected function _getFilterableAttributes()
     {
         $attributes = $this->getData('_filterable_attributes');
         if (is_null($attributes)) {
             $attributes = $this->getLayer()->getFilterableAttributes();
-           	foreach ($attributes as $a) {
-		        try {
-                	//remove the current attribute from layered nav
-            		if ($a->getAttributeCode() == Mage::registry('attribute_code')) {
-            			$attributes->removeItemByKey($a->getId());
-            		}
-        	    } catch (Exception $e) {
-            	}
+            $excludeCode = Mage::registry('attribute_code');
+
+            if ($excludeCode) {
+                if ($attributes instanceof Varien_Data_Collection) {
+                    //remove the current attribute from layered nav
+                    foreach ($attributes as $a) {
+                        if ($a->getAttributeCode() == $excludeCode) {
+                            $attributes->removeItemByKey($a->getId());
+                        }
+                    }
+                } elseif (is_array($attributes)) {
+                    foreach ($attributes as $key => $a) {
+                        if (is_object($a) && $a->getAttributeCode() == $excludeCode) {
+                            unset($attributes[$key]);
+                        }
+                    }
+                }
             }
-            //$attributes->removeItemByKey($this->getLayer()->getAttributeInfoPage()->getId())
+
             $this->setData('_filterable_attributes', $attributes);
         }
         return $attributes;

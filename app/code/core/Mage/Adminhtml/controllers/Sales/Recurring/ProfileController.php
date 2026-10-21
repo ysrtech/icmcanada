@@ -1,40 +1,31 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Recurring profiles view/management controller
  *
- * TODO: implement ACL restrictions
+ * @package    Mage_Adminhtml
+ *
+ * @TODO: implement ACL restrictions
  */
 class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Controller_Action
 {
     /**
+     * ACL resource
+     * @see Mage_Adminhtml_Controller_Action::_isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'sales/recurring_profile';
+
+    /**
      * Recurring profiles list
      *
-     * @return void
+     * @return $this
      */
     public function indexAction()
     {
@@ -47,6 +38,7 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
 
     /**
      * View recurring profile detales
+     * @return void
      */
     public function viewAction()
     {
@@ -59,46 +51,51 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
                 ->renderLayout()
             ;
             return;
-        } catch (Mage_Core_Exception $e) {
-            $this->_getSession()->addError($e->getMessage());
-        } catch (Exception $e) {
-            Mage::logException($e);
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_getSession()->addError($mageCoreException->getMessage());
+        } catch (Exception $exception) {
+            Mage::logException($exception);
         }
+
         $this->_redirect('*/*/');
     }
 
     /**
      * Profiles ajax grid
+     * @return void
      */
     public function gridAction()
     {
         try {
             $this->loadLayout()->renderLayout();
             return;
-        } catch (Mage_Core_Exception $e) {
-            $this->_getSession()->addError($e->getMessage());
-        } catch (Exception $e) {
-            Mage::logException($e);
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_getSession()->addError($mageCoreException->getMessage());
+        } catch (Exception $exception) {
+            Mage::logException($exception);
         }
+
         $this->_redirect('*/*/');
     }
 
     /**
      * Profile orders ajax grid
+     * @return void
      */
     public function ordersAction()
     {
         try {
             $this->_initProfile();
             $this->loadLayout()->renderLayout();
-        } catch (Exception $e) {
-            Mage::logException($e);
+        } catch (Exception $exception) {
+            Mage::logException($exception);
             $this->norouteAction();
         }
     }
 
     /**
      * Profile state updater action
+     * @return void
      */
     public function updateStateAction()
     {
@@ -117,15 +114,17 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
                     $profile->activate();
                     break;
             }
+
             $this->_getSession()->addSuccess(Mage::helper('sales')->__('The profile state has been updated.'));
-        } catch (Mage_Core_Exception $e) {
-            $this->_getSession()->addError($e->getMessage());
-        } catch (Exception $e) {
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_getSession()->addError($mageCoreException->getMessage());
+        } catch (Exception $exception) {
             $this->_getSession()->addError(Mage::helper('sales')->__('Failed to update the profile.'));
-            Mage::logException($e);
+            Mage::logException($exception);
         }
+
         if ($profile) {
-            $this->_redirect('*/*/view', array('profile' => $profile->getId()));
+            $this->_redirect('*/*/view', ['profile' => $profile->getId()]);
         } else {
             $this->_redirect('*/*/');
         }
@@ -133,6 +132,7 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
 
     /**
      * Profile information updater action
+     * @return void
      */
     public function updateProfileAction()
     {
@@ -146,14 +146,15 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
             } else {
                 $this->_getSession()->addNotice($this->__('The profile has no changes.'));
             }
-        } catch (Mage_Core_Exception $e) {
-            $this->_getSession()->addError($e->getMessage());
-        } catch (Exception $e) {
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_getSession()->addError($mageCoreException->getMessage());
+        } catch (Exception $exception) {
             $this->_getSession()->addError($this->__('Failed to update the profile.'));
-            Mage::logException($e);
+            Mage::logException($exception);
         }
+
         if ($profile) {
-            $this->_redirect('*/*/view', array('profile' => $profile->getId()));
+            $this->_redirect('*/*/view', ['profile' => $profile->getId()]);
         } else {
             $this->_redirect('*/*/');
         }
@@ -161,7 +162,7 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
 
     /**
      * Cutomer billing agreements ajax action
-     *
+     * @return void
      */
     public function customerGridAction()
     {
@@ -173,7 +174,7 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
     /**
      * Initialize customer by ID specified in request
      *
-     * @return Mage_Adminhtml_Sales_Billing_AgreementController
+     * @return $this
      */
     protected function _initCustomer()
     {
@@ -199,17 +200,8 @@ class Mage_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Co
         if (!$profile->getId()) {
             Mage::throwException($this->__('Specified profile does not exist.'));
         }
+
         Mage::register('current_recurring_profile', $profile);
         return $profile;
-    }
-
-    /**
-     * Check is allowed access to action
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed('sales/recurring_profile');
     }
 }

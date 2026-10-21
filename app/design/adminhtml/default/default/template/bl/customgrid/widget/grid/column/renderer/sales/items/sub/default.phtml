@@ -19,7 +19,7 @@
         <?php if (!$this->getValue()->getHideHeader()): ?>
             <tr class="headings">
             <?php foreach ($this->getValue()->getItemValues() as $_itemValue): ?>
-                <th<?php if ($_cssClasses = $this->getItemValueCssClasses($_itemValue, 'header_align')): ?> class="<?php echo $_cssClasses ?>"<?php endif ?>><?php echo $this->htmlEscape($_itemValue['name']) ?></th>
+                <th<?php if ($_cssClasses = $this->getItemValueCssClasses($_itemValue, 'header_align')): ?> class="<?php echo $_cssClasses ?>"<?php endif ?>><?php echo $this->escapeHtml($_itemValue['name']) ?></th>
             <?php endforeach ?>
             </tr>
         <?php endif ?>

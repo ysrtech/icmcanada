@@ -23,23 +23,33 @@
  * @method int getIsRestricted() Return whether this profile is restricted to its assigned roles
  */
 
-class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
+class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Model_Grid_Element
 {
     /**
      * Session base keys
      */
-    const SESSION_BASE_KEY_SESSION_VALUES = '_blcg_profile_session_values_';
+    const SESSION_BASE_KEY_SESSION_VALUES  = '_blcg_profile_session_values_';
     const SESSION_BASE_KEY_APPLIED_FILTERS = '_blcg_applied_filters_';
     const SESSION_BASE_KEY_REMOVED_FILTERS = '_blcg_removed_filters_';
     
     /**
-     * Return base helper
+     * Return the base helper
      *
      * @return BL_CustomGrid_Helper_Data
      */
     protected function _getHelper()
     {
         return Mage::helper('customgrid');
+    }
+    
+    /**
+     * Return the profiles resource model
+     * 
+     * @return BL_CustomGrid_Model_Mysql4_Grid_Profile
+     */
+    public function getResource()
+    {
+        return Mage::getResourceSingleton('customgrid/grid_profile');
     }
     
     /**
@@ -50,22 +60,6 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
     public function getId()
     {
         return (int) $this->_getData('profile_id');
-    }
-    
-    /**
-     * Return the grid model corresponding to this profile
-     *
-     * @param bool $graceful Whether to throw an exception if the grid model is invalid, otherwise return null
-     * @return BL_CustomGrid_Model_Grid|null
-     */
-    public function getGridModel($graceful = false)
-    {
-        if (($gridModel = $this->_getData('grid_model')) instanceof BL_CustomGrid_Model_Grid) {
-            return $gridModel;
-        } elseif (!$graceful) {
-            Mage::throwException($this->_getHelper()->__('Invalid grid model'));
-        }
-        return null;
     }
     
     /**
@@ -176,6 +170,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
      * Set array data in the adminhtml session, for the given base key
      * 
      * @param string $sessionBaseKey Base key
+     * @param array $data New session data
      * @return BL_CustomGrid_Model_Grid_Profile
      */
     protected function _setSessionArrayData($sessionBaseKey, array $data)
@@ -201,7 +196,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
     }
     
     /**
-     * Get the previously remembered session values
+     * Return the previously remembered session values
      * 
      * @return array
      */
@@ -213,6 +208,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
     /**
      * Set the new remembered session values
      * 
+     * @param array $sessionValues Remembered session values
      * @return BL_CustomGrid_Model_Grid_Profile
      */
     public function setRememberedSessionValues(array $sessionValues)
@@ -286,6 +282,79 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
     }
     
     /**
+     * @see BL_CustomGrid_Model_Grid_Profile::_getDefaultForValues()
+     * @param int $ownValueId Value ID for the current user
+     * @param int $isOwnValueChosen Whether the current user value is chosen
+     * @param string $chooseForOwnAction Specific action key for "Choose Default Profile (Own)" action
+     * @param string $defaultForValueGetterName Name of the getter method from the grid model usable to retrieve
+     *                                          the profile ID that is currently set as default for a given value ID
+     * @return array
+     * @throws BL_CustomGrid_Grid_Permission_Exception
+     */
+    protected function _getDefaultForOwnValues(
+        $ownValueId,
+        $isOwnValueChosen,
+        $chooseForOwnAction,
+        $defaultForValueGetterName
+    ) {
+        $gridModel = $this->getGridModel();
+        $defaultForValues = array();
+        
+        if ($gridModel->checkUserActionPermission($chooseForOwnAction)) {
+            if ($isOwnValueChosen) {
+                $defaultForValues[] = $ownValueId;
+            }
+        } elseif ($isOwnValueChosen) {
+            $gridModel->getSentry()->throwPermissionException();
+        } elseif (call_user_func(array($gridModel, $defaultForValueGetterName)) === $this->getId()) {
+            $defaultForValues[] = $ownValueId;
+        }
+        
+        return $defaultForValues;
+    }
+    
+    /**
+     * @see BL_CustomGrid_Model_Grid_Profile::_getDefaultForValues()
+     * @param int $ownValueId Value ID for the current user
+     * @param int[] $otherChosenIds Other chosen values IDs
+     * @param string $chooseForOthersAction Specific action key for "Choose Default Profile (Others)" action
+     * @param string $defaultForValueGetterName Name of the getter method from the grid model usable to retrieve
+     *                                          the profile ID that is currently set as default for a given value ID
+     * @param string $valueModelCode Class code of the Magento model corresponding to the handled values
+     * @return array
+     * @throws BL_CustomGrid_Grid_Permission_Exception
+     */
+    protected function _getDefaultForOthersValues(
+        $ownValueId,
+        array $otherChosenIds,
+        $chooseForOthersAction,
+        $defaultForValueGetterName,
+        $valueModelCode
+    ) {
+        $gridModel = $this->getGridModel();
+        $defaultForValues = array();
+        
+        if ($gridModel->checkUserActionPermission($chooseForOthersAction)) {
+            $defaultForValues = $otherChosenIds;
+        } elseif (!empty($otherChosenIds)) {
+            $gridModel->getSentry()->throwPermissionException();
+        } else {
+            $valuesIds = Mage::getModel($valueModelCode)
+                ->getCollection()
+                ->getAllIds();
+        
+            foreach ($valuesIds as $valueId) {
+                if (($valueId != $ownValueId)
+                    && (call_user_func(array($gridModel, $defaultForValueGetterName), $valueId) === $this->getId())) {
+                    $defaultForValues[] = $valueId;
+                }
+            }
+        }
+        
+        return $defaultForValues;
+    }
+    
+    /**
      * Check, complete and return the given array of values IDs (roles or users)
      * for which this profile will be set as default
      *
@@ -293,7 +362,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
      * @param int $ownValueId Corresponding value ID for the current user
      * @param string $chooseForOwnAction Specific action key for "Choose Default Profile (Own)" action
      * @param string $chooseForOthersAction Specific action key for "Choose Default Profile (Others)" action
-     * @param string $defaultForValueGetterName Name of the getter from the grid model usable to retrieve
+     * @param string $defaultForValueGetterName Name of the getter method from the grid model usable to retrieve
      *                                          the profile ID that is currently set as default for a given value ID
      * @param string $valueModelCode Class code of the Magento model corresponding to the handled values
      * @return int[]
@@ -306,40 +375,24 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
         $defaultForValueGetterName,
         $valueModelCode
     ) {
-        $profileId = $this->getId();
-        $gridModel = $this->getGridModel();
-        
-        $defaultForValues = array();
         $values = array_filter($values);
-        $ownChosen = in_array($ownValueId, $values);
         $otherChosenIds = array_diff($values, array($ownValueId));
-            
-        if ($gridModel->checkUserActionPermission($chooseForOwnAction)) {
-            if ($ownChosen) {
-                $defaultForValues[] = $ownValueId;
-            }
-        } elseif ($ownChosen) {
-            $gridModel->getSentry()->throwPermissionException();
-        } elseif (call_user_func(array($gridModel, $defaultForValueGetterName)) === $profileId) {
-            $defaultForValues[] = $ownValueId;
-        }
         
-        if ($gridModel->checkUserActionPermission($chooseForOthersAction)) {
-            $defaultForValues = array_merge($defaultForValues, $otherChosenIds);
-        } elseif (!empty($otherChosenIds)) {
-            $gridModel->getSentry()->throwPermissionException();
-        } else {
-            $valuesIds = Mage::getModel($valueModelCode)->getCollection()->getAllIds();
-            
-            foreach ($valuesIds as $valueId) {
-                if (($valueId != $ownValueId)
-                    && (call_user_func(array($gridModel, $defaultForValueGetterName), $valueId) === $profileId)) {
-                    $defaultForValues[] = $valueId;
-                }
-            }
-        }
-        
-        return $defaultForValues;
+        return array_merge(
+            $this->_getDefaultForOwnValues(
+                $ownValueId,
+                in_array($ownValueId, $values),
+                $chooseForOwnAction,
+                $defaultForValueGetterName
+            ),
+            $this->_getDefaultForOthersValues(
+                $ownValueId,
+                $otherChosenIds,
+                $chooseForOthersAction,
+                $defaultForValueGetterName,
+                $valueModelCode
+            )
+        );
     }
     
     /**
@@ -408,7 +461,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             $defaultFor['global'] = (bool) $values['global'];
         }
         
-        $gridModel->getResource()->chooseProfileAsDefault($gridModel->getId(), $profileId, $defaultFor);
+        $this->getResource()->chooseProfileAsDefault($gridModel->getId(), $profileId, $defaultFor);
         $gridModel->resetUsersConfigValues();
         $gridModel->resetRolesConfigValues();
         $gridModel->resetProfilesValues();
@@ -516,7 +569,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
         $values['is_restricted'] = !is_null($assignedRolesIds);
         $values['assigned_to'] = $assignedRolesIds;
         
-        $newProfileId = $gridModel->getResource()->copyProfileToNew($gridModel->getId(), $profileId, $values);
+        $newProfileId = $this->getResource()->copyProfileToNew($gridModel->getId(), $profileId, $values);
         $gridModel->resetProfilesValues();
         
         if ($values['is_restricted']) {
@@ -549,7 +602,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             Mage::throwException($this->_getHelper()->__('A profile can not be copied to itself'));
         }
         
-        $gridModel->getResource()->copyProfileToExisting($gridModel->getId(), $profileId, $toProfileId, $values);
+        $this->getResource()->copyProfileToExisting($gridModel->getId(), $profileId, $toProfileId, $values);
         $gridModel->resetProfilesValues();
         
         return $this;
@@ -588,7 +641,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             $values['remembered_session_params'] = null;
         }
         
-        $gridModel->getResource()->updateProfile($gridModel->getId(), $profileId, $values, !$this->getIsBulkSaveMode());
+        $this->getResource()->updateProfile($gridModel->getId(), $profileId, $values, !$this->getIsBulkSaveMode());
         $this->addData($values);
         
         return $this;
@@ -650,7 +703,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
     protected function _prepareDefaultFilterValue($value)
     {
         return $this->getGridModel()
-            ->getApplier()
+            ->getFiltersHandler()
             ->prepareDefaultFilterValue($value);
     }
     
@@ -683,7 +736,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
      * @param array $removable Removable values
      * @return BL_CustomGrid_Model_Grid_Profile
      */
-    public function updateDefaultParameters(array $appliable, array $removable)
+    public function updateDefaultParams(array $appliable, array $removable)
     {
         $gridModel = $this->getGridModel();
         $gridModel->checkUserActionPermission(BL_CustomGrid_Model_Grid_Sentry::ACTION_EDIT_DEFAULT_PARAMS, false);
@@ -695,7 +748,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             $defaultParams[$valueKey] = $this->_extractDefaultParamValue($paramKey, $valueKey, $appliable, $removable);
         }
         
-        $gridModel->getResource()->updateProfile($gridModel->getId(), $this->getId(), $defaultParams, true);
+        $this->getResource()->updateProfile($gridModel->getId(), $this->getId(), $defaultParams, true);
         $this->addData($defaultParams);
         
         return $this;
@@ -729,7 +782,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             $values['assigned_to'] = null;
         }
         
-        $gridModel->getResource()->updateProfile($gridModel->getId(), $profileId, $values, !$this->getIsBulkSaveMode());
+        $this->getResource()->updateProfile($gridModel->getId(), $profileId, $values, !$this->getIsBulkSaveMode());
         $gridModel->resetProfilesValues();
         $gridModel->resetRolesConfigValues();
         $this->unsetData('assigned_to_role_ids');
@@ -755,7 +808,7 @@ class BL_CustomGrid_Model_Grid_Profile extends BL_CustomGrid_Object
             Mage::throwException($this->_getHelper()->__('The base profile can not be deleted'));
         }
         
-        $gridModel->getResource()->deleteProfile($gridModel->getId(), $profileId);
+        $this->getResource()->deleteProfile($gridModel->getId(), $profileId);
         $gridModel->resetProfilesValues();
         $gridModel->resetUsersConfigValues();
         $gridModel->resetRolesConfigValues();

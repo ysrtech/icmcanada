@@ -1,48 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Payflow Link payment gateway model
  *
- * @category    Mage
- * @package     Mage_Paypal
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
-
 class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
 {
     /**
      * Default layout template
      */
-    const LAYOUT_TEMPLATE = 'minLayout';
+    public const LAYOUT_TEMPLATE = 'minLayout';
 
     /**
      * Mobile layout template
      */
-    const MOBILE_LAYOUT_TEMPLATE = 'mobile';
+    public const MOBILE_LAYOUT_TEMPLATE = 'mobile';
 
     /**
      * Controller for callback urls
@@ -56,7 +36,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
      *
      * @var array
      */
-    protected $_responseParamsMappings = array(
+    protected $_responseParamsMappings = [
         'firstname' => 'billtofirstname',
         'lastname' => 'billtolastname',
         'address' => 'billtostreet',
@@ -78,7 +58,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
         'method' => 'tender',
         'cscmatch' => 'cvv2match',
         'type' => 'trxtype',
-    );
+    ];
 
     /**
      * Payment method code
@@ -86,13 +66,16 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     protected $_code = Mage_Paypal_Model_Config::METHOD_PAYFLOWLINK;
 
     protected $_formBlockType = 'paypal/payflow_link_form';
+
     protected $_infoBlockType = 'paypal/payflow_link_info';
 
     /**
      * Availability options
      */
     protected $_canUseInternal          = false;
+
     protected $_canUseForMultishipping  = false;
+
     protected $_isInitializeNeeded      = true;
 
     /**
@@ -105,13 +88,13 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
      * Gateway request URL
      * @var string
      */
-    const TRANSACTION_PAYFLOW_URL = 'https://payflowlink.paypal.com/';
+    public const TRANSACTION_PAYFLOW_URL = 'https://payflowlink.paypal.com/';
 
     /**
      * Error message
      * @var string
      */
-    const RESPONSE_ERROR_MSG = 'Payment error. %s was not found.';
+    public const RESPONSE_ERROR_MSG = 'Payment error. %s was not found.';
 
     /**
      * Key for storing secure hash in additional information of payment model
@@ -123,8 +106,9 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Do not validate payment form using server methods
      *
-     * @return  bool
+     * @return bool
      */
+    #[Override]
     public function validate()
     {
         return true;
@@ -133,17 +117,15 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Check whether payment method can be used
      *
-     * @param Mage_Sales_Model_Quote
+     * @param  null|Mage_Sales_Model_Quote $quote
      * @return bool
      */
+    #[Override]
     public function isAvailable($quote = null)
     {
         $storeId = Mage::app()->getStore($this->getStore())->getId();
         $config = Mage::getModel('paypal/config')->setStoreId($storeId);
-        if (Mage_Payment_Model_Method_Abstract::isAvailable($quote) && $config->isMethodAvailable($this->getCode())) {
-            return true;
-        }
-        return false;
+        return Mage_Payment_Model_Method_Abstract::isAvailable($quote) && $config->isMethodAvailable($this->getCode());
     }
 
     /**
@@ -155,17 +137,19 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     {
         if ($this->getConfigData('mobile_optimized')) {
             return self::MOBILE_LAYOUT_TEMPLATE;
-        } else {
-            return self::LAYOUT_TEMPLATE;
         }
+
+        return self::LAYOUT_TEMPLATE;
     }
 
     /**
      * Instantiate state and set it to state object
      *
-     * @param string $paymentAction
-     * @param Varien_Object $stateObject
+     * @param  string        $paymentAction
+     * @param  Varien_Object $stateObject
+     * @return $this
      */
+    #[Override]
     public function initialize($paymentAction, $stateObject)
     {
         switch ($paymentAction) {
@@ -191,12 +175,14 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
             default:
                 break;
         }
+
+        return $this;
     }
 
     /**
      * Return response model.
      *
-     * @return Mage_Mage_Paypal_Model_Payflow_Request
+     * @return Mage_Paypal_Model_Payflow_Request
      */
     public function getResponse()
     {
@@ -210,29 +196,31 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Fill response with data.
      *
-     * @param array $postData
-     * @return Mage_Paypal_Model_Payflowlink
+     * @return $this
      */
     public function setResponseData(array $postData)
     {
         foreach ($postData as $key => $val) {
             $this->getResponse()->setData(strtolower($key), $val);
         }
+
         foreach ($this->_responseParamsMappings as $originKey => $key) {
             $data = $this->getResponse()->getData($key);
             if (isset($data)) {
                 $this->getResponse()->setData($originKey, $data);
             }
         }
+
         // process AVS data separately
-        $avsAddr = $this->getResponse()->getData('avsaddr');
-        $avsZip = $this->getResponse()->getData('avszip');
+        $avsAddr = $this->getResponse()->getDataByKey('avsaddr');
+        $avsZip = $this->getResponse()->getDataByKey('avszip');
         if (isset($avsAddr) && isset($avsZip)) {
             $this->getResponse()->setData('avsdata', $avsAddr . $avsZip);
         }
+
         // process Name separately
-        $firstnameParameter = $this->getResponse()->getData('billtofirstname');
-        $lastnameParameter = $this->getResponse()->getData('billtolastname');
+        $firstnameParameter = $this->getResponse()->getDataByKey('billtofirstname');
+        $lastnameParameter = $this->getResponse()->getDataByKey('billtolastname');
         if (isset($firstnameParameter) && isset($lastnameParameter)) {
             $this->getResponse()->setData('name', $firstnameParameter . ' ' . $lastnameParameter);
         }
@@ -243,14 +231,14 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Operate with order using data from $_POST which came from Silent Post Url.
      *
-     * @param array $responseData
+     * @param  array               $responseData
      * @throws Mage_Core_Exception in case of validation error or order creation error
      */
     public function process($responseData)
     {
-        $debugData = array(
-            'response' => $responseData
-        );
+        $debugData = [
+            'response' => $responseData,
+        ];
         $this->_debug($debugData);
 
         $this->setResponseData($responseData);
@@ -263,8 +251,6 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
 
     /**
      * Operate with order using information from silent post
-     *
-     * @param Mage_Sales_Model_Order $order
      */
     protected function _processOrder(Mage_Sales_Model_Order $order)
     {
@@ -274,12 +260,12 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
             ->setIsTransactionClosed(0);
         $canSendNewOrderEmail = true;
 
-        if ($response->getResult() == self::RESPONSE_CODE_FRAUDSERVICE_FILTER ||
-            $response->getResult() == self::RESPONSE_CODE_DECLINED_BY_FILTER
+        if ($response->getResult() == self::RESPONSE_CODE_FRAUDSERVICE_FILTER
+            || $response->getResult() == self::RESPONSE_CODE_DECLINED_BY_FILTER
         ) {
             $canSendNewOrderEmail = false;
-            $fraudMessage = $this->_getFraudMessage() ?
-                $response->getFraudMessage() : $response->getRespmsg();
+            $fraudMessage = $this->_getFraudMessage()
+                ? $response->getFraudMessage() : $response->getRespmsg();
             $payment->setIsTransactionPending(true)
                 ->setIsFraudDetected(true)
                 ->setAdditionalInformation('paypal_fraud_filters', $fraudMessage);
@@ -288,11 +274,12 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
         if ($response->getAvsdata() && strstr(substr($response->getAvsdata(), 0, 2), 'N')) {
             $payment->setAdditionalInformation('paypal_avs_code', substr($response->getAvsdata(), 0, 2));
         }
+
         if ($response->getCvv2match() && $response->getCvv2match() != 'Y') {
             $payment->setAdditionalInformation('paypal_cvv2_match', $response->getCvv2match());
         }
 
-        switch ($response->getType()){
+        switch ($response->getType()) {
             case self::TRXTYPE_AUTH_ONLY:
                 $payment->registerAuthorizationNotification($payment->getBaseAmountAuthorized());
                 break;
@@ -300,17 +287,19 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
                 $payment->registerCaptureNotification($payment->getBaseAmountAuthorized());
                 break;
         }
+
         $order->save();
 
         try {
             if ($canSendNewOrderEmail) {
                 $order->queueNewOrderEmail();
             }
+
             Mage::getModel('sales/quote')
                 ->load($order->getQuoteId())
                 ->setIsActive(false)
                 ->save();
-        } catch (Exception $e) {
+        } catch (Exception) {
             Mage::throwException(Mage::helper('paypal')->__('Can not send new order email.'));
         }
     }
@@ -318,7 +307,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Get fraud message from response
      *
-     * @return string|bool
+     * @return bool|string
      */
     protected function _getFraudMessage()
     {
@@ -334,8 +323,8 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Check response from Payflow gateway.
      *
-     * @return Mage_Sales_Model_Order in case of validation passed
-     * @throws Mage_Core_Exception in other cases
+     * @return false|Mage_Sales_Model_Order in case of validation passed
+     * @throws Mage_Core_Exception          in other cases
      */
     protected function _getOrderFromResponse()
     {
@@ -350,17 +339,19 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
             return false;
         }
 
-        if ($response->getResult() != self::RESPONSE_CODE_FRAUDSERVICE_FILTER
-            && $response->getResult() != self::RESPONSE_CODE_DECLINED_BY_FILTER
-            && $response->getResult() != self::RESPONSE_CODE_APPROVED
-        ) {
+        if (!in_array($response->getResult(), [
+            self::RESPONSE_CODE_FRAUDSERVICE_FILTER,
+            self::RESPONSE_CODE_DECLINED_BY_FILTER,
+            self::RESPONSE_CODE_APPROVED,
+        ])) {
             if ($order->getState() != Mage_Sales_Model_Order::STATE_CANCELED) {
                 $order->registerCancellation($response->getRespmsg())->save();
             }
+
             Mage::throwException($response->getRespmsg());
         }
 
-        $amountCompared = ($response->getAmt() == $order->getPayment()->getBaseAmountAuthorized()) ? true : false;
+        $amountCompared = $response->getAmt() == $order->getPayment()->getBaseAmountAuthorized();
         if (!$order->getId()
             || $order->getState() != Mage_Sales_Model_Order::STATE_PENDING_PAYMENT
             || !$amountCompared
@@ -379,8 +370,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Build request for getting token
      *
-     * @param Mage_Sales_Model_Order_Payment $payment
-     * @return Varien_Object
+     * @return Mage_Paypal_Model_Payflow_Request
      */
     protected function _buildTokenRequest(Mage_Sales_Model_Order_Payment $payment)
     {
@@ -394,10 +384,9 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
             ->setCustref($payment->getOrder()->getIncrementId())
             ->setPonum($payment->getOrder()->getId());
         //This is PaPal issue with taxes and shipping
-            //->setSubtotal($this->_formatStr('%.2F', $payment->getOrder()->getBaseSubtotal()))
-            //->setTaxamt($this->_formatStr('%.2F', $payment->getOrder()->getBaseTaxAmount()))
-            //->setFreightamt($this->_formatStr('%.2F', $payment->getOrder()->getBaseShippingAmount()));
-
+        //->setSubtotal($this->_formatStr('%.2F', $payment->getOrder()->getBaseSubtotal()))
+        //->setTaxamt($this->_formatStr('%.2F', $payment->getOrder()->getBaseTaxAmount()))
+        //->setFreightamt($this->_formatStr('%.2F', $payment->getOrder()->getBaseShippingAmount()));
 
         $order = $payment->getOrder();
         if (empty($order)) {
@@ -415,6 +404,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
                 ->setCountry($billing->getCountry())
                 ->setEmail($order->getCustomerEmail());
         }
+
         $shipping = $order->getShippingAddress();
         if (!empty($shipping)) {
             $this->_applyCountryWorkarounds($shipping);
@@ -426,6 +416,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
                 ->setShiptozip($shipping->getPostcode())
                 ->setShiptocountry($shipping->getCountry());
         }
+
         //pass store Id to request
         $request->setUser1($order->getStoreId())
             ->setUser2($this->_getSecureSilentPostHash($payment));
@@ -450,11 +441,11 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     }
 
     /**
-      * Return request object with basic information for gateway request
-      *
-      * @param Varien_Object $payment
-      * @return Mage_Paypal_Model_Payflow_Request
-      */
+     * Return request object with basic information for gateway request
+     *
+     * @return Mage_Paypal_Model_Payflow_Request
+     */
+    #[Override]
     protected function _buildBasicRequest(Varien_Object $payment)
     {
         $request = Mage::getModel('paypal/payflow_request');
@@ -483,25 +474,24 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     }
 
     /**
-      * Get payment action code
-      *
-      * @return string
-      */
+     * Get payment action code
+     *
+     * @return string
+     */
     protected function _getTrxTokenType()
     {
-        switch ($this->getConfigData('payment_action')) {
-            case Mage_Paypal_Model_Config::PAYMENT_ACTION_AUTH:
-                return self::TRXTYPE_AUTH_ONLY;
-            case Mage_Paypal_Model_Config::PAYMENT_ACTION_SALE:
-                return self::TRXTYPE_SALE;
-        }
+        return match ($this->getConfigData('payment_action')) {
+            Mage_Paypal_Model_Config::PAYMENT_ACTION_AUTH => self::TRXTYPE_AUTH_ONLY,
+            Mage_Paypal_Model_Config::PAYMENT_ACTION_SALE => self::TRXTYPE_SALE,
+            default => '',
+        };
     }
 
     /**
-      * Return unique value for secure token id
-      *
-      * @return string
-      */
+     * Return unique value for secure token id
+     *
+     * @return string
+     */
     protected function _generateSecureTokenId()
     {
         return Mage::helper('core')->uniqHash();
@@ -510,9 +500,9 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Format values
      *
-     * @param mixed $format
-     * @param mixed $string
-     * @return mixed
+     * @param  mixed  $format
+     * @param  mixed  $string
+     * @return string
      */
     protected function _formatStr($format, $string)
     {
@@ -520,18 +510,19 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     }
 
     /**
-      * If response is failed throw exception
-      * Set token data in payment object
-      *
-      * @param Varien_Object $response
-      * @param Mage_Sales_Model_Order_Payment $payment
-      * @throws Mage_Core_Exception
-      */
+     * If response is failed throw exception
+     * Set token data in payment object
+     *
+     * @param  Varien_Object                                          $response
+     * @param  Mage_Payment_Model_Info|Mage_Sales_Model_Order_Payment $payment
+     * @throws Mage_Core_Exception
+     */
     protected function _processTokenErrors($response, $payment)
     {
-        if (!$response->getSecuretoken() &&
-            $response->getResult() != self::RESPONSE_CODE_APPROVED
-            && $response->getResult() != self::RESPONSE_CODE_FRAUDSERVICE_FILTER) {
+        if (!$response->getSecuretoken()
+            && $response->getResult() != self::RESPONSE_CODE_APPROVED
+            && $response->getResult() != self::RESPONSE_CODE_FRAUDSERVICE_FILTER
+        ) {
             Mage::throwException($response->getRespmsg());
         } else {
             $payment->setAdditionalInformation('secure_token_id', $response->getSecuretokenid())
@@ -542,7 +533,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Return secure hash value for silent post request
      *
-     * @param Mage_Sales_Model_Order_Payment $payment
+     * @param  Mage_Sales_Model_Order_Payment $payment
      * @return string
      */
     protected function _getSecureSilentPostHash($payment)
@@ -553,7 +544,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Generate end return new secure hash value
      *
-     * @param Mage_Sales_Model_Order_Payment $payment
+     * @param  Mage_Payment_Model_Info $payment
      * @return string
      */
     protected function _generateSecureSilentPostHash($payment)
@@ -566,22 +557,18 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Add transaction with correct transaction Id
      *
-     * @deprecated since 1.6.2.0
      * @param Varien_Object $payment
-     * @param string $txnId
-     * @return void
+     * @param string        $txnId
+     * @deprecated since 1.6.2.0
      */
-    protected function _addTransaction($payment, $txnId)
-    {
-    }
+    protected function _addTransaction($payment, $txnId) {}
 
     /**
      * Initialize request
      *
+     * @param  mixed $amount
+     * @return $this
      * @deprecated since 1.6.2.0
-     * @param Varien_Object $payment
-     * @param  $amount
-     * @return Mage_Paypal_Model_Payflowlink
      */
     protected function _initialize(Varien_Object $payment, $amount)
     {
@@ -591,23 +578,19 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Check whether order review has enough data to initialize
      *
+     * @param string $token
      * @deprecated since 1.6.2.0
-     * @param $token
-     * @throws Mage_Core_Exception
      */
-    public function prepareOrderReview($token = null)
-    {
-    }
+    public function prepareOrderReview($token = null) {}
 
     /**
      * Additional authorization logic for Account Verification
      *
+     * @param  mixed                                 $amount
+     * @param  Mage_Paypal_Model_Payment_Transaction $transaction
+     * @param  string                                $txnId
+     * @return $this
      * @deprecated since 1.6.2.0
-     * @param Varien_Object $payment
-     * @param mixed $amount
-     * @param Mage_Paypal_Model_Payment_Transaction $transaction
-     * @param string $txnId
-     * @return Mage_Paypal_Model_Payflowlink
      */
     protected function _authorize(Varien_Object $payment, $amount, $transaction, $txnId)
     {
@@ -618,19 +601,16 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
      * Operate with order or quote using information from silent post
      *
      * @deprecated since 1.6.2.0
-     * @param Varien_Object $document
      */
-    protected function _process(Varien_Object $document)
-    {
-    }
+    protected function _process(Varien_Object $document) {}
 
     /**
      * Check Transaction
      *
+     * @param  Mage_Paypal_Model_Payment_Transaction $transaction
+     * @param  mixed                                 $amount
+     * @return $this
      * @deprecated since 1.6.2.0
-     * @param Mage_Paypal_Model_Payment_Transaction $transaction
-     * @param mixed $amount
-     * @return Mage_Paypal_Model_Payflowlink
      */
     protected function _checkTransaction($transaction, $amount)
     {
@@ -641,8 +621,6 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
      * Check response from Payflow gateway.
      *
      * @deprecated since 1.6.2.0
-     * @return Mage_Sales_Model_Abstract in case of validation passed
-     * @throws Mage_Core_Exception in other cases
      */
     protected function _getDocumentFromResponse()
     {
@@ -662,7 +640,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
     /**
      * Get callback url
      *
-     * @param string $actionName
+     * @param  string $actionName
      * @return string
      */
     protected function _getCallbackUrl($actionName)
@@ -672,7 +650,7 @@ class Mage_Paypal_Model_Payflowlink extends Mage_Paypal_Model_Payflowpro
             $website = Mage::getModel('core/website')->load($request->getParam('website'));
             $secure = Mage::getStoreConfigFlag(
                 Mage_Core_Model_Url::XML_PATH_SECURE_IN_FRONT,
-                $website->getDefaultStore()
+                $website->getDefaultStore(),
             );
             $path = $secure
                 ? Mage_Core_Model_Store::XML_PATH_SECURE_BASE_LINK_URL

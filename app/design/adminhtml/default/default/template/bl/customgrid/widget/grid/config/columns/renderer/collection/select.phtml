@@ -17,16 +17,16 @@
 <div class="nobr">
 <?php if ($this->getIsForcedRenderer()): ?>
     <?php if ($_renderer = $this->getRenderer() ): ?>
-        <input type="hidden" name="<?php echo $this->getRendererSelectName() ?>" id="<?php echo $this->getRendererSelectHtmlId() ?>" value="<?php echo $this->htmlEscape($_renderer->getCode()) ?>" />
-        <?php echo $this->htmlEscape($_renderer->getName()) ?>
+        <input type="hidden" name="<?php echo $this->getRendererSelectName() ?>" id="<?php echo $this->getRendererSelectHtmlId() ?>" value="<?php echo $this->escapeHtml($_renderer->getCode()) ?>" />
+        <?php echo $this->escapeHtml($_renderer->getName()) ?>
     <?php else: ?>
-        <?php echo $this->htmlEscape($this->getForcedRendererLabel()) ?>
+        <?php echo $this->escapeHtml($this->getForcedRendererLabel()) ?>
     <?php endif ?>
 <?php else: ?>
     <select name="<?php echo $this->getRendererSelectName() ?>" id="<?php echo $this->getRendererSelectHtmlId() ?>" class="<?php echo $this->getRendererSelectClassNames() ?>">
         <option value=""></option>
         <?php foreach ($this->getRenderers(true) as $_renderer): ?>
-            <option value="<?php echo $this->htmlEscape($_renderer->getCode()) ?>"<?php if ($this->getRendererCode() == $_renderer->getCode()): ?> selected="selected"<?php endif ?>><?php echo $this->htmlEscape($_renderer->getName()) ?></option>
+            <option value="<?php echo $this->escapeHtml($_renderer->getCode()) ?>"<?php if ($this->getRendererCode() == $_renderer->getCode()): ?> selected="selected"<?php endif ?>><?php echo $this->escapeHtml($_renderer->getName()) ?></option>
         <?php endforeach ?>
     </select>
 <?php endif ?>

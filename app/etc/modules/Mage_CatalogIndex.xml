@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
+ * @package    Mage_CatalogIndex
+ */
+-->
+<config>
+    <modules>
+        <Mage_CatalogIndex>
+            <active>true</active>
+            <codePool>core</codePool>
+            <depends>
+                <Mage_Catalog/>
+                <Mage_CatalogRule/>
+                <Mage_Eav/>
+            </depends>
+        </Mage_CatalogIndex>
+    </modules>
+</config>

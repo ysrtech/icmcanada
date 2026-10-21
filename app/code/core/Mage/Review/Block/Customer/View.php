@@ -1,37 +1,30 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Review
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Review
  */
 
 /**
  * Customer Review detailed view block
  *
- * @category   Mage
  * @package    Mage_Review
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Catalog_Model_Product                                     getProductCacheData()
+ * @method false|Mage_Rating_Model_Resource_Rating_Option_Vote_Collection getRatingCollection()
+ * @method array                                                          getRatingSummaryCache()
+ * @method Mage_Review_Model_Review                                       getReviewCachedData()
+ * @method string                                                         getReviewId()
+ * @method int                                                            getTotalReviewsCache()
+ * @method $this                                                          setProductCacheData(Mage_Catalog_Model_Product $value)
+ * @method $this                                                          setRatingCollection(false|Mage_Rating_Model_Resource_Rating_Option_Vote_Collection $value)
+ * @method setRatingSummaryCache(array $value)
+ * @method $this setReviewCachedData(Mage_Review_Model_Review $value)
+ * @method $this setReviewId(string $value)
+ * @method $this setTotalReviewsCache(int $entityPkValue, bool $approvedOnly, int $storeId)
  */
-
 class Mage_Review_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
 {
     public function __construct()
@@ -42,33 +35,49 @@ class Mage_Review_Block_Customer_View extends Mage_Catalog_Block_Product_Abstrac
         $this->setReviewId($this->getRequest()->getParam('id', false));
     }
 
+    /**
+     * @return Mage_Catalog_Model_Product
+     * @throws Mage_Core_Model_Store_Exception
+     */
     public function getProductData()
     {
-        if( $this->getReviewId() && !$this->getProductCacheData() ) {
+        if ($this->getReviewId() && !$this->getProductCacheData()) {
             $product = Mage::getModel('catalog/product')
                 ->setStoreId(Mage::app()->getStore()->getId())
                 ->load($this->getReviewData()->getEntityPkValue());
             $this->setProductCacheData($product);
         }
+
         return $this->getProductCacheData();
     }
 
+    /**
+     * @return Mage_Review_Model_Review
+     */
     public function getReviewData()
     {
-        if( $this->getReviewId() && !$this->getReviewCachedData() ) {
+        if ($this->getReviewId() && !$this->getReviewCachedData()) {
             $this->setReviewCachedData(Mage::getModel('review/review')->load($this->getReviewId()));
         }
+
         return $this->getReviewCachedData();
     }
 
+    /**
+     * @return string
+     */
     public function getBackUrl()
     {
         return Mage::getUrl('review/customer');
     }
 
+    /**
+     * @return Mage_Rating_Model_Resource_Rating_Option_Vote_Collection
+     * @throws Mage_Core_Model_Store_Exception
+     */
     public function getRating()
     {
-        if( !$this->getRatingCollection() ) {
+        if (!$this->getRatingCollection()) {
             $ratingCollection = Mage::getModel('rating/rating_option_vote')
                 ->getResourceCollection()
                 ->setReviewFilter($this->getReviewId())
@@ -76,28 +85,41 @@ class Mage_Review_Block_Customer_View extends Mage_Catalog_Block_Product_Abstrac
                 ->setStoreFilter(Mage::app()->getStore()->getId())
                 ->load();
 
-            $this->setRatingCollection( ( $ratingCollection->getSize() ) ? $ratingCollection : false );
+            $this->setRatingCollection(($ratingCollection->getSize()) ? $ratingCollection : false);
         }
 
         return $this->getRatingCollection();
     }
 
+    /**
+     * @return array
+     */
     public function getRatingSummary()
     {
-        if( !$this->getRatingSummaryCache() ) {
+        if (!$this->getRatingSummaryCache()) {
             $this->setRatingSummaryCache(Mage::getModel('rating/rating')->getEntitySummary($this->getProductData()->getId()));
         }
+
         return $this->getRatingSummaryCache();
     }
 
+    /**
+     * @return int
+     * @throws Mage_Core_Model_Store_Exception
+     */
     public function getTotalReviews()
     {
-        if( !$this->getTotalReviewsCache() ) {
+        if (!$this->getTotalReviewsCache()) {
             $this->setTotalReviewsCache(Mage::getModel('review/review')->getTotalReviews($this->getProductData()->getId()), false, Mage::app()->getStore()->getId());
         }
+
         return $this->getTotalReviewsCache();
     }
 
+    /**
+     * @param  string $date
+     * @return string
+     */
     public function dateFormat($date)
     {
         return $this->formatDate($date, Mage_Core_Model_Locale::FORMAT_TYPE_LONG);
@@ -106,7 +128,7 @@ class Mage_Review_Block_Customer_View extends Mage_Catalog_Block_Product_Abstrac
     /**
      * Check whether current customer is review owner
      *
-     * @return boolean
+     * @return bool
      */
     public function isReviewOwner()
     {

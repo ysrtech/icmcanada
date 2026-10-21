@@ -18,7 +18,7 @@ if ($totalFiles > 0) {
     }
 }
 ?>
-<?php if (count($inline_attachments) > 0): ?>
+<?php if (!empty($inline_attachments)): ?>
     <div class="homepage-videos clearer">
         <h2 class="block-title">Product Videos <span style="font-size: 10px;font-weight: normal;margin-left: 10px"><a href="<?php echo Mage::getBaseUrl()?>videos-all">VIEW ALL VIDEOS &raquo;</a></span></h2>
         <div class="videos-container">

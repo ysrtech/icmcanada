@@ -1,85 +1,76 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
+ */
 
 /**
  * Sales order address model
  *
- * @method Mage_Sales_Model_Resource_Order_Address _getResource()
- * @method Mage_Sales_Model_Resource_Order_Address getResource()
- * @method int getParentId()
- * @method Mage_Sales_Model_Order_Address setParentId(int $value)
- * @method int getCustomerAddressId()
- * @method Mage_Sales_Model_Order_Address setCustomerAddressId(int $value)
- * @method int getQuoteAddressId()
- * @method Mage_Sales_Model_Order_Address setQuoteAddressId(int $value)
- * @method Mage_Sales_Model_Order_Address setRegionId(int $value)
- * @method int getCustomerId()
- * @method Mage_Sales_Model_Order_Address setCustomerId(int $value)
- * @method string getFax()
- * @method Mage_Sales_Model_Order_Address setFax(string $value)
- * @method Mage_Sales_Model_Order_Address setRegion(string $value)
- * @method string getPostcode()
- * @method Mage_Sales_Model_Order_Address setPostcode(string $value)
- * @method string getLastname()
- * @method Mage_Sales_Model_Order_Address setLastname(string $value)
- * @method string getCity()
- * @method Mage_Sales_Model_Order_Address setCity(string $value)
- * @method string getEmail()
- * @method Mage_Sales_Model_Order_Address setEmail(string $value)
- * @method string getTelephone()
- * @method Mage_Sales_Model_Order_Address setTelephone(string $value)
- * @method string getCountryId()
- * @method Mage_Sales_Model_Order_Address setCountryId(string $value)
- * @method string getFirstname()
- * @method Mage_Sales_Model_Order_Address setFirstname(string $value)
- * @method string getAddressType()
- * @method Mage_Sales_Model_Order_Address setAddressType(string $value)
- * @method string getPrefix()
- * @method Mage_Sales_Model_Order_Address setPrefix(string $value)
- * @method string getMiddlename()
- * @method Mage_Sales_Model_Order_Address setMiddlename(string $value)
- * @method string getSuffix()
- * @method Mage_Sales_Model_Order_Address setSuffix(string $value)
- * @method string getCompany()
- * @method Mage_Sales_Model_Order_Address setCompany(string $value)
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Order_Address            _getResource()
+ * @method string                                             getAddressType()
+ * @method string                                             getCity()
+ * @method Mage_Sales_Model_Resource_Order_Address_Collection getCollection()
+ * @method string                                             getCompany()
+ * @method string                                             getCountryId()
+ * @method Mage_Customer_Model_Address                        getCustomerAddress()
+ * @method int                                                getCustomerAddressId()
+ * @method int                                                getCustomerId()
+ * @method string                                             getEmail()
+ * @method string                                             getFax()
+ * @method string                                             getFirstname()
+ * @method string                                             getLastname()
+ * @method string                                             getMiddlename()
+ * @method int                                                getParentId()
+ * @method string                                             getPostcode()
+ * @method string                                             getPrefix()
+ * @method int                                                getQuoteAddressId()
+ * @method Mage_Sales_Model_Resource_Order_Address            getResource()
+ * @method Mage_Sales_Model_Resource_Order_Address_Collection getResourceCollection()
+ * @method bool                                               getSameAsBilling()
+ * @method $this                                              getStoreId(int $value)
+ * @method string                                             getSuffix()
+ * @method string                                             getTelephone()
+ * @method $this                                              setAddressType(string $value)
+ * @method $this                                              setCity(string $value)
+ * @method $this                                              setCompany(string $value)
+ * @method $this                                              setCountryId(string $value)
+ * @method $this                                              setCustomerAddress(Mage_Customer_Model_Address $value)
+ * @method $this                                              setCustomerAddressId(int $value)
+ * @method $this                                              setCustomerId(int $value)
+ * @method $this                                              setEmail(string $value)
+ * @method $this                                              setFax(string $value)
+ * @method $this                                              setFirstname(string $value)
+ * @method $this                                              setLastname(string $value)
+ * @method $this                                              setMiddlename(string $value)
+ * @method $this                                              setParentId(int $value)
+ * @method $this                                              setPostcode(string $value)
+ * @method $this                                              setPrefix(string $value)
+ * @method $this                                              setQuoteAddressId(int $value)
+ * @method $this                                              setRegion(string $value)
+ * @method $this                                              setRegionId(int $value)
+ * @method $this                                              setSameAsBilling(bool $value)
+ * @method $this                                              setSuffix(string $value)
+ * @method $this                                              setTelephone(string $value)
  */
 class Mage_Sales_Model_Order_Address extends Mage_Customer_Model_Address_Abstract
 {
+    /**
+     * @var Mage_Sales_Model_Order
+     */
     protected $_order;
 
     protected $_eventPrefix = 'sales_order_address';
+
     protected $_eventObject = 'address';
 
     /**
-     * Initialize resource
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -89,18 +80,17 @@ class Mage_Sales_Model_Order_Address extends Mage_Customer_Model_Address_Abstrac
     /**
      * Init mapping array of short fields to its full names
      *
-     * @return Mage_Sales_Model_Order_Address
+     * @return $this
      */
     protected function _initOldFieldsMap()
     {
-        $this->_oldFieldsMap = Mage::helper('sales')->getOldFieldMap('order_address');
         return $this;
     }
 
     /**
      * Set order
      *
-     * @return Mage_Sales_Model_Order_Address
+     * @return $this
      */
     public function setOrder(Mage_Sales_Model_Order $order)
     {
@@ -118,14 +108,16 @@ class Mage_Sales_Model_Order_Address extends Mage_Customer_Model_Address_Abstrac
         if (!$this->_order) {
             $this->_order = Mage::getModel('sales/order')->load($this->getParentId());
         }
+
         return $this->_order;
     }
 
     /**
      * Before object save manipulations
      *
-     * @return Mage_Sales_Model_Order_Address
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         parent::_beforeSave();

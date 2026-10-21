@@ -1,48 +1,27 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * HSS iframe block
  *
- * @category   Mage
  * @package    Mage_Paypal
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
 {
     /**
      * Whether the block should be eventually rendered
-     *
      * @var bool
      */
     protected $_shouldRender = false;
 
     /**
      * Order object
-     *
      * @var Mage_Sales_Model_Order
      */
     protected $_order;
@@ -57,15 +36,15 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
     /**
      * Current iframe block instance
      *
-     * @var Mage_Payment_Block_Form
+     * @var Mage_Paypal_Block_Iframe
      */
     protected $_block;
 
     /**
      * Internal constructor
      * Set info template for payment step
-     *
      */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -73,7 +52,9 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
             ->getQuote()
             ->getPayment()
             ->getMethod();
-        if (in_array($paymentCode, $this->helper('paypal/hss')->getHssMethods())) {
+        /** @var Mage_Paypal_Helper_Hss $helper */
+        $helper = $this->helper('paypal/hss');
+        if (in_array($paymentCode, $helper->getHssMethods())) {
             $this->_paymentMethodCode = $paymentCode;
             $templatePath = str_replace('_', '', $paymentCode);
             $templateFile = "paypal/{$templatePath}/iframe.phtml";
@@ -89,16 +70,19 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Get current block instance
      *
      * @return Mage_Paypal_Block_Iframe
+     * @throws Mage_Core_Exception
      */
     protected function _getBlock()
     {
         if (!$this->_block) {
-            $this->_block = $this->getAction()
+            $block = $this->getAction()
                 ->getLayout()
-                ->createBlock('paypal/'.$this->_paymentMethodCode.'_iframe');
-            if (!$this->_block instanceof Mage_Paypal_Block_Iframe) {
+                ->createBlock('paypal/' . $this->_paymentMethodCode . '_iframe');
+            if (!$block instanceof Mage_Paypal_Block_Iframe) {
                 Mage::throwException('Invalid block type');
             }
+
+            $this->_block = $block;
         }
 
         return $this->_block;
@@ -116,6 +100,7 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
             $this->_order = Mage::getModel('sales/order')
                 ->loadByIncrementId($incrementId);
         }
+
         return $this->_order;
     }
 
@@ -132,13 +117,15 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
     /**
      * Before rendering html, check if is block rendering needed
      *
-     * @return Mage_Core_Block_Abstract
+     * @return $this
      */
+    #[Override]
     protected function _beforeToHtml()
     {
-        if ($this->_getOrder()->getId() &&
-            $this->_getOrder()->getQuoteId() == $this->_getCheckout()->getLastQuoteId() &&
-            $this->_paymentMethodCode) {
+        if ($this->_getOrder()->getId()
+            && $this->_getOrder()->getQuoteId() == $this->_getCheckout()->getLastQuoteId()
+            && $this->_paymentMethodCode
+        ) {
             $this->_shouldRender = true;
         }
 
@@ -153,16 +140,20 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Render the block if needed
      *
      * @return string
+     * @throws Exception
      */
+    #[Override]
     protected function _toHtml()
     {
         if ($this->_isAfterPaymentSave()) {
             $this->setTemplate('paypal/hss/js.phtml');
             return parent::_toHtml();
         }
+
         if (!$this->_shouldRender) {
             return '';
         }
+
         return parent::_toHtml();
     }
 
@@ -170,24 +161,22 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Check whether block is rendering after save payment
      *
      * @return bool
+     * @throws Exception
      */
     protected function _isAfterPaymentSave()
     {
         $quote = $this->_getCheckout()->getQuote();
-        if ($quote->getPayment()->getMethod() == $this->_paymentMethodCode &&
-            $quote->getIsActive() &&
-            $this->getTemplate() &&
-            $this->getRequest()->getActionName() == 'savePayment') {
-            return true;
-        }
-
-        return false;
+        return $quote->getPayment()->getMethod() == $this->_paymentMethodCode
+            && $quote->getIsActive()
+            && $this->getTemplate()
+            && $this->getRequest()->getActionName() == 'savePayment';
     }
 
     /**
      * Get iframe action URL
      *
      * @return string
+     * @throws Mage_Core_Exception
      */
     public function getFrameActionUrl()
     {
@@ -198,6 +187,7 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Get secure token
      *
      * @return string
+     * @throws Mage_Core_Exception
      */
     public function getSecureToken()
     {
@@ -208,6 +198,7 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Get secure token ID
      *
      * @return string
+     * @throws Mage_Core_Exception
      */
     public function getSecureTokenId()
     {
@@ -218,6 +209,7 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Get payflow transaction URL
      *
      * @return string
+     * @throws Mage_Core_Exception
      */
     public function getTransactionUrl()
     {
@@ -228,6 +220,7 @@ class Mage_Paypal_Block_Iframe extends Mage_Payment_Block_Form
      * Check sandbox mode
      *
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function isTestMode()
     {

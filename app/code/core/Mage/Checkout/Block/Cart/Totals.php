@@ -1,52 +1,53 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
+/**
+ * @package    Mage_Checkout
+ */
 class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
 {
     protected $_totalRenderers;
+
     protected $_defaultRenderer = 'checkout/total_default';
+
     protected $_totals = null;
 
+    /**
+     * @return null|array
+     */
+    #[Override]
     public function getTotals()
     {
         if (is_null($this->_totals)) {
             return parent::getTotals();
         }
+
         return $this->_totals;
     }
 
+    /**
+     * @param  array $value
+     * @return $this
+     */
     public function setTotals($value)
     {
         $this->_totals = $value;
         return $this;
     }
 
+    /**
+     * @param  string                                $code
+     * @return false|Mage_Core_Block_Abstract|string
+     */
     protected function _getTotalRenderer($code)
     {
-        $blockName = $code.'_total_renderer';
+        $blockName = $code . '_total_renderer';
         $block = $this->getLayout()->getBlock($blockName);
         if (!$block) {
             $block = $this->_defaultRenderer;
@@ -57,6 +58,7 @@ class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
 
             $block = $this->getLayout()->createBlock($block, $blockName);
         }
+
         /**
          * Transfer totals to renderer
          */
@@ -64,35 +66,44 @@ class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
         return $block;
     }
 
+    /**
+     * @param  Mage_Sales_Model_Quote_Address_Total $total
+     * @param  null|string                          $area
+     * @param  int                                  $colspan
+     * @return string
+     */
     public function renderTotal($total, $area = null, $colspan = 1)
     {
         $code = $total->getCode();
         if ($total->getAs()) {
             $code = $total->getAs();
         }
+
         return $this->_getTotalRenderer($code)
             ->setTotal($total)
             ->setColspan($colspan)
-            ->setRenderingArea(is_null($area) ? -1 : $area)
+            ->setRenderingArea($area ?? -1)
             ->toHtml();
     }
 
     /**
      * Render totals html for specific totals area (footer, body)
      *
-     * @param   null|string $area
-     * @param   int $colspan
-     * @return  string
+     * @param  null|string $area
+     * @param  int         $colspan
+     * @return string
      */
     public function renderTotals($area = null, $colspan = 1)
     {
         $html = '';
-        foreach($this->getTotals() as $total) {
+        foreach ($this->getTotals() as $total) {
             if ($total->getArea() != $area && $area != -1) {
                 continue;
             }
+
             $html .= $this->renderTotal($total, $area, $colspan);
         }
+
         return $html;
     }
 
@@ -104,14 +115,11 @@ class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
     public function needDisplayBaseGrandtotal()
     {
         $quote  = $this->getQuote();
-        if ($quote->getBaseCurrencyCode() != $quote->getQuoteCurrencyCode()) {
-            return true;
-        }
-        return false;
+        return $quote->getBaseCurrencyCode() != $quote->getQuoteCurrencyCode();
     }
 
     /**
-     * Get formated in base currency base grand total value
+     * Get formatted in base currency base grand total value
      *
      * @return string
      */
@@ -120,8 +128,9 @@ class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
         $firstTotal = reset($this->_totals);
         if ($firstTotal) {
             $total = $firstTotal->getAddress()->getBaseGrandTotal();
-            return Mage::app()->getStore()->getBaseCurrency()->format($total, array(), true);
+            return Mage::app()->getStore()->getBaseCurrency()->format($total, [], true);
         }
+
         return '-';
     }
 
@@ -130,15 +139,17 @@ class Mage_Checkout_Block_Cart_Totals extends Mage_Checkout_Block_Cart_Abstract
      *
      * @return Mage_Sales_Model_Quote
      */
+    #[Override]
     public function getQuote()
     {
         if ($this->getCustomQuote()) {
             return $this->getCustomQuote();
         }
 
-        if (null === $this->_quote) {
+        if ($this->_quote === null) {
             $this->_quote = $this->getCheckout()->getQuote();
         }
+
         return $this->_quote;
     }
 }

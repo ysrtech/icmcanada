@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Layer category filter abstract model
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
 {
@@ -43,15 +24,15 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     /**
      * Array of filter items
      *
-     * @var array
+     * @var null|array
      */
     protected $_items;
 
     /**
      * Set request variable name which is used for apply filter
      *
-     * @param   string $varName
-     * @return  Mage_Catalog_Model_Layer_Filter_Abstract
+     * @param  string $varName
+     * @return $this
      */
     public function setRequestVar($varName)
     {
@@ -92,7 +73,8 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     /**
      * Apply filter to collection
      *
-     * @param  Zend_Controller_Request_Abstract $request
+     * @param  Varien_Object $filterBlock deprecated
+     * @return $this
      */
     public function apply(Zend_Controller_Request_Abstract $request, $filterBlock)
     {
@@ -100,7 +82,7 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     }
 
     /**
-     * Get fiter items count
+     * Get filter items count
      *
      * @return int
      */
@@ -119,48 +101,40 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
         if (is_null($this->_items)) {
             $this->_initItems();
         }
+
         return $this->_items;
     }
 
     /**
      * Get data array for building filter items
      *
-     * result array should have next structure:
-     * array(
-     *      $index => array(
-     *          'label' => $label,
-     *          'value' => $value,
-     *          'count' => $count
-     *      )
-     * )
-     *
-     * @return array
+     * @return array<void>|array{label: string, value: string, count: int}[]
      */
     protected function _getItemsData()
     {
-        return array();
+        return [];
     }
 
     /**
      * Initialize filter items
      *
-     * @return  Mage_Catalog_Model_Layer_Filter_Abstract
+     * @return $this
      */
     protected function _initItems()
     {
         $data = $this->_getItemsData();
-        $items=array();
+        $items = [];
         foreach ($data as $itemData) {
             $items[] = $this->_createItem(
                 $itemData['label'],
                 $itemData['value'],
-                $itemData['count']
+                $itemData['count'],
             );
         }
+
         $this->_items = $items;
         return $this;
     }
-
 
     /**
      * Retrieve layer object
@@ -174,18 +148,19 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
             $layer = Mage::getSingleton('catalog/layer');
             $this->setData('layer', $layer);
         }
+
         return $layer;
     }
 
     /**
      * Create filter item object
      *
-     * @param   string $label
-     * @param   mixed $value
-     * @param   int $count
-     * @return  Mage_Catalog_Model_Layer_Filter_Item
+     * @param  string                               $label
+     * @param  mixed                                $value
+     * @param  int                                  $count
+     * @return Mage_Catalog_Model_Layer_Filter_Item
      */
-    protected function _createItem($label, $value, $count=0)
+    protected function _createItem($label, $value, $count = 0)
     {
         return Mage::getModel('catalog/layer_filter_item')
             ->setFilter($this)
@@ -217,8 +192,8 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     /**
      * Set attribute model to filter
      *
-     * @param   Mage_Eav_Model_Entity_Attribute $attribute
-     * @return  Mage_Catalog_Model_Layer_Filter_Abstract
+     * @param  Mage_Eav_Model_Entity_Attribute $attribute
+     * @return $this
      */
     public function setAttributeModel($attribute)
     {
@@ -234,10 +209,11 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
      */
     public function getAttributeModel()
     {
-        $attribute = $this->getData('attribute_model');
+        $attribute = $this->getDataByKey('attribute_model');
         if (is_null($attribute)) {
             Mage::throwException(Mage::helper('catalog')->__('The attribute model is not defined'));
         }
+
         return $attribute;
     }
 
@@ -260,16 +236,17 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     {
         $storeId = $this->_getData('store_id');
         if (is_null($storeId)) {
-            $storeId = Mage::app()->getStore()->getId();
+            return Mage::app()->getStore()->getId();
         }
+
         return $storeId;
     }
 
     /**
      * Set store id scope
      *
-     * @param int $storeId
-     * @return Mage_Catalog_Model_Layer_Filter_Abstract
+     * @param  int   $storeId
+     * @return $this
      */
     public function setStoreId($storeId)
     {
@@ -285,16 +262,17 @@ abstract class Mage_Catalog_Model_Layer_Filter_Abstract extends Varien_Object
     {
         $websiteId = $this->_getData('website_id');
         if (is_null($websiteId)) {
-            $websiteId = Mage::app()->getStore()->getWebsiteId();
+            return Mage::app()->getStore()->getWebsiteId();
         }
+
         return $websiteId;
     }
 
     /**
      * Set Website ID scope
      *
-     * @param int $websiteId
-     * @return Mage_Catalog_Model_Layer_Filter_Abstract
+     * @param  int   $websiteId
+     * @return $this
      */
     public function setWebsiteId($websiteId)
     {

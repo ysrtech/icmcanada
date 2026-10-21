@@ -245,6 +245,12 @@ RewriteRule ^.* - [F]
     Allow from all
 
 ###########################################
+## ICM: the site is deployed with git + composer, never serve the repository or vendor files
+
+    RedirectMatch 404 /\.git
+    RedirectMatch 404 ^/vendor/
+
+###########################################
 ## Deny access to other project files to prevent disclosure of the installed Magento version or other information
 ## Only robots.txt and manifest.json should be allowed by default
 

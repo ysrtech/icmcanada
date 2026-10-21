@@ -85,7 +85,7 @@ email as a side effect and nothing called it.
   CeicomExtends_CBanners, Clarion_Customerattribute, Dh_Deliverynote, DigitalPianism_AjaxLogin,
   Fishpig_iBanners, FreeLunchLabs_MailGun, Kaushik_Outofstock,
   Llian_MassProductLinker, Netzarbeiter_CustomerActivation, Netzarbeiter_GroupsCatalog2,
-  ProxiBlue_ReCaptcha, RicoNeitzel_PaymentFilter, Thirty4_CatalogNew, Thirty4_CatalogSale,
+  RicoNeitzel_PaymentFilter, Thirty4_CatalogNew, Thirty4_CatalogSale,
   Uni_Common, Uni_Fileuploader, VF_AjaxCart, VF_EasyAjax, VladimirPopov_WebForms.
   Fixes: removed `Mysql4`/`Entity` class names mapped to the `Resource` classes,
   `$str{$i}` offsets, implicit nullable parameters, method signatures (WebForms captcha),
@@ -102,8 +102,11 @@ email as a side effect and nothing called it.
   plus a "Purge CloudFlare Cache" button under System > Cache Management; same version as on
   bondouxbebe, API token + zone ID). Configure them in System > Configuration > Admin > Cloudflare
   Turnstile and System > Configuration > General > Cloudflare. Turnstile stays off until it is enabled
-  there; when you enable it, disable ProxiBlue reCAPTCHA (Customers > Customer Configuration > CAPTCHA)
-  so the forms don't get two captchas.
+  there. ProxiBlue reCAPTCHA was removed (Turnstile replaces it, and it broke the field dependencies on
+  System > Configuration > Admin under OpenMage 20). Until Turnstile is enabled, the customer forms that
+  had reCAPTCHA (registration, wishlist sharing, reviews) fall back to the built-in OpenMage image CAPTCHA
+  because Customers > Customer Configuration > CAPTCHA is still enabled; set that to "No" when you turn
+  Turnstile on. The WebForms "Contact Us" form keeps its own reCAPTCHA (WebForms setting, unrelated).
 * Removed: JetRails_Cloudflare (replaced by DM_Cloudflare; its `cloudflare/configuration/*` config rows
   can be deleted), Maven_Html5uploader (OpenMage has its own HTML5 uploader), and code that was not
   enabled: Inchoo_PHP7, ICM_Adminhtml (+ admin theme `icm`), Santhosh_* (+ admin theme

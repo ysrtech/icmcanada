@@ -1,0 +1,102 @@
+<?php $mainUrl = $this->getUrl(); ?>
+<style>
+    .home-banners img{border: 1px solid #c7d19b;}
+    .banner1 .box-overlay{background-color:#fff;top: 0!important;height: 30%!important;opacity: 0.8!important;width: 100%!important;bottom:auto!important}
+    .banner1 .text-box{top: 0!important;height: 30%!important;text-align: center!important;width: 100%!important;bottom:auto!important}
+    .banner3 {height:420px!important;}
+    .banner3 .box-overlay{height:420px!important;background-color:#262626!important;bottom: 0!important;height:200px!important;opacity: 0.7!important;top:auto!important;width: 100%!important}
+    .banner3 .text-box{top:auto!important;height:200px!important;text-align: center!important;bottom:0!important;width: 100%!important;}
+    .banner2 {height:480px!important;margin-bottom: 0!important}
+    .banner2 .box-overlay{background-color: #fff!important;bottom: auto!important;height:170px!important;opacity: 0.8!important;top: 0!important;width: 100%!important;}
+    .banner2 .text-box{bottom: auto!important;height:200px!important;text-align: center!important;top:0!important;width: 100%!important;}
+    .banner5 {height: calc(100% + 29%)!important;margin-top: -11%!important;}
+    @media only screen and (max-width: 770px) {
+        .banner1 .box-overlay,.banner1 .text-box,.banner2 .box-overlay,.banner2 .text-box{top:0!important;bottom:auto!important}
+        .banner5{display: none}
+    }
+</style>
+<div class="home-banners">
+    <div class="home-banners-top home-banners-container">
+        <!--vacuvin-->
+        <div class="tall half-width banner1">
+
+
+            <div class="banner-content">
+                <img style="" src="<?php echo $mainUrl; ?>media/home/brilliant_2025.jpg?j=76" />
+                <div class="box-overlay pull-top"></div>
+                <div class="text-box pull-top centered">
+                    <span class="backtext">Brilliant</span>
+                    <span class="main-text">Collection de vaisselle</span>
+                    <a href="<?php echo $mainUrl; ?>marques/brilliant/vaisselle.html" class="text-button">Découvrez</a>
+                </div>
+            </div>
+
+        </div>
+        <div class="right-group half-width home-banners-group">
+            
+             <div class="wide banner3">
+                <div class="banner-content" style="background: url('<?php echo $mainUrl; ?>media/home/brilliant_2025_2.jpg?p=9') no-repeat 0 0;height:100%" >
+                    <div class="box-overlay pull-top"></div>
+                    <div class="text-box pull-top centered">
+                        <span class="backtext">Brilliant</span>
+                        <span class="main-text white-text">Couverts</span>
+                        <a href="<?php echo $mainUrl; ?>marques/brilliant/couverts.html" class="text-button">Magasiner</a>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!--lekue-->
+            <div class="wide banner2">
+
+                <div class="banner-content" style="background: url('<?php echo $mainUrl; ?>media/home/glencairn082024.jpg') no-repeat 0 0;height:100%" >
+
+                    <div class="box-overlay pull-left"></div>
+                    <div class="text-box pull-left">
+                        <span class="backtext">Glencairn</span>
+                        <span class="main-text">Accessoires vin et bar</span>
+                        <a href="<?php echo $mainUrl; ?>marques/glencairn.html" class="text-button">Découvrez</a>
+                    </div>
+                </div>
+
+            </div>  
+
+            <!--lekue-->
+             
+
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="home-banners-bottom home-banners-container">
+
+        <div class="half-width home-banners-group right-group">
+            <div class="half-width banner4 about-us ">
+                <div class="banner-content">
+                    <div class="text-box pull-top centered">
+                        <span class="backtext white-washed">À propos</span>
+                        <span class="main-text white-text">Histoire de l'ICM</span>
+                        <span class="sub-text">
+                            Établi dans de riches traditions depuis 1973, Inter-Continental Mercantile (ICM) a continuellement offert une vaste gamme d'articles ménagers et cadeaux innovants de haute qualité, accessoires de bar et de vin, vaisselle décontractée et formelle, dans des designs à la fois modernes et traditionnels pour satisfaire vos goûts des clents les plus exigeants.</span>
+                        <a href="http://www.icmcanada.ca/about-icm/" class="text-button">Lire la suite</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <!--duralex-->
+        <div class="banner5  last tall half-width">
+            <div class="banner-content"style="background: url('<?php echo $mainUrl; ?>media/home/duralex2025.jpg?p=9') no-repeat 100% 100%;height:100%">
+                <div class="box-overlay pull-right" style="background-color: rgba(255,255,255,0.8);"></div>
+                <div class="text-box pull-right">
+                    <span class="backtext">Duralex</span>
+                    <span class="main-text">Verres et Verres</span>
+                    <a href="<?php echo $mainUrl; ?>marques/duralex.html" class="text-button">Découvrez</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+    </div>
+
+</div>

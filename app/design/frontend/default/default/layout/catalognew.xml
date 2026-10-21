@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <catalognew_index_index>
+    <reference name="root">
+      <action method="setTemplate"><template>page/2columns-left.phtml</template></action>
+    </reference>
+    <reference name="left">
+      <block type="catalognew/layer" name="catalognew.leftnav" after="currency" template="catalog/layer/view.phtml"/>
+    </reference>
+    <reference name="footer_links">
+      <action method="addLink" translate="label title" module="catalognew">
+        <label>New Items</label>
+        <url helper="catalognew/getCatalogNewUrl" />
+        <title>Sale Items</title>
+      </action>
+    </reference>            
+    <reference name="content">
+      <block type="catalognew/view" name="categorysale.products" template="catalog/product/catalognew.phtml">
+        <block type="catalog/product_list" name="new_product_list" template="catalog/product/list.phtml"></block>
+        <action method="setListCollection"/>
+      </block>
+    </reference>
+  </catalognew_index_index>
+</layout>

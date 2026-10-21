@@ -1,0 +1,110 @@
+<?php
+$_items = $this->getValuesCollection()->retrieveAll()->getItems();
+
+$attribute_code = $this->getData('attribute_code');
+$_helper = $this->helper('dc_catalog/attributeInfo');
+
+$thumbnail_width = 130;
+$thumbnail_height = 97;
+?>
+<?php if (count($_items)): ?>
+    <link rel="stylesheet" type="text/css" href="<?php echo $this->getSkinUrl(); ?>css/slider.css" />
+    <script type="text/javascript" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS); ?>iosSlider/jquery.easing-1.3.js"></script>
+    <script type="text/javascript" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS); ?>iosSlider/jquery.iosslider.js"></script>
+    <div class="homepage-brands clearer">
+            <h2 class="block-title">Brands <span style="font-size: 10px;font-weight: normal;margin-left: 10px"><a href="<?php echo Mage::getBaseUrl()?>brand">VIEW ALL BRANDS &raquo;</a></span></h2>
+            <div class="brands-container">
+            <div class="carousel">
+                <div class="slider">
+                        <?php $i=0; foreach ($_items as $item): $i++;//if ($item->getFavorite() < 10): ?>
+                            <?php
+                            $_imgHtml = '';
+
+                            if (($file = Mage::getBaseDir('media') . DS . 'catalog' . DS . 'attribute' . DS . $item->getImage()) && is_file($file)) {
+                                $imageInfo = getimagesize($file);
+                                $thumbnail_width = 120;
+                                $thumbnail_height = 97;
+                                $width = $imageInfo[0];
+                                $height = $imageInfo[1];
+
+                                $baseDir = Mage::getSingleton('catalog/product_media_config')->getBaseMediaPath();
+
+                                if ($height)
+                                    $thumbnail_width = min($thumbnail_width, intval($width * $thumbnail_height / $height));
+                                if ($width)
+                                    $thumbnail_height = min($thumbnail_height, intval($height * $thumbnail_width / $width));
+
+
+                                //resizer looks in /media/catalog/product, our images are in /media/catalog/attribute
+                                //so we go one level above product with ../
+                                $_imgUrl = Mage::helper('dc_catalog/image')
+                                        ->initImage($attribute_code, $item->getImage())
+                                        ->resize($thumbnail_width, $thumbnail_height)
+                                        ->__toString();
+
+                                $_imgHtml = '<img
+			width="' . ($thumbnail_width ? $thumbnail_width : $width) . '"
+	        src="' . $_imgUrl . '"
+	        alt="' . $this->htmlEscape($item->getValue()) . '"
+	        title="' . $this->htmlEscape($item->getValue()) . '"
+	        class="attribute-values-logo" />';
+                            }
+
+                            if ($_imgHtml) {
+                                //looks like we have a logo to show
+                                ?>
+                                <div class="item slide <?php if(count($_items) == $i): ?>last<?php endif;  ?>">
+                                    <div class="item-content">
+                                        <a  href="<?php echo $this->getUrl('/') . $item->getAttributeCode() . '/' . $item->getIdentifier(); ?>"title="<?php echo $item->getPageTitle() ?>">
+                                            <?php echo $_imgHtml; ?>
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php } ?>
+
+                            <?php //endif;  ?>
+                        <?php endforeach; ?>
+                </div>
+            </div>
+                <div class="prev new-arrow">&nbsp;</div>
+                <div class="next new-arrow">&nbsp;</div>
+                 <script type="text/javascript">
+                            jQuery(document).ready(function($){
+                                $('.new-arrow.prev').addClass('disabled');
+                                $('.carousel').iosSlider({
+                                    desktopClickDrag: true,
+                                    snapToChildren: true,
+                                    responsiveSlideContainer:true,
+                                    responsiveSlide:true,
+                                    navNextSelector: '.new-arrow.next',
+                                    navPrevSelector: '.new-arrow.prev',
+                                    lastSlideOffset: 0,
+                                    //autoSlide: true,
+                                    autoSlideTimer: 2000,
+                                    autoSlideTransTimer: 1000,
+                                    infiniteSlider:false,
+                                    scrollbar: true,
+                                    scrollbarHide: false,
+                                    scrollbarLocation: 'bottom',
+                                    scrollbarHeight: '6px',
+                                    scrollbarBackground: '#5872A7',
+                                    scrollbarBorder: '1px solid #5872A7',
+                                    scrollbarMargin: '0 40px 5px 40px',
+                                    scrollbarOpacity: '0.75',
+                                    onFirstSlideComplete: function(){
+                                        $('.new-arrow.prev').addClass('disabled');
+                                    },
+                                    onLastSlideComplete: function(){
+                                        $('.new-arrow.next').addClass('disabled');
+                                    },
+                                    onSlideChange: function(){
+                                        $('.new-arrow.prev').removeClass('disabled');
+                                        $('.new-arrow.next').removeClass('disabled');
+                                    }
+                                });   
+                            });  
+                        </script>
+           </div>
+            <div class="clearer">  </div>
+        </div>
+<?php endif; ?>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<layout>
+
+<!--
+Default layout, loads most of the pages
+-->
+<default>
+    <reference name="head" >
+                <action method="setTitle" translate="title"><title>ICM Admin</title></action>
+   </reference>
+</default>
+</layout>

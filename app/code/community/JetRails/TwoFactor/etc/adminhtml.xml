@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<config>
+	<acl>
+		<resources>
+			<admin>
+				<children>
+					<jetrails translate="title" module="twofactor" >
+						<title>JetRails</title>
+						<sort_order>0</sort_order>
+						<children>
+							<twofactor translate="title" module="twofactor" >
+								<title>Two-Factor Authentication</title>
+								<sort_order>10</sort_order>
+								<children>
+									<configure translate="title" module="twofactor" >
+										<title>Configure 2FA Settings</title>
+										<sort_order>10</sort_order>
+									</configure>
+									<manage translate="title" module="twofactor" >
+										<title>Manage 2FA Accounts</title>
+										<sort_order>20</sort_order>
+									</manage>
+								</children>
+							</twofactor>
+						</children>
+					</jetrails>
+				</children>
+			</admin>
+		</resources>
+	</acl>
+	<menu>
+		<jetrails translate="title" module="twofactor" >
+			<title>JetRails</title>
+			<sort_order>1000</sort_order>
+			<children>
+				<twofactor translate="title" module="twofactor" >
+					<title>Two-Factor Authentication</title>
+					<sort_order>10</sort_order>
+					<children>
+						<configure translate="title" module="twofactor" >
+							<title>Configure 2FA Settings</title>
+							<sort_order>10</sort_order>
+							<action>adminhtml/twofactor_configure/index</action>
+						</configure>
+						<manage translate="title" module="twofactor" >
+							<title>Manage 2FA Accounts</title>
+							<sort_order>20</sort_order>
+							<action>adminhtml/twofactor_manage/index</action>
+						</manage>
+					</children>
+				</twofactor>
+			</children>
+		</jetrails>
+	</menu>
+</config>

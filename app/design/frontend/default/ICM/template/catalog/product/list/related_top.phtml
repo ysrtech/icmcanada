@@ -1,0 +1,92 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2009 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php 
+ $collection = $this->getItems();
+ 
+
+if($collection->getSize()): ?>
+<div class="mini-products-grid related-summary">
+    <div class="mini-grid-head">
+        <?php echo $this->__('Coordinates') ?><a href="javascript:void(0);" class="view-more">View More</a>
+    </div>
+    <div class="mini-grid-content">
+        <ol class="related-list" id="related_summary">
+        <?php $i=0; foreach($collection as $_item): ?>
+        <?php if ($i++ < 5): ?>
+            <li class="item">
+                    <a href="javascript:void(0);" title="<?php echo $this->htmlEscape($_item->getName()) ?>" class="product-image">
+                    <img src="<?php echo $this->helper('catalog/image')->init($_item, 'thumbnail')->resize(50) ?>" width="50" height="50" alt="<?php echo $this->htmlEscape($_item->getName()) ?>" />
+                    </a>
+            </li>
+         <?php endif;?>
+        <?php endforeach ?>
+        </ol>
+        <script type="text/javascript">decorateList('related_summary', 'none-recursive')</script>
+    </div>
+    <script type="text/javascript">
+    </script>
+</div>
+
+<div class="mini-products-grid related-popup">
+    <div class="mini-grid-head">
+        <a href="javascript:void(0);"><?php echo $this->__('Coordinates') ?></a>
+    </div>
+    <div class="mini-grid-content">
+        <a href="javascript:void(0);" class="close button top">Close</a>
+        <ol class="related-list" id="related_popup">
+        <?php $i=0; foreach($this->getItems() as $_item): ?>
+        <?php if ($i++ < 7): ?>
+            <li class="item">
+                    <a href="<?php echo $_item->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_item->getName()) ?>" class="item-image">
+                    <img src="<?php echo $this->helper('catalog/image')->init($_item, 'thumbnail')->resize(80) ?>" width="80" height="80" alt="<?php echo $this->htmlEscape($_item->getName()) ?>" />
+                    </a>
+                    <p class="item-name"><a href="<?php echo $_item->getProductUrl() ?>"><?php echo $this->htmlEscape($_item->getName()) ?></a></p>
+                    <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>
+                    <?php echo $this->getPriceHtml($_item, true, '-related') ?>
+                    <?php endif;?>
+            </li>
+        <?php endif;?>
+        <?php endforeach ?>
+        </ol>
+        <script type="text/javascript">decorateList('related_popup', 'none-recursive')</script>
+        <a href="javascript:void(0);" class="close button bottom">Close</a>
+    </div>
+</div>
+<?php endif ?>
+<script type="text/javascript">
+jQuery(document).ready(function($){
+    $(".mini-products-grid.related-summary").click(function() {
+        $(".related-popup").show();
+        $(".product-shop .product-name h1").css("color", "#ffffff");
+    })
+    $(".close.button").click(function() {
+        $(".related-popup").hide();
+        $(".product-shop .product-name h1").removeAttr("style");
+    })
+
+});
+</script>

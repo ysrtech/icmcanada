@@ -1,0 +1,106 @@
+<!--
+/**
+ * Unicode Systems
+ * @category   Uni
+ * @package    Uni_Fileuploader
+ * @copyright  Copyright (c) 2010-2011 Unicode Systems. (http://www.unicodesystems.in)
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+-->
+<style type="text/css">
+    div.attachment-specs td.label a.prod-attach{text-decoration: none; cursor: pointer;}
+    div.attachment-specs td.label span.attach-img{float: left;}
+    div.attachment-specs td.label span.attach-title{float: left; text-decoration: underline;}
+</style>
+<?php
+$_product = Mage::registry('current_product');
+$attachments = array();
+$inline_attachments = array();
+
+$_helper = Mage::helper('fileuploader');
+
+$data = Mage::getModel('fileuploader/fileuploader')->getFilesByProductId($_product->getId());
+
+$totalFiles = $data['totalRecords'];
+
+if ($totalFiles > 0) {
+
+    $record = $data['items'];
+
+    $i = 0;
+    foreach ($record as $rec) {
+
+        $i++;
+        if ($rec['content_disp'] == 1) {
+             $inline_attachments[] = array('title' => $rec['title'], 'url' => $rec['uploaded_file'], 'thumbnail' => $rec['thumbnail']);
+        } else {
+            $file = $_helper->getFilesHtml($rec['uploaded_file'], $rec['title'], $i, true, $rec['content_disp'], true);
+            $attachments[] = array('title' => $rec['title'], 'file' => $file, 'content' => $rec['file_content']);
+        }
+    }
+}
+?>
+<?php if (count($inline_attachments) > 0): ?>
+<div class="more-views videos" id="videos" name="videos">
+    <h2><?php echo $this->__('Product Videos') ?></h2>
+<script type="text/javascript" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS);?>jwplayer/jwplayer.js"></script> 
+    
+    <?php $a = 0; foreach ($inline_attachments as $inline_attachment): $a++; 
+        if ($inline_attachment['thumbnail']) {
+            $thumbnail = str_replace('custom/upload/','',$inline_attachment["thumbnail"]);
+              $_imageUrl = Mage::getBaseDir('media').DS."custom".DS."upload".DS.$thumbnail;
+              $imageResized = Mage::getBaseDir('media').DS."custom".DS."upload".DS."resizedbig".DS.$thumbnail;
+                                    if (!file_exists($imageResized)&&file_exists($_imageUrl)){
+                                        $imageObj = new Varien_Image($_imageUrl);
+                                        $imageObj->constrainOnly(TRUE);
+                                        $imageObj->backgroundColor(array(85,85,85));
+                                        $imageObj->keepAspectRatio(TRUE);
+                                        $imageObj->keepFrame(TRUE);
+                                        $imageObj->resize(350,250);
+                                        $imageObj->quality(100);
+                                        $imageObj->save($imageResized);
+                                    }
+              $newimage = Mage::getBaseUrl('media')."custom/upload/resizedbig/".$thumbnail;
+              } else {
+                $newimage = $this->helper('catalog/image')->init($_product, 'image')->resize(360);
+                 }
+    ?>
+        <ul>
+            <li class="label">
+                <div id="container_<?php echo $a?>" style="border:5px solid #efefef">Loading the player ...</div> 
+ 
+                    <script type="text/javascript"> 
+                        jwplayer("container_<?php echo $a?>").setup({ 
+                            autostart: false, 
+                            file: "<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).$inline_attachment['url']; ?>", 
+                            //flashplayer: "<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS);?>/jwplayer/dangdang.swf", 
+                            volume: 80, 
+                            width: 350,
+                            height: 250,
+                            image: "<?php echo $newimage; ?>",
+                            modes: [ 
+                                { type: "html5" }, 
+                                { type: "flash", src: "<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS);?>/jwplayer/player.swf" }, 
+                                { type: "download" } 
+                            ],
+                            screencolor: 'efefef',
+                            title: "<?php echo $inline_attachment['title']; ?>"
+                        }); 
+                    </script> 
+                
+                </li>
+        </ul>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<?php if (count($attachments) > 0): ?>
+<div class="more-views">
+    <h2><?php echo $this->__('Product Attachments') ?></h2>
+    <?php foreach ($attachments as $attachment): ?>
+        <ul>
+            <li class="label"><?php echo $attachment['file']; ?> - <?php echo $attachment['content']; ?></li>
+        </ul>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>

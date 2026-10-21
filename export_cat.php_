@@ -1,0 +1,45 @@
+<?php
+$mageFilename = 'app/Mage.php';
+require_once $mageFilename;
+Mage::setIsDeveloperMode(true);
+ini_set('display_errors', 1);
+Mage::app(); 
+$categories = Mage::getModel('catalog/category')
+              ->getCollection()
+              ->addAttributeToSelect('*')
+			  ->addIsActiveFilter(); // get a list of all active categories in $categories variable
+ $export_file = "var/export/categoriesva.csv"; // assumes that you're running from the web root. var/ is typically writable
+ $export = fopen($export_file, 'w') or die("Permissions error."); // open the file for writing.  if you see the error then check the folder permissions.
+ $output = "";
+ $output = array('id','name','path','is active','description','title','include in menu','display mode','is anchor','url','position'); // this array will is a list of category fields that we want to export
+ fputcsv($export, $output); // write the file header with the column names
+ // for documentation on put and get csv read [ http://php.net/manual/en/function.fgetcsv.php ]
+ 
+
+
+ foreach ($categories as $category) {
+   $output = array(); // re-initialize $output on each iteration
+   $output[]= $category->getId();
+   $output[]= $category->getName();
+
+$pathIds = $category->getPathIds();
+$result = '';
+foreach ($pathIds as $cat) {
+    $categ = Mage::getModel('catalog/category')->load($cat);
+    $result .= $categ->getName().'/';
+}
+   $output[]= $result;
+	 $output[]= $category->getData('is_active');
+	 $output[]= $category->getDescription();
+	 $output[]= $category->getMetaTitle();
+         
+	 $output[]= $category->getData('include_in_menu');
+	 $output[]= $category->getDisplayMode();
+	 $output[]= $category->getIsAnchor();
+	 $output[]= $category->getUrlKey();
+	 $output[]= $category->getPosition();
+     // add any other fields you want here getDisplayMode()
+     // add end of line
+     fputcsv($export, $output); // write to the file handle "$export" with the string "$output".
+ }
+ fclose($export); // close the file handle.

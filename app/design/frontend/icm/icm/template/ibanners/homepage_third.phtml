@@ -1,0 +1,25 @@
+<?php if ($this->hasValidGroup()): ?>
+    <?php $group = $this->getGroup() ?>
+    <?php $banners = $this->getBanners() ?>
+    <?php if ($this->getGroup()->getBannerCount() > 0): ?>
+            <div id="<?php echo $this->getWrapperId() ?>" class="homepage-secondary-banners <?php echo $this->getWrapperClass() ?>">
+                <?php foreach ($banners as $banner): ?>
+                <div class="banner <?php echo $banner->getAltText(); ?>">
+                <?php if ($banner->hasUrl()): ?>
+				<a href="<?php echo $banner->getUrl() ?>" title="<?php echo $this->escapeHtml($banner->getTitle()) ?>">
+			<?php endif; ?>
+                <img src="<?php echo $banner->getImageUrl() ?>" />
+                    
+                        <div class="banner-title">
+                            <?php echo $this->escapeHtml($banner->getTitle())." &raquo;" ?>
+                        </div>
+
+                <?php if ($banner->hasUrl()): ?>
+				</a>
+			<?php endif; ?>
+                </div>
+                
+                <?php endforeach; ?>
+            </div>
+    <?php endif; ?>
+<?php endif; ?>

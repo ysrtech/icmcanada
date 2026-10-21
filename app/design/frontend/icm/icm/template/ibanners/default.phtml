@@ -1,0 +1,67 @@
+<?php
+/**
+ * @category    Fishpig
+ * @package     Fishpig_iBanners
+ * @license     http://fishpig.co.uk/license.txt
+ * @author      Ben Tideswell <help@fishpig.co.uk>
+ */
+?>
+<?php if ($this->hasValidGroup()): ?>
+	<?php $group = $this->getGroup() ?>
+	<?php $banners = $this->getBanners() ?>
+	<?php if ($this->getGroup()->getBannerCount() == 1): ?>
+		<div id="<?php echo $this->getWrapperId() ?>" class="ibanners-single <?php echo $this->getWrapperClass() ?>">
+		<?php foreach($banners as $banner): ?>
+			<?php if ($banner->hasUrl()): ?>
+				<a href="<?php echo $banner->getUrl() ?>" title="<?php echo $this->escapeHtml($banner->getTitle()) ?>">
+			<?php endif; ?>
+			<img src="<?php echo $banner->getImageUrl() ?>" alt="<?php echo $this->escapeHtml($banner->getAltText()) ?>" />
+			<?php if ($banner->hasUrl()): ?>
+				</a>
+			<?php endif; ?>
+			<?php if ($banner->getHtml()): ?>
+				<div class="html"><?php echo $banner->getHtml() ?></div>
+			<?php endif; ?>
+		<?php endforeach; ?>
+		</div>
+	<?php elseif ($this->getGroup()->getBannerCount() > 1): ?>
+        <div class="home-banners-wrapper">
+			<div id="<?php echo $this->getWrapperId() ?>" class="home-banners">
+					<?php foreach($banners as $banner): ?>
+						<div id="ibanner-<?php echo $banner->getId() ?>" class="banner item slide">
+							<?php if ($banner->getImageUrl()): ?>
+								<?php if ($banner->hasUrl()): ?>
+									<a href="<?php echo $banner->getUrl() ?>" title="<?php echo $this->escapeHtml($banner->getTitle()) ?>"<?php if ($banner->getUrlTarget()): ?> target="<?php echo $banner->getUrlTarget() ?>"<?php endif; ?>>
+								<?php endif; ?>
+								<img src="<?php echo $banner->getImageUrl() ?>" alt="<?php echo $this->escapeHtml($banner->getAltText()) ?>" />
+								<?php if ($banner->hasUrl()): ?>
+									</a>
+								<?php endif; ?>
+							<?php endif; ?>
+							<?php if ($banner->getHtml()): ?>
+								<div class="html"><?php echo $banner->getHtml() ?></div>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+					<?php if ($group->isAnimationEnabled() && $this->getGroup()->getCarouselEffect() != 'fade'): ?>
+					<?php endif; ?>
+                        </div>
+        </div>
+                 <script type="text/javascript">
+        jQuery(document).ready(function($) {
+
+            $('.home-banners').slick({
+                lazyLoad: 'progressive',
+                dots: true,
+                infinite: false,
+                speed:200,
+                fade: true,
+                cssEase: 'linear',
+                autoplay: true,
+                arrows: false
+               
+            });
+        });
+    </script>
+	<?php endif; ?>
+<?php endif; ?>

@@ -1,0 +1,70 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     rwd_default
+ * @copyright   Copyright (c) 2006-2014 X.commerce, Inc. (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+$_category = Mage::registry("current_category");
+
+$sortables = array(
+    'sku' => $this->__('Item #'),
+    'position' => $this->__('Relevancy'),
+    'price' => $this->__('Price low to high'),
+    'name' => $this->__('Name A-Z')
+        )
+?>
+<?php if ($this->getCollection()->getSize()): ?>
+    <div class="toolbar">
+        <?php if (!empty($_category)): ?><h2 class="category-name"><?php echo $_category->getName() ?></h2><?php endif ?>
+        <?php if ($this->getData('title')): ?><h2 class="category-name"><?php echo $this->getData('title') ?></h2><?php endif ?>
+        <div class="count-container"><?php echo $this->__('%s item(s) found', $this->getTotalNum()) ?></div>
+        
+        <?php if ($this->isExpanded()): ?>
+
+            <div class="sort-by">
+                <div class="select-dropdown-label"><?php echo $this->__('Sort by:') ?></div>
+                <select class="select-dropdown" onchange="javascript:location.href = this.value;">
+                        <?php foreach ($sortables as $k => $v): ?>
+                                <option value="<?php echo $this->getOrderUrl($k, 'asc') ?>" <?php echo ($this->isOrderCurrent($k) ? 'selected="selected"':'');?> >
+                                    <?php echo $v ?></option>
+                        <?php endforeach; ?>
+                </select>
+            </div>
+        <?php endif; ?>
+        
+        <?php echo $this->getChildHtml('catalog.leftnav') ?>
+        <div class="pager" >
+       
+
+        <?php echo $this->getPagerHtml() ?>
+
+    </div>
+    </div>
+<?php endif ?>
+<script type="text/javascript">
+    jQuery('select').niceSelect();
+    jQuery('.select-dropdown').click(function() {
+        jQuery(this).toggleClass('active');
+    });
+</script>

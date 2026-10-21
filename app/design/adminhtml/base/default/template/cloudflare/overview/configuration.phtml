@@ -1,0 +1,63 @@
+<?php
+
+	function getAuthZone () {
+		$zone = Mage::helper ("cloudflare/data")->getAuthZone ();
+		return empty ( $zone ) ? "" : $zone;
+	}
+
+	function getValidationState () {
+		$data = Mage::helper ("cloudflare/data");
+		$api = Mage::getSingleton ("cloudflare/api_overview_configuration");
+		$zone = $data->getAuthZone ();
+		$token = $data->getAuthToken ();
+		return $api->validateAuth ( $zone, $token ) ? "Valid" : "Invalid";
+	}
+
+	function getZoneId () {
+		$api = Mage::getSingleton ("cloudflare/api_overview_configuration");
+		$response = $api->getZoneId ();
+		return $response === false ? "N/A" : $response;
+	}
+
+?>
+<section
+	class="cloudflare overview configuration <?php echo $this->state ?>"
+	data-endpoint="<?php echo $this->getApiEndpoint () ?>"
+	data-form-key="<?php echo $this->getFormKey () ?>"
+	data-tab-name="overview"
+	data-section-name="configuration" >
+	<div class="row" >
+		<div class="wrapper_left" >
+			<span class="section_title" >Configuration</span>
+			<p>Credentials, such as your Cloudflare zone and Cloudflare API token, are used to communicate with the Cloudflare API. The API token is not displayed for security reasons.  Please see the <i>Credential Validation</i> section below to see if valid credentials are currently saved for your Cloudflare account.</p>
+			<div class="status_pair" >
+				<label>Credential Validation:</label>
+				<p><?php echo getValidationState () ?></p>
+			</div>
+			<div class="status_pair" >
+				<label>Zone ID:</label>
+				<p><?php echo empty ( getZoneId () ) ? "Unrecognized Site" : getZoneId () ?></p>
+			</div>
+		</div>
+		<div class="wrapper_right" >
+			<div>
+				<form method="POST" action="<?php echo Mage::getUrl ("adminhtml/cloudflare_dashboard/save") ?>" >
+					<input name="form_key" type="hidden" value="<?php echo $this->getFormKey () ?>" />
+					<input name="zone" type="text" placeholder="Zone ID" value="<?php echo getAuthZone () ?>" />
+					<input name="token" type="password" placeholder="API Token" autocomplete="nope" autofill="off" />
+					<input class="full" type="submit" value="Save Credentials" />
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="lightbox" style="background-image: url(<?php echo $this->getSkinUrl ('images/cloudflare/loading.svg') ?>)" > </div>
+	<div class="row collapsable" >
+		<div class="wrapper_bottom" >
+			<a data-tab="help" >Help</a>
+		</div>
+		<div data-tab-content="help" >
+			<h3>User Manual</h3>
+			<p>In order for this module to work, access to Cloudflare's API must be configured. Please refer to this extensions user manual for information about the set up process. The user manual can be found <a href="https://learn.jetrails.com/article/magento-2-cloudflare-extension" target="_blank" >here</a>.</p>
+		</div>
+	</div>
+</section>

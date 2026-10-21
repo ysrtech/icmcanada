@@ -1,0 +1,40 @@
+<!--
+/**
+ * Unicode Systems
+ * @category   Uni
+ * @package    Uni_Fileuploader
+ * @copyright  Copyright (c) 2010-2011 Unicode Systems. (http://www.unicodesystems.in)
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+ -->
+<?php
+$_product = Mage::registry('current_product');
+$attachments = $this->getProductAttachments($_product->getId());
+if (count($attachments) > 0):
+?>
+    <h2><?php echo $this->__('Product Attachments') ?></h2>
+    <div class="box-collateral">
+        <table class="product-attachments">
+            <thead>
+            <tr>
+                <th><?php echo $this->__('Name') ?></th>
+                <th width="400"><?php echo $this->__('Description') ?></th>
+                <th><?php echo $this->__('Typ') ?></th>
+                <th><?php echo $this->__('Size') ?></th>
+                <th><?php echo $this->__('Download Link') ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($attachments as $attachment): ?>
+                <tr>
+                    <td class="name"><?php echo $attachment['name']; ?></td>
+                    <td><?php echo $attachment['desc']; ?></td>
+                    <td><?php echo $attachment['typ']; ?></td>
+                    <td><?php echo $attachment['size']; ?></td>
+                    <td><?php echo $attachment['link']; ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>

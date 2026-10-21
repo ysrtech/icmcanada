@@ -1,0 +1,112 @@
+<?php if (!Mage::registry('current_category')) return ?>
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   design_default
+ * @package    Mage
+ * @copyright  Copyright (c) 2008 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php
+/**
+ * Category left navigation
+ *
+ * @see Mage_Catalog_Block_Navigation
+ */
+?>
+<?php $_categories=$this->getCurrentChildCategories() ?>
+<?php if($_categories->count()): ?>
+<div class="sub-departments">
+		<div class="sub-departments-head">
+				<?php echo $this->__('Browse ') ?><?php echo $this->getCurrentCategory()->getName() ?><?php echo $this->__(' Categories') ?>
+		</div>	
+		<div class="sub-departments-content <?php if($_categories->count() < 3) {echo "les-than-3";}?>" >
+                    <?php $i=0; foreach ($_categories as $_category): ?>
+                        <?php if($i++%4==0): ?>
+                        <div class="sub-departments-row <?php if($i==$_categories->count()): ?> last<?php endif; ?>">
+                        <?php endif; ?>
+                        <?php if($_category->getIsActive()):
+                        $categoryFull = Mage::getModel("catalog/category")->load($_category->getEntityId());
+							$attributes = $categoryFull->getAttributes();
+ 						?>
+                        <div class="category-item">
+                            <a href="<?php echo $this->getCategoryUrl($_category) ?>"<?php if ($this->isCategoryActive($_category)): ?> class="active"<?php endif ?>>
+                            <div class="image">
+                                 <?php if($thumbnail = $attributes['thumbnail']->getFrontend()->getValue($categoryFull)):
+                                     // actual path of image
+                                      $_imageUrl = Mage::getBaseDir('media').DS."catalog".DS."category".DS.$thumbnail;
+                                      // path of the resized image to be saved
+                                     // here, the resized image is saved in media/resized folder
+                                      $imageResized = Mage::getBaseDir('media').DS."catalog".DS."category".DS."resized".DS.$thumbnail;
+
+                                    // resize image only if the image file exists and the resized image file doesn't exist
+                                    // the image is resized proportionally with the width/height 135px
+                                    if (!file_exists($imageResized)&&file_exists($_imageUrl)) :
+                                        $imageObj = new Varien_Image($_imageUrl);
+                                        $imageObj->constrainOnly(TRUE);
+                                        $imageObj->backgroundColor(array(255,255,255));
+                                        $imageObj->keepAspectRatio(TRUE);
+                                        $imageObj->keepFrame(TRUE);
+                                        $imageObj->resize(210);
+                                        $imageObj->quality(100);
+                                        $imageObj->save($imageResized);
+                                    endif;
+                                    $newimage = Mage::getBaseUrl('media')."catalog/category/resized/".$thumbnail;
+                           ?>
+                                
+
+	                             <img src="<?php echo $newimage;?>">
+	                             <?php else: ?>
+	                             <img src="<?php echo $this->getSkinUrl();?>images/catalog/cat_placeholder.jpg">
+                            	<?php endif; ?>
+                            </div>
+                            <p class="cat-name"><?php echo $this->htmlEscape($_category->getName()) ?></p>
+                            </a>
+                            <?php
+                                $grandchildren_ids = Mage::getResourceSingleton('catalog/category_tree')->load()->getChildren($_category->getId(), false);
+                            ?>
+                            <?php if(!$_category->getIsAnchor()):?>
+                            <?php if($_category->getChildren()): ?>
+                            <ul class="grandchildren" >
+	                            <?php foreach ($grandchildren_ids as $grandChild): ?>
+                                    <?php
+                                    $parenturl = preg_replace('/.html/', '', $this->getCategoryUrl($_category));
+                                    $grandChildFull = Mage::getModel("catalog/category")->load($grandChild);
+                                    $grandChildattributes = $grandChildFull->getAttributes();
+                                    $grandchildactive = $grandChildattributes['is_active']->getFrontend()->getValue($grandChildFull);
+                                    ?>
+                                    <?php if($grandchildactive == "Yes"):?>
+                                    <li><a href="<?php echo $parenturl;?>/<?php echo $grandChildattributes['url_key']->getFrontend()->getValue($grandChildFull) ?>.html">
+                                    <?php echo $grandChildattributes['name']->getFrontend()->getValue($grandChildFull)?></a> </li>
+                                    <?php endif; ?>
+                                <?php endforeach ?>
+                            </ul>
+                            <?php endif; ?>
+                           <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+                        <?php if($i%4==0 || $i==$_categories->count()): ?>
+                        </div>
+                        <?php endif; ?>
+                    <?php endforeach ?>
+                </div>
+</div>
+<?php endif; ?>

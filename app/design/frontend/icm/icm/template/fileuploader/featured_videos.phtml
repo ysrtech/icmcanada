@@ -1,0 +1,63 @@
+
+<?php
+$_helper = Mage::helper('fileuploader');
+$data = Mage::getModel('fileuploader/fileuploader')->getFeaturedFiles();
+
+$totalFiles = $data['totalRecords'];
+if ($totalFiles > 0) {
+    $inline_attachments = array();
+    $record = $data['items'];
+
+    $i = 0;
+    foreach ($record as $rec) {
+
+        $i++;
+        if ($rec['content_disp'] == 1) {
+            $inline_attachments[] = array('title' => $rec['title'], 'url' => $rec['uploaded_file'], 'thumbnail' => $rec['thumbnail'], 'id' => $rec['fileuploader_id']);
+        }
+    }
+}
+?>
+<?php if (count($inline_attachments) > 0): ?>
+    <div class="homepage-videos clearer">
+        <h2 class="block-title">Product Videos <span style="font-size: 10px;font-weight: normal;margin-left: 10px"><a href="<?php echo Mage::getBaseUrl()?>videos-all">VIEW ALL VIDEOS &raquo;</a></span></h2>
+        <div class="videos-container">
+
+            <?php $a = 0;
+            foreach ($inline_attachments as $inline_attachment): $a++; 
+            $title = $inline_attachment['title'];
+            $thumbnail = str_replace('custom/upload/','',$inline_attachment["thumbnail"]);
+            ?>
+
+                <div class="video-item"><a href="<?php echo Mage::getBaseUrl().'videos-all#'.$inline_attachment['id'];?>" title="<?php echo $title;?>"> <img class="thumbnail" src="
+                        <?php
+                        if ($inline_attachment['thumbnail']) {
+                            
+
+                             $_imageUrl = Mage::getBaseDir('media').DS."custom".DS."upload".DS.$thumbnail;
+                             $imageResized = Mage::getBaseDir('media').DS."custom".DS."upload".DS."resizedsmall".DS.$thumbnail;
+                                    if (!file_exists($imageResized)&&file_exists($_imageUrl)){
+                                        $imageObj = new Varien_Image($_imageUrl);
+                                        $imageObj->constrainOnly(TRUE);
+                                        $imageObj->backgroundColor(array(85,85,85));
+                                        $imageObj->keepAspectRatio(TRUE);
+                                        $imageObj->keepFrame(TRUE);
+                                        $imageObj->resize(134, 110);
+                                        $imageObj->quality(100);
+                                        $imageObj->save($imageResized);
+                                    }
+                                    $newimage = Mage::getBaseUrl('media')."custom/upload/resizedsmall/".$thumbnail;
+                            echo $newimage;
+                        } else {
+                            echo $this->getSkinUrl().'images/catalog/images/catalog/product/placehlder/thumbnail.jpg';
+                        }
+                        ?>" alt="" />
+                        <div class="play-button">&nbsp;</div>
+                        <div class="video-text"><?php echo $title; ?></div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+            <div class="clearer"></div>   
+        </div>
+        </div>
+    <?php endif; ?>

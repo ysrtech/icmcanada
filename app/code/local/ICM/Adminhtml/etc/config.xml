@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<config>
+    <stores>
+        <admin>
+            <!-- default admin design package and theme -->
+            <design>
+                <theme>
+                    <default>icm</default>
+                </theme>
+            </design>
+        </admin>
+    </stores>
+    <adminhtml>
+        <layout>
+            <updates>
+                <Adminhtml>
+                    <file>icm_main.xml</file>
+                </Adminhtml>
+            </updates>
+        </layout>
+    </adminhtml>
+    <global>
+        <blocks>
+            <icm_adminhtml>
+                <class>ICM_Adminhtml_Block</class>
+            </icm_adminhtml>
+            <adminhtml>
+                <rewrite>
+                    <page_head>ICM_Adminhtml_Block_Head</page_head>
+                </rewrite>
+            </adminhtml>
+        </blocks>
+    </global>
+</config>

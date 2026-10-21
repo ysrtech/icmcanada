@@ -1,0 +1,9 @@
+
+@font-face {
+    font-family: 'blacksword';
+    src: url('blacksword-webfont.woff2') format('woff2'),
+         url('blacksword-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}

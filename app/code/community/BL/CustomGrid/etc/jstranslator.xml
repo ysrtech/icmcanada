@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ *
+ * @category   BL
+ * @package    BL_CustomGrid
+ * @copyright  Copyright (c) 2015 Benoît Leulliette <benoit.leulliette@gmail.com>
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<jstranslator>
+    <blcg-yes translate="message" module="customgrid">
+        <message>Yes</message>
+    </blcg-yes>
+
+    <blcg-no translate="message" module="customgrid">
+        <message>No</message>
+    </blcg-no>
+    
+    <blcg-grid-reload-error translate="message" module="customgrid">
+        <message>Could not reload the grid. Please reload it manually to apply any change</message>
+    </blcg-grid-reload-error>
+    
+    <blcg-grid-action-apply-error translate="message" module="customgrid">
+        <message>An error occurred while applying the action</message>
+    </blcg-grid-action-apply-error>
+    
+    <blcg-grid-values-save-error translate="message" module="customgrid">
+        <message>An error occurred while saving the values</message>
+    </blcg-grid-values-save-error>
+    
+    <blcg-grid-values-apply-error translate="message" module="customgrid">
+        <message>An error occurred while applying the values</message>
+    </blcg-grid-values-apply-error>
+    
+    <blcg-grid-columns-list-error-one-visible translate="message" module="customgrid">
+        <message>At least one column must be fully visible</message>
+    </blcg-grid-columns-list-error-one-visible>
+    
+    <blcg-grid-default-filter-reapply-error translate="message" module="customgrid">
+        <message>An error occurred while reapplying the default filter</message>
+    </blcg-grid-default-filter-reapply-error>
+    
+    <blcg-grid-editor-form-initialization-error translate="message" module="customgrid">
+        <message>An error occurred while initializing the edit form</message>
+    </blcg-grid-editor-form-initialization-error>
+    
+    <blcg-grid-editor-value-edition-error translate="message" module="customgrid">
+        <message>An error occurred while editing the value</message>
+    </blcg-grid-editor-value-edition-error>
+    
+    <blcg-grid-editor-form-no-savable-value translate="message" module="customgrid">
+        <message>There is no value to save</message>
+    </blcg-grid-editor-form-no-savable-value>
+    
+    <blcg-grid-profile-title-right-click translate="message" module="customgrid">
+        <message>Right-click to view all the available actions</message>
+    </blcg-grid-profile-title-right-click>
+</jstranslator>

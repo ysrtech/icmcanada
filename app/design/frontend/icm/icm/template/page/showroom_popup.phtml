@@ -1,0 +1,86 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2006-2014 X.commerce, Inc. (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Language switcher template
+ *
+ * @see Mage_Page_Block_Switch
+ */
+ $currentUrl = $this->helper('core/url')->getCurrentUrl();
+?>
+<?php if(!isset($_COOKIE['showroom']) && strpos($currentUrl, 'showroom') == false):?>
+
+<div id="toPopup" class="popup"> 
+    <div class="popup_content">
+        <a class="close_popup" onclick="setCookie('showroom','shown')"><span class="ion-close-circled"></span></a> 
+        <div class="message-box">
+            <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('showroom_popup_message')->toHtml(); ?>
+        </div>
+     </div> 
+</div>
+
+<?php elseif(!isset($_COOKIE['covid'])):?>
+
+<div id="toPopup" class="popup covid"> 
+    <div class="popup_content">
+        <a class="close_popup" onclick="setCookie('covid','shown')"><span class="ion-close-circled"></span></a> 
+        <div class="message-box">
+            <?php echo $this->getLayout()->createBlock('cms/block')->setBlockId('covid_popup_message')->toHtml(); ?>
+        </div>
+     </div> 
+</div>
+<?php endif; ?>
+
+<script type="text/javascript">
+function setCookie(name, value, expires, path, domain, secure)
+{
+var popup = document.getElementById("toPopup");
+popup.style.display = 'none';
+
+var cookieStr = name + "=" + escape(value) + "; ";
+//if (expires) {
+//    var expiresDate = new Date(new Date().getTime() + expires * 24 * 60 * 60 * 1000);
+//    cookieStr += "expires=" + expiresDate.toGMTString() + "; ";
+//}
+
+var expiresDate = new Date(new Date().getTime() + 1 * 18 * 60 * 60 * 1000);
+    cookieStr += "expires=" + expiresDate.toGMTString() + "; ";
+
+cookieStr += "path=/" + "; ";
+
+if (domain) {
+    cookieStr += "domain=" + domain + "; ";
+}
+if (secure) {
+    cookieStr += "secure; ";
+}
+
+document.cookie = cookieStr;
+
+}
+</script>
+

@@ -1,0 +1,32 @@
+.widget-catalogsale-products-carousel {
+  position: relative;
+}
+
+.widget-catalogsale-products-carousel .container {
+  float: left;
+  overflow: hidden;
+  position: relative;
+}
+
+.widget-catalogsale-products-carousel .container ul {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 10000px;
+}
+
+.widget-catalogsale-products-carousel .container ul li {
+  display: block;
+  float: left;
+  height: 200px;
+  width: 200px;
+  list-style: none;
+}
+
+.widget-catalogsale-products-carousel .container ul li img {
+  margin: 0 50px;
+}
+
+.widget-catalogsale-products-carousel .container ul li .product_details {
+  margin: 0 20px;
+}

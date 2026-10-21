@@ -1,0 +1,120 @@
+<?php if (!Mage::registry('current_category')) return ?>
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category   design_default
+ * @package    Mage
+ * @copyright  Copyright (c) 2008 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php
+/**
+ * Category left navigation
+ *
+ * @see Mage_Catalog_Block_Navigation
+ */
+?>
+<?php $_categories=$this->getCurrentChildCategories() ?>
+<?php if($_categories->count()): ?>
+<div class="sub-departments">
+		<div class="page-title category-title">
+                    <h2><?php echo $this->__('Browse') ?> <span><?php echo $_name = $this->getCurrentCategory()->getName() ?></span> <?php echo $this->__('Categories') ?>
+                     <a class="view-all" href="<?php echo Mage::helper('core/url')->getCurrentUrl();?>?viewall=1"><?php echo $this->__('View all %s products',$_name) ?> &raquo;</a>
+                    </h2>
+		</div>
+    
+		<ul class="sub-departments-content products-grid products-grid--max-4-col" >
+                    <?php $i=0; foreach ($_categories as $_category): ?>
+                        <?php if($_category->getIsActive()):
+                        $categoryFull = Mage::getModel("catalog/category")->load($_category->getEntityId());
+                        $_catThumbnail = $categoryFull->getThumbnail()
+                        ?>
+                            <?php  $grandchildren_ids = '';//Mage::getResourceSingleton('catalog/category_tree')->load()->getChildren($_category->getId(), false);?>
+                            <?php // if($_category->getChildren()){ $grcount = count($grandchildren_ids);}?>
+                            <?php $categoryUrl = $this->getCategoryUrl($_category)?>
+
+                        <li class="category-item item <?php echo $grcount > 10 ? "two-columns" : ""; ?><?php if($i%3==0){echo ' last';} ?>">
+                            <div class="item-box">
+                            <a href="<?php echo $categoryUrl ?>">
+                            <div class="image">
+	                            <?php if($_catThumbnail):
+                                    $width = 250;
+                                        $height = 250;
+                                        $_imageUrl = Mage::getBaseDir('media'). DS . 'catalog'.DS.'category' . DS .$_catThumbnail;
+
+                                     $imageResized = Mage::getBaseDir('media'). DS .'catalog'.DS.'product' . DS .'cache' . DS . 'category' . DS .$width.'x'.$height.DS.$_catThumbnail;
+                                    if (!file_exists($imageResized) && file_exists($_imageUrl)) :
+                                            $imageObj = new Varien_Image($_imageUrl);
+                                            $imageObj->constrainOnly(TRUE);
+                                            $imageObj->backgroundColor(array(255,255,255));
+                                            $imageObj->keepAspectRatio(TRUE);
+                                            $imageObj->keepFrame(true);
+                                            $imageObj->resize($width,$height);
+                                            $imageObj->quality(100);
+                                            $imageObj->save($imageResized);
+                                        endif;
+                                        ?>
+	                             <img src="<?php echo Mage::getBaseUrl().'media/catalog/product/cache/category/'.$width.'x'.$height.'/'.$_catThumbnail;?>">
+	                             <?php else: ?>
+	                             <img src="<?php echo $this->getSkinUrl();?>images/placeholder_small.gif">
+                            	<?php endif; ?>
+                            </div>
+                            </a>
+                            <a href="<?php echo $categoryUrl ?>">
+                                <p class="cat-name"><?php echo $this->htmlEscape($_category->getName());?> </p>
+                            </a>
+                            <?php //if(!$_category->getIsAnchor()):?>
+
+                            <?php if($grcount > 0) :?>
+                            <ul class="grandchildren " >
+	                            <?php $gr=0; foreach ($grandchildren_ids as $grandChild): $gr++?>
+                                    <?php
+                                    $parenturl = preg_replace('/.html/', '', $this->getCategoryUrl($_category));
+                                    $grandChildFull = Mage::getModel("catalog/category")->load($grandChild);
+                                    $grandChildattributes = $grandChildFull->getAttributes();
+                                    $grandchildactive = $grandChildattributes['is_active']->getFrontend()->getValue($grandChildFull);
+                                    ?>
+                                    <?php if($grandchildactive == "Yes"):?>
+                                <li><a href="<?php echo $parenturl;?>/<?php echo $grandChildattributes['url_key']->getFrontend()->getValue($grandChildFull) ?>.html">
+                                    <?php echo $grandChildattributes['name']->getFrontend()->getValue($grandChildFull)?></a></li>
+                                    <?php endif; ?>
+                                        
+                                <?php if ($gr==10): ?>
+                                    </ul>
+                                    <ul class="grandchildren" >
+                                <?php endif; ?>
+                                <?php endforeach ?>
+                                
+                            </ul>
+                            <?php endif; ?>
+                           <?php //endif; ?>
+                           </div>
+                        </li>
+                        <?php endif; ?>
+                    <?php endforeach ?>
+                </ul>
+</div>
+<script type="text/javascript">
+jQuery(document).ready(function($){
+     $(".sub-departments-content div.sub-departments-row:last-child").addClass("last");
+});
+</script>
+<?php endif; ?>

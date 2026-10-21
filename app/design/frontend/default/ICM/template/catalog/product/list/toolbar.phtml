@@ -1,0 +1,115 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2009 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Product list toolbar
+ *
+ * @see Mage_Catalog_Block_Product_List_Toolbar
+ */
+?>
+<?php if($this->getCollection()->getSize()): ?>
+<div class="toolbar">
+<script src="<?php echo $this->getBaseUrl() ?>js/jquery/jquery.cookie.js" type="text/javascript"></script>
+<script type="text/javascript">
+jQuery(document).ready(function($){
+    if($.cookie("icm_productlist") == 'largeview'){
+        $('.products-grid').addClass('largeview');
+        $('.switch-icon').removeClass('active');
+        $('.switch-icon.large').addClass('active');
+    }
+    if($.cookie("icm_productlist") == ''){
+        $('.products-grid').removeClass('largeview');
+        $('.switch-icon').removeClass('active');
+        $('.switch-icon.small').addClass('active');
+    }
+    
+    $('.switch-icon.large').click(function(){
+        $('.switch-icon').removeClass('active');
+        $('.switch-icon.large').addClass('active');
+        $('.products-grid').fadeOut('fast', function() {
+            $(this).fadeIn('fast').addClass('largeview');
+        });
+        $.cookie("icm_productlist", "largeview", { path: '/' });
+    });
+    $('.switch-icon.small').click(function(){
+        $('.switch-icon').removeClass('active');
+        $('.switch-icon.small').addClass('active');
+        $('.products-grid').fadeOut('fast', function() {
+            $(this).fadeIn('fast').removeClass('largeview');
+        });
+        $.cookie("icm_productlist", "", { path: '/' });
+    });
+});
+</script>
+    <div class="amount">
+            <?php if($this->getLastPageNum()>1): ?>
+                <?php echo $this->__('Viewing %s to %s of %s items', $this->getFirstNum(), $this->getLastNum(), $this->getTotalNum()) ?>
+            <?php else: ?>
+                <strong><?php echo $this->__('%s item(s)', $this->getTotalNum()) ?></strong>
+            <?php endif; ?>
+    </div>
+    <div class="limiter">
+            <label><?php echo $this->__('View:') ?></label>
+            <select onchange="setLocation(this.value)">
+            <?php foreach ($this->getAvailableLimit() as  $_key=>$_limit): ?>
+                <option value="<?php echo $this->getLimitUrl($_key) ?>"<?php if($this->isLimitCurrent($_key)): ?> selected="selected"<?php endif ?>>
+                    <?php echo $_limit ?>
+                </option>
+            <?php endforeach; ?>
+            </select>
+    </div>
+    
+    <?php if( $this->isExpanded() ): ?>
+        
+        <div class="sort-by">
+            <span><?php echo $this->__('Sort by:') ?></span>
+                <select name="sort_by"  onchange="setLocation(this.value)">
+                <option value="<?php echo $this->getOrderUrl('position', 'asc') ?>"<?php if($this->isOrderCurrent('position') && $this->getCurrentDirection() == 'asc'): ?> selected="selected"<?php endif; ?>>
+                Featured
+            </option>
+                <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>
+                <option value="<?php echo $this->getOrderUrl('price', 'asc') ?>"<?php if($this->isOrderCurrent('price') && $this->getCurrentDirection() == 'asc'): ?> selected="selected"<?php endif; ?>>
+                    Lowest Price
+                </option>
+                <option value="<?php echo $this->getOrderUrl('price', 'desc') ?>"<?php if($this->isOrderCurrent('price') && $this->getCurrentDirection() == 'desc'): ?> selected="selected"<?php endif; ?>>
+                    Highest Price
+                </option>
+            <?php endif; ?>
+            <option value="<?php echo $this->getOrderUrl('name', 'asc') ?>"<?php if($this->isOrderCurrent('name') && $this->getCurrentDirection() == 'asc'): ?> selected="selected"<?php endif; ?>>
+                Name A-Z
+            </option>
+            <option value="<?php echo $this->getOrderUrl('name', 'desc') ?>"<?php if($this->isOrderCurrent('name') && $this->getCurrentDirection() == 'desc'): ?> selected="selected"<?php endif; ?>>
+                Name Z-A
+            </option>
+                </select>
+        </div>
+       
+    <?php endif; ?>
+    <div class="switch_thumb"><span class="switch-icon large active" title="Large View" > </span><span class="switch-icon small" title="Small View">  </span></div>
+    <?php echo $this->getPagerHtml() ?>
+</div>
+<?php endif ?>

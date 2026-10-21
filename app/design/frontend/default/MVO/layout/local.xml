@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+
+<!--
+Default layout, loads most of the pages
+-->
+
+    <default>
+        <reference name="head">
+            <action method="addItem"><type>skin_css</type><name>css/mvo_styles.css</name></action>
+        </reference>
+        
+
+        <!-- Mage_Newsletter -->
+        <reference name="header">
+            <block type="newsletter/subscribe" name="newsletter" as="newsletter" template="newsletter/subscribe.phtml"/>
+        </reference>
+
+    </default>
+</layout>

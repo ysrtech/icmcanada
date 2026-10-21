@@ -1,0 +1,91 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2009 Irubin Consulting Inc. DBA Varien (http://www.varien.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php $_product = $this->getProduct() ?>
+<?php 
+$collection = $this->getItemCollection()->getItems();
+
+if(count($collection)): ?>
+<div class="mini-products-grid related-full">
+    <div class="mini-grid-head">
+    <?php echo $this->__('More '.$_product->getData('collection_crossell').' Items') ?><a class="back-top" href="#top">Back to top <span class="arrow-up"></span></a>
+    </div>
+    <div class="mini-grid-content">
+        <ol class="upsell-list" id="upsell_full">
+        <?php foreach($collection as $_UpsellItem):?>
+            <li class="item">
+                <div class="product">
+                    <a href="<?php echo $_UpsellItem->getProductUrl() ?>" title="<?php echo $this->htmlEscape($_UpsellItem->getName()) ?>" class="item-image">
+                    <img src="<?php echo $this->helper('catalog/image')->init($_UpsellItem, 'thumbnail')->resize(120) ?>" width="120" height="120" alt="<?php echo $this->htmlEscape($_UpsellItem->getName()) ?>" /></a>
+                    <div class="item-details">
+                        <p class="item-name"><a href="<?php echo $_UpsellItem->getProductUrl() ?>"><?php echo $this->htmlEscape($_UpsellItem->getName()) ?></a></p>
+                        <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>
+                        <?php echo $this->getPriceHtml($_UpsellItem, true, '-upsell') ?>
+                        <?php endif ?>
+                    </div>
+                </div>
+            </li>
+        <?php endforeach; ?>
+        </ol>
+    <script type="text/javascript">
+        decorateTable('upsell_full')
+           jQuery(document).ready(function ($) {
+            $('.upsell-list').slick({
+  dots: false,
+  infinite: false,
+  speed: 300,
+  slidesToShow: 6,
+  slidesToScroll: 6,
+  responsive: [
+    {
+      breakpoint: 1024,
+      settings: {
+        slidesToShow: 5,
+        slidesToScroll: 5,
+        infinite: true,
+        dots: true
+      }
+    },
+    {
+      breakpoint: 600,
+      settings: {
+        slidesToShow: 3,
+        slidesToScroll: 3
+      }
+    },
+    {
+      breakpoint: 480,
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 2
+      }
+    }
+  ]
+});
+});</script>
+</div>
+</div>
+<?php endif ?>

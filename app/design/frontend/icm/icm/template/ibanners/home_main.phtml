@@ -1,0 +1,44 @@
+<?php if ($this->hasValidGroup()): ?>
+    <?php $group = $this->getGroup() ?>
+    <?php $banners = $this->getBanners() ?>
+    <?php if ($this->getGroup()->getBannerCount() > 0): ?>
+            <section id="<?php echo $this->getWrapperId() ?>" class="homepage-splash <?php echo $this->getWrapperClass() ?>">
+                <?php foreach ($banners as $banner): ?>
+                <?php if ($banner->hasUrl()): ?>
+				<a href="<?php echo $banner->getUrl() ?>" title="<?php echo $this->escapeHtml($banner->getTitle()) ?>">
+			<?php endif; ?>
+                <div class="slide" style="background-image:url(<?php echo $banner->getImageUrl() ?>)">
+                    
+                    <?php if ($banner->getHtml()): ?>
+                        <div class="slide-center">
+                            <?php echo $banner->getHtml() ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <?php if ($banner->hasUrl()): ?>
+				</a>
+			<?php endif; ?>
+                <?php endforeach; ?>
+            </section>
+    <?php endif; ?>
+<?php if ($this->getGroup()->getBannerCount()  > 1): ?>
+<div class="flow-down"></div>
+<script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('.homepage-splash').slick({
+                infinite: true,
+                speed: 1000,
+                lazyLoad: 'progressive',
+                slidesToShow:1,
+                slidesToScroll: 1,
+                dots: true,
+                autoplay: true,
+                autoplaySpeed: 6000,
+                pauseOnHover:true
+            });
+            
+            
+        });
+    </script>
+<?php endif; ?>
+<?php endif; ?>

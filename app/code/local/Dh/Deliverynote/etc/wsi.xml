@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="{{var wsdl.name}}" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="urn:{{var wsdl.name}}" xmlns:typens="urn:{{var wsdl.name}}" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <wsdl:types>
+        <xsd:schema targetNamespace="urn:{{var wsdl.name}}" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:complexType name="salesOrderEntity">
+                <xsd:sequence>
+                    <xsd:element maxOccurs="1" minOccurs="0" name="order_note" type="xsd:string" />
+                   
+                </xsd:sequence>
+            </xsd:complexType>
+
+        </xsd:schema>
+    </wsdl:types>
+</wsdl:definitions>

@@ -1,0 +1,92 @@
+
+<?php
+
+$_helper = Mage::helper('fileuploader');
+$data = Mage::getModel('fileuploader/fileuploader')->getAllFiles();
+
+$totalFiles = $data['totalRecords'];
+if ($totalFiles > 0) {
+    $inline_attachments = array();
+    $record = $data['items'];
+
+    $i = 0;
+    foreach ($record as $rec) {
+
+        $i++;
+        if ($rec['content_disp'] == 1) {
+            $inline_attachments[] = array('title' => $rec['title'], 'url' => $rec['uploaded_file'], 'thumbnail' => $rec['thumbnail'],'product_ids' => $rec['product_ids'], 'id' => $rec['fileuploader_id'], 'file_content' => $rec['file_content']);
+        }
+    }
+}
+?>
+<?php if (count($inline_attachments) > 0): ?>
+    <div class="all-videos ">
+        <h2 class="block-title">Product Videos</h2>
+        <div class="videos-container">
+            <?php $a = 0; foreach ($inline_attachments as $inline_attachment): $a++; ?>
+                <div class="video-item"><?php
+                        $url = $inline_attachment['url'];
+                        $id = $inline_attachment['id'];
+                        $fileurl = Mage::getBaseUrl('media').$url;
+                        $thumbnail = str_replace('custom/upload/','',$inline_attachment["thumbnail"]);
+                            $title = $inline_attachment['title'];
+                            $playerPath = Mage::getBaseUrl('media') . '/custom/upload/player/';
+                            $ext = strtolower(end(explode('.',$url)));
+                                if ($ext == 'avi') {
+                                    $onclick = "javascript:playerAviOpen('" . $title . "',this.rel); return false;";
+                                } else if ($ext == 'flv') {
+                                    $onclick = "javascript:playerFlvOpen('" . $title . "',this.rel,'" . $playerPath . "'); return false;";
+                                } else if ($ext == 'mov') {
+                                    $onclick = "javascript:playerMovOpen('" . $title . "',this.rel); return false;";
+                                } else{
+                                $onclick = "return fileUploaderPopup.open({url:this.rel, title: '" . str_replace(' ', '_', $title) . "'});";
+                                }
+                        if ($thumbnail) {
+                            
+                             $_imageUrl = Mage::getBaseDir('media').DS."custom".DS."upload".DS.$thumbnail;
+                             $imageResized = Mage::getBaseDir('media').DS."custom".DS."upload".DS."resized".DS.$thumbnail;
+                                    if (!file_exists($imageResized)&&file_exists($_imageUrl)){
+                                        $imageObj = new Varien_Image($_imageUrl);
+                                        $imageObj->constrainOnly(TRUE);
+                                        $imageObj->backgroundColor(array(85,85,85));
+                                        $imageObj->keepAspectRatio(TRUE);
+                                        $imageObj->keepFrame(TRUE);
+                                        $imageObj->resize(150, 120);
+                                        $imageObj->quality(100);
+                                        $imageObj->save($imageResized);
+                                    }
+                                    $newimage = Mage::getBaseUrl('media')."custom/upload/resized/".$thumbnail;
+                        } else {
+                            $newimage = $this->getSkinUrl().'images/catalog/product/placeholder/image.jpg';
+                        }
+                        ?>
+                        <a name="<?php echo $id;?>" href="javascript:;" onclick="<?php echo $onclick ?>" target="_blank" onmouseover="window.status=''; return true;" rel="<?php echo $fileurl; ?>">
+                            <img class="thumbnail" src="<?php echo $newimage; ?>" alt="" />
+                        
+                        <div class="play-button">&nbsp;</div>
+                        </a>
+                        <div class="video-text">
+                            <a name="<?php echo $id;?>" href="javascript:;" onclick="<?php echo $onclick ?>" target="_blank" onmouseover="window.status=''; return true;" rel="<?php echo $fileurl; ?>">
+                                <h3><?php echo $title; ?></h3>
+                            </a>
+                            <p><?php echo $inline_attachment['file_content']; ?></p>
+                            <?php 
+                            $product_ids = explode(',',$inline_attachment["product_ids"]);
+                            $product_ids_count = count($product_ids);
+                            if (!empty($product_ids) && isset($product_ids[0]) && $product_ids[0] != '') {?>
+                                <div class="related-products">
+                                <strong>Products related to this video:</strong><br>
+                                    <?php $p = 0; foreach ($product_ids as $product): $p++?>
+                                    <?php $item = Mage::getModel('catalog/product')->load($product);?>
+                                    <a href="<?php echo $item->getProductUrl()?>" title="<?php echo $item->getName()?>"><?php echo $item->getSku()?></a><?php if($product_ids_count > $p){echo ",&nbsp;";}?>
+                                    <?php endforeach; ?>
+                              </div>
+                            <?php } ?>
+                        </div>
+                        
+                            
+                </div>
+            <?php endforeach; ?>
+            <div class="clearer"></div>        
+        </div>
+    <?php endif; ?>

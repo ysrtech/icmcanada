@@ -1,0 +1,71 @@
+<?php
+	$_attr = $this->getAttributeInfo();
+
+	$_externalUrlLabel=$_attr->getExternalUrlLabel();
+?>
+<div class="brand-info">
+
+
+	  <?php
+                        $_imgHtml = '';
+                        $thumbnail_width = 140;
+                        $thumbnail_height = 90;
+
+                        if (($file = Mage::getBaseDir('media') . DS . 'catalog' . DS . 'attribute' . DS . $_attr->getImage()) && is_file($file)) {
+                            $imageInfo = getimagesize($file);
+                            $width = $imageInfo[0];
+                            $height = $imageInfo[1];
+
+                            $baseDir = Mage::getSingleton('catalog/product_media_config')->getBaseMediaPath();
+
+                            if ($height)
+                                $thumbnail_width = min($thumbnail_width, intval($width * $thumbnail_height / $height));
+                            if ($width)
+                                $thumbnail_height = min($thumbnail_height, intval($height * $thumbnail_width / $width));
+
+
+                            //resizer looks in /media/catalog/product, our images are in /media/catalog/attribute
+                            //so we go one level above product with ../
+                            $_imgUrl = Mage::helper('dc_catalog/image')
+                                    ->initImage($attribute_code, $_attr->getImage())
+                                   //resize($thumbnail_width, $thumbnail_height)
+                                    ->__toString();
+
+                            $_imgHtml = '<img
+			width="' . ($thumbnail_width ? $thumbnail_width : $width) . '"
+	        src="' . $_imgUrl . '"
+	        alt="' . $this->htmlEscape($_attr->getValue()) . '"
+	        title="' . $this->htmlEscape($_attr->getValue()) . '"
+	        class="attribute-values-logo" />';
+                        }
+
+                        if ($_imgHtml) {
+                            //looks like we have a logo to show
+                            ?>
+    
+<?php } ?>
+<div class="category-title category-head attribute-title">
+    <div class="brand-logo"> <?php echo $_imgHtml; ?></div>
+	<h2><?php echo $this->htmlEscape($_attr->getName()) ?></h2>
+        <?php if($_description=$this->getDescription()): ?>
+	<p class=""><?php echo $_description; ?></p>
+        <?php endif; ?>
+</div>
+
+
+<?php if(($_externalUrl=$_attr->getExternalUrl()) > ''): ?>
+	<p class="attribute-external-url"><a href="<?php echo $_externalUrl; ?>" target="_blank" title="<?php echo $_externalUrlLabel?>">
+		<?php echo ($_externalUrlLabel > '') ? $_externalUrlLabel : $_externalUrl ?>
+	</a></p>
+<?php endif; ?>
+
+<?php /*if ($_attrLabel = $_attr->getFrontendLabel()) :?>
+<br/><div class="category-title">
+	<h2><?php echo __('List of products for this %s', strtolower($_attrLabel)) ?></h2>
+</div>
+<?php endif;*/ ?>
+</div>
+<?php if($_description_inpage=$this->getdescription_in_page()): ?>
+	<p class="brand-description-inpage"><?php echo $_description_inpage; ?></p>
+<?php endif; ?>
+<?php echo $this->getProductListHtml() ?>

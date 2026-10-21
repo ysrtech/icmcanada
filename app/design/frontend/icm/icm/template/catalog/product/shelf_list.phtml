@@ -1,0 +1,142 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magento.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magento.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2006-2017 X.commerce, Inc. and affiliates (http://www.magento.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<?php
+/**
+ * Product list template
+ *
+ * @see Mage_Catalog_Block_Product_List
+ */
+?>
+<?php
+$_productCollection = $this->getLoadedProductCollection();
+$_helper = $this->helper('catalog/output');
+?>
+
+<?php if (!$_productCollection->count()): ?>
+    <p class="note-msg"><?php echo $this->__('There are no products matching the selection.') ?></p>
+<?php else: ?>
+    <div class="category-products shelf-list">
+
+        <ul class="products-grid">
+        <?php 
+        foreach ($_productCollection as $_product):
+            $regImage = '';?>
+
+                <li class="item">
+                    <div class="item-box">
+
+                    <a href="<?php echo $_product->getProductUrl() ?>"  class="product-image" target="_blank">
+                        <img src="<?php echo $regImage = $this->helper('catalog/image')->init($_product, 'thumbnail')->resize(250)->__toString(); ?>"
+        <?php if ($_product->getSmall_image() && $_product->getSmall_image() != $_product->getThumbnail()): ?>
+                                 onmouseover="this.src = '<?php echo $this->helper('catalog/image')->init($_product, 'small_image')->resize(250); ?>'" 
+                                 onmouseout="this.src = '<?php echo $regImage; ?>'" 
+        <?php endif; ?>
+                             />
+                    </a>
+                    <div class="item-container">
+                        <h2 class="product-name"><a href="<?php echo $_product->getProductUrl() ?>" target="_blank"><?php echo $_helper->productAttribute($_product, $_product->getName(), 'name') ?></a></h2>
+                        <?php if (Mage::getSingleton('customer/session')->isLoggedIn()): ?>
+                            <?php echo $this->getPriceHtml($_product, true) ?>
+                            <?php $_product->setData('tier_price', null);
+                                $_tierPrices = $this->getTierPrices($_product);
+                                $Id = $_product->getId();
+                                if (count($_tierPrices) > 0):?>
+                                  <?php if ($_product->getShow_tier_sale() == 1):?>
+                                        <?php 
+                                        $sale_tier = false;
+                                        foreach ($_tierPrices as $_price){ $t++;
+                                        if($_price['price'] < $_product->getFinalPrice()){
+                                            $sale_tier = $_price['formated_price'];
+                                            $sale_qty = $_price['price_qty'];
+                                        }
+                                        
+                                        };?>
+                                        <div class="tier-sale"><?php echo $this->__('SALE: Buy %1$s for %2$s each', $sale_qty, $sale_tier ); ?></div> 
+                                  <?php else: ?>
+                                   <?php foreach ($_tierPrices as $_price):?>
+                                    <div class="tier-price"><?php echo $this->__('Buy %1$s for %2$s each', $_price['price_qty'], $_price['formated_price']); ?></div> 
+                                  <?php endforeach;?>
+                                  <?php endif; ?>
+                                <?php endif; ?>
+                                <div class="actions">
+                                 <?php if($_product->isSaleable()): ?>
+                                    <form action="<?php echo $this->getAddToCartUrl($_product) ?>" method="post" id="product_addtocart_form_<?php echo $Id ?>">
+                                      <div class="qty-box">
+                                            <span class="quantity-decrease" onclick="qtyDown(<?php echo $Id; ?>)" >-</span>
+                                            <input name="qty" type="text" class="input-text qty" id="qty_<?php echo $Id; ?>" maxlength="5" value="1" />
+                                            <span  class="quantity-increase" onclick="qtyUp(<?php echo $Id; ?>)" >+</span>
+                                        </div>
+                                <button class="button btn-cart" onclick="this.form.submit()"><?php echo $this->__('Add to Cart') ?></button>
+                                </form>
+                                <?php else: ?>
+                                    <p class="availability out-of-stock"><span><?php echo $this->__('Out of stock') ?></span></p>
+                                <?php endif; ?>
+                                </div>
+
+                      <?php else: 
+                          if($msrp = $_product->getMsrp()): ?>
+                        <div class="msrp">MSRP <?php echo $this->helper('core')->currency($msrp, true, true) ?></div>
+                        <?php endif; ?>
+                        <div class="msrp"><a href="<?php echo $this->getUrl('customer/account');?>" class="ajaxlogin-login-defunt">Login</a> to view pricing and shop</div>
+                     <?php endif; ?>
+                        
+                    </div>
+</div>
+                </li>
+    <?php endforeach ?>
+                </ul>
+       
+    </div>
+<?php endif; ?>
+<script type="text/javascript">   
+                                    
+                                  
+                                  function qtyDown(qty_id){
+                                      
+                                        var qty_el = jQuery('#qty_'+qty_id);
+                                        var qty = parseInt(qty_el.val());
+                                        var qty_inc = 1;
+                                        var qty_min = 1;
+                                         if( qty == 1) {
+                                             return false;
+                                         }
+                                         if( !isNaN( qty ) && qty > 0 ){
+                                             qty_el.val(((qty - qty_inc) >= qty_min) ? qty - qty_inc : qty_min );
+                                         }         
+                                         return false;
+                                     }
+
+                                     function qtyUp(qty_id){
+                                       var qty_el = jQuery('#qty_'+qty_id);
+                                        var qty = parseInt(qty_el.val());
+                                        var qty_inc = 1;
+                                         if( !isNaN( qty )) {
+                                             qty_el.val(qty + qty_inc);
+                                         }
+                                         return false;
+                                     }
+                                  </script>

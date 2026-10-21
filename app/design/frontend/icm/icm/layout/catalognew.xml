@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+  <catalognew_index_index>
+    <reference name="root">
+      <action method="setTemplate"><template>page/1column.phtml</template></action>
+    </reference>
+    <reference name="head">
+    	<action method="setTitle"><title>New Arrivals</title></action>
+    </reference>
+    <reference name="content">
+      <block type="catalognew/view" name="categorynew.products" template="catalog/product/catalognew.phtml">
+        <block type="catalog/product_list" name="new_product_list" template="catalog/product/list.phtml">
+            <block type="catalognew/layer" name="catalogsale.leftnav" before="-" template="catalog/layer/view.phtml"/> 
+            <block type="catalog/product_list_toolbar" name="product_list_toolbar" template="catalog/product/list/toolbar.phtml">
+                        <block type="page/html_pager" name="product_list_toolbar_pager"/>
+                    </block>
+                    <action method="addColumnCountLayoutDepend">
+                        <layout>two_columns_left</layout>
+                        <count>4</count>
+                    </action>
+                    <action method="addColumnCountLayoutDepend">
+                        <layout>two_columns_right</layout>
+                        <count>4</count>
+                    </action>
+                    <action method="setToolbarBlockName">
+                        <name>product_list_toolbar</name>
+                    </action>
+        </block>
+        <action method="setListCollection"/>
+      </block>
+    </reference>
+    <reference name="breadcrumbs">
+           <action method="addCrumb">
+                <crumbName>Home</crumbName>
+                <crumbInfo><label>Home</label><title>Back to start page</title><link>/</link></crumbInfo>
+           </action>
+           <action method="addCrumb">
+                <crumbName>Trends</crumbName>
+                <crumbInfo><label>New Arrivals</label><title>Trends</title><url>catalognew</url></crumbInfo>
+           </action>
+    	</reference> 
+  </catalognew_index_index>
+</layout>

@@ -1,0 +1,34 @@
+<?php
+define('MAGENTO', realpath(dirname(__FILE__)));
+require_once MAGENTO . '/app/Mage.php';
+umask(0);
+
+ini_set('display_errors', 1);
+$storeCode = 'fr';
+$frstoreId = Mage::app()->getStore($storeCode)->getId();
+
+$import_file = fopen(MAGENTO . '/var/import/category/categories_translations.csv', 'r');
+$category = Mage::getModel('catalog/category');
+
+
+$linecount=1;
+
+while (($line = fgetcsv($import_file))!== FALSE) 
+{
+$csvId = $line[0];
+ if($category->load($csvId)){
+     $frName = utf8_encode($line[2]);
+     $category->setStoreId($frstoreId);
+     $category->setData('name', $frName);
+     $category->setData('url_key', Mage::getModel('catalog/product_url')->formatUrlKey($frName));
+     $category->save();
+     echo 'Catgeory '.$line[1].' w/translation '.$frName.' saved<br>';
+$linecount++;
+}else{
+    echo 'Catgeory with id'.$csvId.'not found<br>';
+}
+echo $linecount.' categories updated';
+}
+ 
+
+

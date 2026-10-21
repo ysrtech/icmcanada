@@ -1,0 +1,21 @@
+
+<?php if ($this->hasValidGroup()): ?>
+    <?php $group = $this->getGroup() ?>
+    <?php $banners = $this->getBanners() ?>
+    <?php if ($this->getGroup()->getBannerCount() == 1): ?>
+            <div id="<?php echo $this->getWrapperId() ?>" class="add-cart-banner <?php echo $this->getWrapperClass() ?>">
+                <?php foreach ($banners as $banner): ?>
+                    <?php if ($banner->hasUrl()): ?>
+                        <a href="<?php echo $banner->getUrl() ?>" title="<?php echo $this->escapeHtml($banner->getTitle()) ?>">
+                        <?php endif; ?>
+                        <img src="<?php echo $banner->getImageUrl() ?>" alt="<?php echo $this->escapeHtml($banner->getAltText()) ?>" />
+                        <?php if ($banner->hasUrl()): ?>
+                        </a>
+                    <?php endif; ?>
+                    <?php if ($banner->getHtml()): ?>
+                        <div class="html"><?php echo $banner->getHtml() ?></div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+    <?php endif; ?>	
+<?php endif; ?>

@@ -1,0 +1,10 @@
+<?php 
+$isloggedin = Mage::getSingleton('customer/session')->isLoggedIn();
+
+if($isloggedin):
+                     $_cartQty = $this->helper('checkout/cart')->getSummaryCount();;
+                        if(empty($_cartQty)) {
+                            $_cartQty = 0;
+                        }
+                    
+                   ?><?php echo $_cartQty; ?><?php endif?>

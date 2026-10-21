@@ -14,7 +14,9 @@ order email rendering, the admin screens and the Dataflow product import.
 2. Switch the account to **PHP 8.4** (cPanel MultiPHP: `ea-php84`). Required extensions:
    `ctype curl dom ftp gd hash iconv intl json libxml mbstring mysqli pdo_mysql posix
    simplexml soap sodium zip zlib` (OpenMage checks these in `composer.json`).
-3. Deploy the code, keep the **existing `app/etc/local.xml`** (it holds the DB
+3. Deploy the code, keep the **existing `app/etc/local.xml`** (admin front name must stay
+   `icmoffice`: BL CustomGrid stores the admin front name with every grid customization, and a
+   different admin URL makes it create new empty grids instead of using the saved ones) (it holds the DB
    credentials and the encryption key used for saved passwords/API keys) and `media/`.
 4. Run `composer install --no-dev` in the site root. This installs `vendor/` and also
    copies TinyMCE, jQuery, the uploader and `Cm_RedisSession` into place; those are
@@ -81,7 +83,7 @@ email as a side effect and nothing called it.
   (`ysrtech/BL_CustomGrid`) and **DC_Catalog** (`ysrtech/DC_Catalog`) replace the old copies.
 * Kept and fixed for PHP 8.4 / OpenMage 20: Aoe_CacheCleaner, BusinessKing_AttributeQuickAdd,
   CeicomExtends_CBanners, Clarion_Customerattribute, Dh_Deliverynote, DigitalPianism_AjaxLogin,
-  Fishpig_iBanners, FreeLunchLabs_MailGun, JetRails_Cloudflare, Kaushik_Outofstock,
+  Fishpig_iBanners, FreeLunchLabs_MailGun, Kaushik_Outofstock,
   Llian_MassProductLinker, Netzarbeiter_CustomerActivation, Netzarbeiter_GroupsCatalog2,
   ProxiBlue_ReCaptcha, RicoNeitzel_PaymentFilter, Thirty4_CatalogNew, Thirty4_CatalogSale,
   Uni_Common, Uni_Fileuploader, VF_AjaxCart, VF_EasyAjax, VladimirPopov_WebForms.
@@ -90,15 +92,23 @@ email as a side effect and nothing called it.
   `null` passed to string functions, MailGun failed-send handling, admin controllers
   `_isAllowed()` now declared `: bool` like the OpenMage parent (iBanners, Fileuploader,
   Clarion, Cloudflare, CustomerActivation, GroupsCatalog2 screens were fatal without it),
-  JetRails Cloudflare `setData()`/`delete()` signatures. Every custom class was loaded
+  Every custom class was loaded
   against OpenMage to check for incompatible overrides.
 * WebForms and Out of stock keep their own admin URLs (`/index.php/webforms/...`,
   `/index.php/outofstock/...`); OpenMage still allows these because
   "Admin routes compatibility mode" is enabled in the store config.
-* Removed: Maven_Html5uploader (OpenMage has its own HTML5 uploader), and code that was not
+* Added: **Fballiano_Turnstile** (Cloudflare Turnstile captcha, from `ysrtech/openmage-cloudflare-turnstile`)
+  and **DM_Cloudflare** (purges the Cloudflare cache on "Flush & Apply Updates"/"Flush Cache Storage",
+  plus a "Purge CloudFlare Cache" button under System > Cache Management; same version as on
+  bondouxbebe, API token + zone ID). Configure them in System > Configuration > Admin > Cloudflare
+  Turnstile and System > Configuration > General > Cloudflare. Turnstile stays off until it is enabled
+  there; when you enable it, disable ProxiBlue reCAPTCHA (Customers > Customer Configuration > CAPTCHA)
+  so the forms don't get two captchas.
+* Removed: JetRails_Cloudflare (replaced by DM_Cloudflare; its `cloudflare/configuration/*` config rows
+  can be deleted), Maven_Html5uploader (OpenMage has its own HTML5 uploader), and code that was not
   enabled: Inchoo_PHP7, ICM_Adminhtml (+ admin theme `icm`), Santhosh_* (+ admin theme
   `santhosh`), TBT_MassRelater, JetRails_TwoFactor, FreeLunchLabs SendGrid/CloudFront,
-  DM_Cloudflare, the disabled `Uni_` copy and `Cm_RedisSession` (now from composer).
+  the old DM_Cloudflare copy, the disabled `Uni_` copy and `Cm_RedisSession` (now from composer).
 * `Uni_Fileuploader`: `getAllFiles()`/`getFeaturedFiles()` (used by the "videos-all"
   and featured videos templates) only existed in the disabled `Uni_` copy, so the videos
   page was empty; they were added to the active module.

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * ICM admin theme.
+ *
+ * Inherits everything from OpenMage's own admin theme and only adds the ICM logo,
+ * the בס"ד mark and the YSR Tech footer text (same approach as ysrtech/pardes).
+ * Keeping it separate from openmage/default lets composer/OpenMage upgrades replace
+ * the core admin theme without touching anything here.
+ */
+-->
+<theme>
+    <parent>openmage/default</parent>
+</theme>

@@ -1,0 +1,13 @@
+/**
+ * ICM admin theme - login / forgot password logo.
+ *
+ * login.phtml links this file via getSkinUrl('login.css'), so the design fallback
+ * serves this copy instead of openmage/default's. Importing the original keeps every
+ * upstream login style; only the logo is ours (white ICM logo on the dark background).
+ */
+@import url("../default/login.css");
+
+.login-container {
+    background-image: url(images/logo.png);
+    background-size: 170px auto;
+}

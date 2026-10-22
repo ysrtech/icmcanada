@@ -64,4 +64,24 @@
             </catalogsearch>
         </routers>
     </frontend>
+    <stores>
+        <!--
+         | Pin the admin area to its own theme (app/design/adminhtml/openmage/icm, which
+         | inherits openmage/default and only adds the ICM logo, בס"ד and the YSR Tech footer).
+         | The admin store inherits the default-scope design/theme/* config, which is the
+         | frontend "icm" theme; this node wins over those core_config_data rows, so the admin
+         | stays on this theme whatever the frontend design settings say.
+        -->
+        <admin>
+            <design>
+                <theme>
+                    <default>icm</default>
+                    <layout>icm</layout>
+                    <template>icm</template>
+                    <skin>icm</skin>
+                    <locale>icm</locale>
+                </theme>
+            </design>
+        </admin>
+    </stores>
 </config>

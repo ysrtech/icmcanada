@@ -304,7 +304,11 @@ RewriteRule ^.* - [F]
 # For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
 <IfModule lsapi_module>
    php_value max_execution_time 18000
-   php_value memory_limit 512M
+   php_value memory_limit 1024M
+</IfModule>
+<IfModule Litespeed>
+   php_value max_execution_time 300
+   php_value memory_limit 1024M
 </IfModule>
 # END cPanel-generated php ini directives, do not edit
 

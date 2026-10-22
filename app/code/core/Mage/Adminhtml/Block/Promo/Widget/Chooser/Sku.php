@@ -1,53 +1,44 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml sales order create search products block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Catalog_Model_Resource_Product_Collection getCollection()
+ * @method bool                                           getIsCollapsed()
+ * @method string                                         getJsFormObject()
+ * @method $this                                          setIsCollapsed(bool $value)
+ * @method $this                                          setJsFormObject(string $value)
  */
 class Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_promo_widget_chooser_sku';
 
-    public function __construct($arguments=array())
+    /**
+     * @throws Exception
+     */
+    public function __construct($arguments = [])
     {
         parent::__construct($arguments);
 
         if ($this->getRequest()->getParam('current_grid_id')) {
             $this->setId($this->getRequest()->getParam('current_grid_id'));
         } else {
-            $this->setId('skuChooserGrid_'.$this->getId());
+            $this->setId('skuChooserGrid_' . $this->getId());
         }
 
         $form = $this->getJsFormObject();
-        $this->setRowClickCallback("$form.chooserGridRowClick.bind($form)");
-        $this->setCheckboxCheckCallback("$form.chooserGridCheckboxCheck.bind($form)");
-        $this->setRowInitCallback("$form.chooserGridRowInit.bind($form)");
+        $this->setRowClickCallback("{$form}.chooserGridRowClick.bind({$form})");
+        $this->setCheckboxCheckCallback("{$form}.chooserGridCheckboxCheck.bind({$form})");
+        $this->setRowInitCallback("{$form}.chooserGridRowInit.bind({$form})");
         $this->setDefaultSort('sku');
         $this->setUseAjax(true);
         if ($this->getRequest()->getParam('collapse')) {
@@ -57,6 +48,7 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku extends Mage_Adminhtml_Block
 
     /**
      * Retrieve quote store object
+     *
      * @return Mage_Core_Model_Store
      */
     public function getStore()
@@ -64,35 +56,44 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku extends Mage_Adminhtml_Block
         return Mage::app()->getStore();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     protected function _addColumnFilterToCollection($column)
     {
         // Set custom filter for in product flag
-        if ($column->getId() == 'in_products') {
+        if ($column->getId() === 'in_products') {
             $selected = $this->_getSelectedProducts();
             if (empty($selected)) {
                 $selected = '';
             }
+
             if ($column->getFilter()->getValue()) {
-                $this->getCollection()->addFieldToFilter('sku', array('in'=>$selected));
+                $this->getCollection()->addFieldToFilter('sku', ['in' => $selected]);
             } else {
-                $this->getCollection()->addFieldToFilter('sku', array('nin'=>$selected));
+                $this->getCollection()->addFieldToFilter('sku', ['nin' => $selected]);
             }
         } else {
             parent::_addColumnFilterToCollection($column);
         }
+
         return $this;
     }
 
     /**
      * Prepare Catalog Product Collection for attribute SKU in Promo Conditions SKU chooser
      *
-     * @return Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('catalog/product_collection')
             ->setStoreId(0)
-            ->addAttributeToSelect('name', 'type_id', 'attribute_set_id');
+            ->addAttributeToSelect(['name', 'type_id', 'attribute_set_id']);
 
         $this->setCollection($collection);
 
@@ -100,13 +101,15 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku extends Mage_Adminhtml_Block
     }
 
     /**
-     * Define Cooser Grid Columns and filters
-     *
-     * @return Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     * @throws Zend_Cache_Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('in_products', array(
+        $this->addColumn('in_products', [
             'header_css_class' => 'a-center',
             'type'      => 'checkbox',
             'name'      => 'in_products',
@@ -114,68 +117,74 @@ class Mage_Adminhtml_Block_Promo_Widget_Chooser_Sku extends Mage_Adminhtml_Block
             'align'     => 'center',
             'index'     => 'sku',
             'use_index' => true,
-        ));
+        ]);
 
-        $this->addColumn('entity_id', array(
+        $this->addColumn('entity_id', [
             'header'    => Mage::helper('sales')->__('ID'),
-            'sortable'  => true,
-            'width'     => '60px',
-            'index'     => 'entity_id'
-        ));
+            'index'     => 'entity_id',
+        ]);
 
-        $this->addColumn('type',
-            array(
-                'header'=> Mage::helper('catalog')->__('Type'),
+        $this->addColumn(
+            'type',
+            [
+                'header' => Mage::helper('catalog')->__('Type'),
                 'width' => '60px',
                 'index' => 'type_id',
                 'type'  => 'options',
-                'options' => Mage::getSingleton('catalog/product_type')->getOptionArray(),
-        ));
+                'options' => Mage::getSingleton('catalog/product_type')::getOptionArray(),
+            ],
+        );
 
         $sets = Mage::getResourceModel('eav/entity_attribute_set_collection')
             ->setEntityTypeFilter(Mage::getModel('catalog/product')->getResource()->getTypeId())
             ->load()
             ->toOptionHash();
 
-        $this->addColumn('set_name',
-            array(
-                'header'=> Mage::helper('catalog')->__('Attrib. Set Name'),
+        $this->addColumn(
+            'set_name',
+            [
+                'header' => Mage::helper('catalog')->__('Attrib. Set Name'),
                 'width' => '100px',
                 'index' => 'attribute_set_id',
                 'type'  => 'options',
                 'options' => $sets,
-        ));
+            ],
+        );
 
-        $this->addColumn('chooser_sku', array(
+        $this->addColumn('chooser_sku', [
             'header'    => Mage::helper('sales')->__('SKU'),
             'name'      => 'chooser_sku',
             'width'     => '80px',
-            'index'     => 'sku'
-        ));
-        $this->addColumn('chooser_name', array(
+            'index'     => 'sku',
+        ]);
+        $this->addColumn('chooser_name', [
             'header'    => Mage::helper('sales')->__('Product Name'),
             'name'      => 'chooser_name',
-            'index'     => 'name'
-        ));
+            'index'     => 'name',
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/chooser', array(
+        return $this->getUrl('*/*/chooser', [
             '_current'          => true,
             'current_grid_id'   => $this->getId(),
-            'collapse'          => null
-        ));
+            'collapse'          => null,
+        ]);
     }
 
+    /**
+     * @return array
+     * @throws Exception
+     */
     protected function _getSelectedProducts()
     {
-        $products = $this->getRequest()->getPost('selected', array());
-
-        return $products;
+        return $this->getRequest()->getPost('selected', []);
     }
-
 }
-

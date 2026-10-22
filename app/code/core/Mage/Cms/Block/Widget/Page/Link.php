@@ -1,45 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Cms
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Cms
  */
 
 /**
  * Widget to display link to CMS page
  *
- * @category   Mage
  * @package    Mage_Cms
- * @author     Magento Core Team <core@magentocommerce.com>
  */
-
-class Mage_Cms_Block_Widget_Page_Link
-    extends Mage_Core_Block_Html_Link
-    implements Mage_Widget_Block_Interface
+class Mage_Cms_Block_Widget_Page_Link extends Mage_Core_Block_Html_Link implements Mage_Widget_Block_Interface
 {
     /**
      * Prepared href attribute
      *
-     * @var string
+     * @var null|string
      */
     protected $_href;
 
@@ -67,10 +45,10 @@ class Mage_Cms_Block_Widget_Page_Link
     {
         if (!$this->_href) {
             $this->_href = '';
-            if ($this->getData('href')) {
-                $this->_href = $this->getData('href');
-            } else if ($this->getData('page_id')) {
-                $this->_href = Mage::helper('cms/page')->getPageUrl($this->getData('page_id'));
+            if ($this->getDataByKey('href')) {
+                $this->_href = $this->getDataByKey('href');
+            } elseif ($this->getDataByKey('page_id')) {
+                $this->_href = Mage::helper('cms/page')->getPageUrl($this->getDataByKey('page_id'));
             }
         }
 
@@ -82,19 +60,19 @@ class Mage_Cms_Block_Widget_Page_Link
      * as parameter or retrieve page title from DB using passed identifier or page id.
      *
      * @return string
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getTitle()
     {
         if (!$this->_title) {
             $this->_title = '';
-            if ($this->getData('title') !== null) {
+            if ($this->getDataByKey('title') !== null) {
                 // compare to null used here bc user can specify blank title
-                $this->_title = $this->getData('title');
-            } else if ($this->getData('page_id')) {
-                $this->_title = Mage::getResourceSingleton('cms/page')->getCmsPageTitleById($this->getData('page_id'));
-            } else if ($this->getData('href')) {
-                $this->_title = Mage::getResourceSingleton('cms/page')->setStore(Mage::app()->getStore())
-                    ->getCmsPageTitleByIdentifier($this->getData('href'));
+                $this->_title = $this->getDataByKey('title');
+            } elseif ($this->getDataByKey('page_id')) {
+                $this->_title = $this->getCmsPageTitleById($this->getDataByKey('page_id'));
+            } elseif ($this->getDataByKey('href')) {
+                $this->_title = $this->getCmsPageTitleByIdentifier($this->getDataByKey('href'));
             }
         }
 
@@ -107,22 +85,36 @@ class Mage_Cms_Block_Widget_Page_Link
      * if title will be blank string, page identifier will be used.
      *
      * @return string
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getAnchorText()
     {
-        if ($this->getData('anchor_text')) {
-            $this->_anchorText = $this->getData('anchor_text');
-        } else if ($this->getTitle()) {
+        if ($this->getDataByKey('anchor_text')) {
+            $this->_anchorText = $this->getDataByKey('anchor_text');
+        } elseif ($this->getTitle()) {
             $this->_anchorText = $this->getTitle();
-        } else if ($this->getData('href')) {
-            $this->_anchorText = Mage::getResourceSingleton('cms/page')->setStore(Mage::app()->getStore())
-                ->getCmsPageTitleByIdentifier($this->getData('href'));
-        } else if ($this->getData('page_id')) {
-            $this->_anchorText = Mage::getResourceSingleton('cms/page')->getCmsPageTitleById($this->getData('page_id'));
+        } elseif ($this->getDataByKey('href')) {
+            $this->_anchorText = $this->getCmsPageTitleByIdentifier($this->getDataByKey('href'));
+        } elseif ($this->getDataByKey('page_id')) {
+            $this->_anchorText = $this->getCmsPageTitleById($this->getDataByKey('page_id'));
         } else {
-            $this->_anchorText = $this->getData('href');
+            $this->_anchorText = $this->getDataByKey('href');
         }
 
         return $this->_anchorText;
+    }
+
+    protected function getCmsPageTitleById(int|string $pageId): string
+    {
+        return Mage::getResourceSingleton('cms/page')->getCmsPageTitleById($pageId);
+    }
+
+    /**
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    protected function getCmsPageTitleByIdentifier(int|string $identifier): string
+    {
+        return Mage::getResourceSingleton('cms/page')->setStore(Mage::app()->getStore())
+            ->getCmsPageTitleByIdentifier($identifier);
     }
 }

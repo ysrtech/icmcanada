@@ -1,62 +1,48 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * CMS block chooser for Wysiwyg CMS widget
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method array                     getConfig()
+ * @method int                       getFieldsetId()
+ * @method Mage_Core_Helper_Abstract getTranslationHelper()
+ * @method $this                     setConfig(array $value)
+ * @method $this                     setFieldsetId(int $value)
+ * @method $this                     setTranslationHelper(Mage_Core_Helper_Abstract $value)
  */
 class Mage_Adminhtml_Block_Cms_Block_Widget_Chooser extends Mage_Adminhtml_Block_Widget_Grid
 {
-    /**
-     * Block construction, prepare grid params
-     *
-     * @param array $arguments Object data
-     */
-    public function __construct($arguments=array())
+    protected string $_eventPrefix = 'adminhtml_cms_block_widget_chooser';
+
+    public function __construct($arguments = [])
     {
         parent::__construct($arguments);
-        $this->setDefaultSort('block_identifier');
+        $this->setDefaultSort('block_id');
         $this->setDefaultDir('ASC');
         $this->setUseAjax(true);
-        $this->setDefaultFilter(array('chooser_is_active' => '1'));
+        $this->setDefaultFilter(['chooser_is_active' => '1']);
     }
 
     /**
      * Prepare chooser element HTML
      *
-     * @param Varien_Data_Form_Element_Abstract $element Form Element
+     * @param  Varien_Data_Form_Element_Abstract $element Form Element
      * @return Varien_Data_Form_Element_Abstract
+     * @throws Mage_Core_Exception
      */
     public function prepareElementHtml(Varien_Data_Form_Element_Abstract $element)
     {
         $uniqId = Mage::helper('core')->uniqHash($element->getId());
-        $sourceUrl = $this->getUrl('*/cms_block_widget/chooser', array('uniq_id' => $uniqId));
+        $sourceUrl = $this->getUrl('*/cms_block_widget/chooser', ['uniq_id' => $uniqId]);
 
         $chooser = $this->getLayout()->createBlock('widget/adminhtml_widget_chooser')
             ->setElement($element)
@@ -65,7 +51,6 @@ class Mage_Adminhtml_Block_Cms_Block_Widget_Chooser extends Mage_Adminhtml_Block
             ->setFieldsetId($this->getFieldsetId())
             ->setSourceUrl($sourceUrl)
             ->setUniqId($uniqId);
-
 
         if ($element->getValue()) {
             $block = Mage::getModel('cms/block')->load($element->getValue());
@@ -81,79 +66,80 @@ class Mage_Adminhtml_Block_Cms_Block_Widget_Chooser extends Mage_Adminhtml_Block
     /**
      * Grid Row JS Callback
      *
-     * @return string
+     * @inheritDoc
      */
     public function getRowClickCallback()
     {
         $chooserJsObject = $this->getId();
-        $js = '
+        return '
             function (grid, event) {
                 var trElement = Event.findElement(event, "tr");
                 var blockId = trElement.down("td").innerHTML.replace(/^\s+|\s+$/g,"");
                 var blockTitle = trElement.down("td").next().innerHTML;
-                '.$chooserJsObject.'.setElementValue(blockId);
-                '.$chooserJsObject.'.setElementLabel(blockTitle);
-                '.$chooserJsObject.'.close();
+                ' . $chooserJsObject . '.setElementValue(blockId);
+                ' . $chooserJsObject . '.setElementLabel(blockTitle);
+                ' . $chooserJsObject . '.close();
             }
         ';
-        return $js;
     }
 
     /**
-     * Prepare Cms static blocks collection
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
+        /** @var Mage_Cms_Model_Resource_Block_Collection $collection */
         $collection = Mage::getModel('cms/block')->getCollection();
-        /* @var $collection Mage_Cms_Model_Mysql4_Block_Collection */
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
 
     /**
-     * Prepare columns for Cms blocks grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('chooser_id', array(
+        $this->addColumn('chooser_id', [
             'header'    => Mage::helper('cms')->__('ID'),
             'align'     => 'right',
             'index'     => 'block_id',
-            'width'     => 50
-        ));
+            'width'     => 50,
+        ]);
 
-        $this->addColumn('chooser_title', array(
+        $this->addColumn('chooser_title', [
             'header'    => Mage::helper('cms')->__('Title'),
             'align'     => 'left',
             'index'     => 'title',
-        ));
+        ]);
 
-        $this->addColumn('chooser_identifier', array(
+        $this->addColumn('chooser_identifier', [
             'header'    => Mage::helper('cms')->__('Identifier'),
             'align'     => 'left',
-            'index'     => 'identifier'
-        ));
+            'index'     => 'identifier',
+        ]);
 
-
-        $this->addColumn('chooser_is_active', array(
+        $this->addColumn('chooser_is_active', [
             'header'    => Mage::helper('cms')->__('Status'),
             'index'     => 'is_active',
             'type'      => 'options',
-            'options'   => array(
+            'options'   => [
                 0 => Mage::helper('cms')->__('Disabled'),
-                1 => Mage::helper('cms')->__('Enabled')
-            ),
-        ));
+                1 => Mage::helper('cms')->__('Enabled'),
+            ],
+        ]);
 
         return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/cms_block_widget/chooser', array('_current' => true));
+        return $this->getUrl('*/cms_block_widget/chooser', ['_current' => true]);
     }
 }

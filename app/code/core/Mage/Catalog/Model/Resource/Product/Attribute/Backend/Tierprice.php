@@ -1,43 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog product tier price backend attribute model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
-class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
-    extends Mage_Catalog_Model_Resource_Product_Attribute_Backend_Groupprice_Abstract
+class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice extends Mage_Catalog_Model_Resource_Product_Attribute_Backend_Groupprice_Abstract
 {
     /**
-     * Initialize connection and define main table
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -47,9 +25,10 @@ class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
     /**
      * Add qty column
      *
-     * @param array $columns
+     * @param  array $columns
      * @return array
      */
+    #[Override]
     protected function _loadPriceDataColumns($columns)
     {
         $columns = parent::_loadPriceDataColumns($columns);
@@ -60,9 +39,10 @@ class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
     /**
      * Order by qty
      *
-     * @param Varien_Db_Select $select
+     * @param  Varien_Db_Select $select
      * @return Varien_Db_Select
      */
+    #[Override]
     protected function _loadPriceDataSelect($select)
     {
         $select->order('qty');
@@ -72,18 +52,17 @@ class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
     /**
      * Load product tier prices
      *
-     * @deprecated since 1.3.2.3
-     *
-     * @param Mage_Catalog_Model_Product $product
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
+     * @param  Mage_Catalog_Model_Product                $product
+     * @param  Mage_Catalog_Model_Resource_Eav_Attribute $attribute
      * @return array
+     * @deprecated since 1.3.2.3
      */
     public function loadProductPrices($product, $attribute)
     {
         $websiteId = null;
         if ($attribute->isScopeGlobal()) {
             $websiteId = 0;
-        } else if ($product->getStoreId()) {
+        } elseif ($product->getStoreId()) {
             $websiteId = Mage::app()->getStore($product->getStoreId())->getWebsiteId();
         }
 
@@ -93,11 +72,10 @@ class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
     /**
      * Delete product tier price data from storage
      *
+     * @param  Mage_Catalog_Model_Product                $product
+     * @param  Mage_Catalog_Model_Resource_Eav_Attribute $attribute
+     * @return $this
      * @deprecated since 1.3.2.3
-     *
-     * @param Mage_Catalog_Model_Product $product
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @return Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
      */
     public function deleteProductPrices($product, $attribute)
     {
@@ -117,11 +95,10 @@ class Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
     /**
      * Insert product Tier Price to storage
      *
+     * @param  Mage_Catalog_Model_Product $product
+     * @param  array                      $data
+     * @return $this
      * @deprecated since 1.3.2.3
-     *
-     * @param Mage_Catalog_Model_Product $product
-     * @param array $data
-     * @return Mage_Catalog_Model_Resource_Product_Attribute_Backend_Tierprice
      */
     public function insertProductPrice($product, $data)
     {

@@ -61,7 +61,7 @@ $v_helper = Mage::helper('fileuploader');
     }
 }
 ?>
-<?php if (count($inline_attachments) > 0): ?>
+<?php if (!empty($inline_attachments)): ?>
      <div class="videos-window" style="display: none">
 <script type="text/javascript" src="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_JS);?>jwplayer/jwplayer.js"></script> 
     
@@ -154,7 +154,7 @@ $v_helper = Mage::helper('fileuploader');
             <?php endif; ?>
             <?php $t++;
         endforeach; ?>
-<?php if (count($vid_thumbs) > 0): ?>
+<?php if (!empty($vid_thumbs)): ?>
 
     <?php foreach ($vid_thumbs as $k => $vid_thumb): ?>
     <div class="more-item">

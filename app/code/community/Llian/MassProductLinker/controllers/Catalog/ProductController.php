@@ -28,6 +28,8 @@
  * @category  Llian
  * @package   Llian_MassProductLinker
  */
+require_once Mage::getModuleDir('controllers', 'Mage_Adminhtml') . DS . 'Catalog' . DS . 'ProductController.php';
+
 class Llian_MassProductLinker_Catalog_ProductController extends Mage_Adminhtml_Catalog_ProductController
 {
 

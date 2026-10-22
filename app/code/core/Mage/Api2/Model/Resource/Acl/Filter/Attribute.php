@@ -1,47 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api2
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api2
  */
 
 /**
  * API2 filter ACL attribute resource model
  *
- * @category    Mage
- * @package     Mage_Api2
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Api2
  */
 class Mage_Api2_Model_Resource_Acl_Filter_Attribute extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
      * Attribute Filter resource ID "all"
      */
-    const FILTER_RESOURCE_ALL = 'all';
+    public const FILTER_RESOURCE_ALL = 'all';
 
     /**
-     * Initialize resource model
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -49,12 +28,10 @@ class Mage_Api2_Model_Resource_Acl_Filter_Attribute extends Mage_Core_Model_Reso
     }
 
     /**
-     * Get allowed attributes
-     *
-     * @param string $userType
-     * @param string $resourceId
-     * @param string $operation One of Mage_Api2_Model_Resource::OPERATION_ATTRIBUTE_... constant
-     * @return string|bool|null
+     * @param  string                                          $userType
+     * @param  string                                          $resourceId
+     * @param  Mage_Api2_Model_Resource::OPERATION_ATTRIBUTE_* $operation
+     * @return null|bool|string
      */
     public function getAllowedAttributes($userType, $resourceId, $operation)
     {
@@ -70,7 +47,7 @@ class Mage_Api2_Model_Resource_Acl_Filter_Attribute extends Mage_Core_Model_Reso
     /**
      * Check if ALL attributes allowed
      *
-     * @param string $userType
+     * @param  string $userType
      * @return bool
      */
     public function isAllAttributesAllowed($userType)

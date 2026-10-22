@@ -1,57 +1,46 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Cms
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Cms
  */
 
 /**
  * CMS block model
  *
- * @method Mage_Cms_Model_Resource_Block _getResource()
- * @method Mage_Cms_Model_Resource_Block getResource()
- * @method string getTitle()
- * @method Mage_Cms_Model_Block setTitle(string $value)
- * @method string getIdentifier()
- * @method Mage_Cms_Model_Block setIdentifier(string $value)
- * @method string getContent()
- * @method Mage_Cms_Model_Block setContent(string $value)
- * @method string getCreationTime()
- * @method Mage_Cms_Model_Block setCreationTime(string $value)
- * @method string getUpdateTime()
- * @method Mage_Cms_Model_Block setUpdateTime(string $value)
- * @method int getIsActive()
- * @method Mage_Cms_Model_Block setIsActive(int $value)
+ * @package    Mage_Cms
  *
- * @category    Mage
- * @package     Mage_Cms
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Cms_Model_Resource_Block            _getResource()
+ * @method int                                      getBlockId()
+ * @method Mage_Cms_Model_Resource_Block_Collection getCollection()
+ * @method string                                   getContent()
+ * @method string                                   getCreationTime()
+ * @method string                                   getIdentifier()
+ * @method int                                      getIsActive()
+ * @method Mage_Cms_Model_Resource_Block            getResource()
+ * @method Mage_Cms_Model_Resource_Block_Collection getResourceCollection()
+ * @method int                                      getStoreId()
+ * @method string                                   getTitle()
+ * @method string                                   getUpdateTime()
+ * @method $this                                    setContent(string $value)
+ * @method $this                                    setCreationTime(string $value)
+ * @method $this                                    setIdentifier(string $value)
+ * @method $this                                    setIsActive(int $value)
+ * @method $this                                    setStoreId(int $storeId)
+ * @method $this                                    setTitle(string $value)
+ * @method $this                                    setUpdateTime(string $value)
  */
-
 class Mage_Cms_Model_Block extends Mage_Core_Model_Abstract
 {
-    const CACHE_TAG     = 'cms_block';
-    protected $_cacheTag= 'cms_block';
+    public const CACHE_TAG     = 'cms_block';
 
+    protected $_cacheTag = 'cms_block';
+
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('cms/block');
@@ -60,17 +49,19 @@ class Mage_Cms_Model_Block extends Mage_Core_Model_Abstract
     /**
      * Prevent blocks recursion
      *
+     * @return $this
      * @throws Mage_Core_Exception
-     * @return Mage_Core_Model_Abstract
      */
+    #[Override]
     protected function _beforeSave()
     {
         $needle = 'block_id="' . $this->getBlockId() . '"';
-        if (false == strstr($this->getContent(), $needle)) {
+        if (!strstr($this->getContent(), $needle)) {
             return parent::_beforeSave();
         }
+
         Mage::throwException(
-            Mage::helper('cms')->__('The static block content cannot contain  directive with its self.')
+            Mage::helper('cms')->__('The static block content cannot contain  directive with its self.'),
         );
     }
 }

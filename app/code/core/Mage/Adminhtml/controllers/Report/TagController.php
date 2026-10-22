@@ -1,43 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Tag report admin controller
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * @return $this
+     */
     public function _initAction()
     {
         $act = $this->getRequest()->getActionName();
-        if(!$act)
+        if (!$act) {
             $act = 'default';
+        }
 
         $this->loadLayout()
             ->_addBreadcrumb(Mage::helper('reports')->__('Reports'), Mage::helper('reports')->__('Reports'))
@@ -45,6 +30,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         return $this;
     }
 
+    /**
+     * @return void
+     */
     public function customerAction()
     {
         $this->_title($this->__('Reports'))
@@ -60,6 +48,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export customer's tags report to CSV format
+     * @return void
      */
     public function exportCustomerCsvAction()
     {
@@ -72,6 +61,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export customer's tags report to Excel XML format
+     * @return void
      */
     public function exportCustomerExcelAction()
     {
@@ -82,6 +72,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function productAction()
     {
         $this->_title($this->__('Reports'))
@@ -97,6 +90,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export product's tags report to CSV format
+     * @return void
      */
     public function exportProductCsvAction()
     {
@@ -109,6 +103,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export product's tags report to Excel XML format
+     * @return void
      */
     public function exportProductExcelAction()
     {
@@ -119,7 +114,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
-
+    /**
+     * @return void
+     */
     public function popularAction()
     {
         $this->_title($this->__('Reports'))
@@ -135,6 +132,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export popular tags report to CSV format
+     * @return void
      */
     public function exportPopularCsvAction()
     {
@@ -147,6 +145,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export popular tags report to Excel XML format
+     * @return void
      */
     public function exportPopularExcelAction()
     {
@@ -157,6 +156,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function customerDetailAction()
     {
         $detailBlock = $this->getLayout()->createBlock('adminhtml/report_tag_customer_detail');
@@ -176,6 +178,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export customer's tags detail report to CSV format
+     * @return void
      */
     public function exportCustomerDetailCsvAction()
     {
@@ -188,6 +191,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export customer's tags detail report to Excel XML format
+     * @return void
      */
     public function exportCustomerDetailExcelAction()
     {
@@ -198,6 +202,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function productDetailAction()
     {
         $detailBlock = $this->getLayout()->createBlock('adminhtml/report_tag_product_detail');
@@ -217,6 +224,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export product's tags detail report to CSV format
+     * @return void
      */
     public function exportProductDetailCsvAction()
     {
@@ -229,6 +237,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export product's tags detail report to Excel XML format
+     * @return void
      */
     public function exportProductDetailExcelAction()
     {
@@ -239,6 +248,9 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
+    /**
+     * @return void
+     */
     public function tagDetailAction()
     {
         $detailBlock = $this->getLayout()->createBlock('adminhtml/report_tag_popular_detail');
@@ -258,6 +270,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export tag detail report to CSV format
+     * @return void
      */
     public function exportTagDetailCsvAction()
     {
@@ -270,6 +283,7 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
 
     /**
      * Export tag detail report to Excel XML format
+     * @return void
      */
     public function exportTagDetailExcelAction()
     {
@@ -280,25 +294,20 @@ class Mage_Adminhtml_Report_TagController extends Mage_Adminhtml_Controller_Acti
         $this->_prepareDownloadResponse($fileName, $content);
     }
 
-    protected function _isAllowed()
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    protected function _isAllowed(): bool
     {
         $action = strtolower($this->getRequest()->getActionName());
-        switch ($action) {
-            case 'customer':
-                return Mage::getSingleton('admin/session')->isAllowed('report/tags/customer');
-                break;
-            case 'product':
-                return Mage::getSingleton('admin/session')->isAllowed('report/tags/product');
-                break;
-            case 'productall':
-                return Mage::getSingleton('admin/session')->isAllowed('report/tags/product');
-                break;
-            case 'popular':
-                return Mage::getSingleton('admin/session')->isAllowed('report/tags/popular');
-                break;
-            default:
-                return Mage::getSingleton('admin/session')->isAllowed('report/tags');
-                break;
-        }
+        $aclPath = match ($action) {
+            'customer' => 'report/tags/customer',
+            'productall', 'product' => 'report/tags/product',
+            'popular' => 'report/tags/popular',
+            default => 'report/tags',
+        };
+
+        return Mage::getSingleton('admin/session')->isAllowed($aclPath);
     }
 }

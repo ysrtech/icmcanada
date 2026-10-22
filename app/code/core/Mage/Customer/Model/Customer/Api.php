@@ -1,85 +1,71 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Customer
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Customer
  */
 
 /**
  * Customer api
  *
- * @category   Mage
  * @package    Mage_Customer
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
 {
-    protected $_mapAttributes = array(
-        'customer_id' => 'entity_id'
-    );
+    protected $_mapAttributes = [
+        'customer_id' => 'entity_id',
+    ];
+
     /**
      * Prepare data to insert/update.
      * Creating array for stdClass Object
      *
-     * @param stdClass $data
+     * @param  array $data
      * @return array
      */
     protected function _prepareData($data)
     {
-       foreach ($this->_mapAttributes as $attributeAlias=>$attributeCode) {
-            if(isset($data[$attributeAlias]))
-            {
+        foreach ($this->_mapAttributes as $attributeAlias => $attributeCode) {
+            if (isset($data[$attributeAlias])) {
                 $data[$attributeCode] = $data[$attributeAlias];
                 unset($data[$attributeAlias]);
             }
         }
+
         return $data;
     }
 
     /**
      * Create new customer
      *
-     * @param array $customerData
+     * @param  array               $customerData
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function create($customerData)
     {
+        $customer = Mage::getModel('customer/customer');
         $customerData = $this->_prepareData($customerData);
         try {
-            $customer = Mage::getModel('customer/customer')
+            $customer
                 ->setData($customerData)
                 ->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('data_invalid', $mageCoreException->getMessage());
         }
+
         return $customer->getId();
     }
 
     /**
      * Retrieve customer data
      *
-     * @param int $customerId
-     * @param array $attributes
+     * @param  int                 $customerId
+     * @param  array               $attributes
      * @return array
+     * @throws Mage_Core_Exception
      */
     public function info($customerId, $attributes = null)
     {
@@ -90,16 +76,16 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
         }
 
         if (!is_null($attributes) && !is_array($attributes)) {
-            $attributes = array($attributes);
+            $attributes = [$attributes];
         }
 
-        $result = array();
+        $result = [];
 
-        foreach ($this->_mapAttributes as $attributeAlias=>$attributeCode) {
+        foreach ($this->_mapAttributes as $attributeAlias => $attributeCode) {
             $result[$attributeAlias] = $customer->getData($attributeCode);
         }
 
-        foreach ($this->getAllowedAttributes($customer, $attributes) as $attributeCode=>$attribute) {
+        foreach (array_keys($this->getAllowedAttributes($customer, $attributes)) as $attributeCode) {
             $result[$attributeCode] = $customer->getData($attributeCode);
         }
 
@@ -109,34 +95,39 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Retrieve customers data
      *
-     * @param  object|array $filters
+     * @param  array|object        $filters
      * @return array
+     * @throws Mage_Core_Exception
      */
     public function items($filters)
     {
         $collection = Mage::getModel('customer/customer')->getCollection()->addAttributeToSelect('*');
-        /** @var $apiHelper Mage_Api_Helper_Data */
+        /** @var Mage_Api_Helper_Data $apiHelper */
         $apiHelper = Mage::helper('api');
         $filters = $apiHelper->parseFilters($filters, $this->_mapAttributes);
         try {
             foreach ($filters as $field => $value) {
                 $collection->addFieldToFilter($field, $value);
             }
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('filters_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('filters_invalid', $mageCoreException->getMessage());
         }
-        $result = array();
+
+        $result = [];
+        /** @var Mage_Customer_Model_Customer $customer */
         foreach ($collection as $customer) {
             $data = $customer->toArray();
-            $row  = array();
+            $row  = [];
             foreach ($this->_mapAttributes as $attributeAlias => $attributeCode) {
-                $row[$attributeAlias] = (isset($data[$attributeCode]) ? $data[$attributeCode] : null);
+                $row[$attributeAlias] = $data[$attributeCode] ?? null;
             }
-            foreach ($this->getAllowedAttributes($customer) as $attributeCode => $attribute) {
+
+            foreach (array_keys($this->getAllowedAttributes($customer)) as $attributeCode) {
                 if (isset($data[$attributeCode])) {
                     $row[$attributeCode] = $data[$attributeCode];
                 }
             }
+
             $result[] = $row;
         }
 
@@ -146,9 +137,11 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Update customer data
      *
-     * @param int $customerId
-     * @param array $customerData
-     * @return boolean
+     * @param  int                 $customerId
+     * @param  array               $customerData
+     * @return bool
+     * @throws Mage_Core_Exception
+     * @throws Throwable
      */
     public function update($customerId, $customerData)
     {
@@ -160,7 +153,7 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
             $this->_fault('not_exists');
         }
 
-        foreach ($this->getAllowedAttributes($customer) as $attributeCode=>$attribute) {
+        foreach (array_keys($this->getAllowedAttributes($customer)) as $attributeCode) {
             if (isset($customerData[$attributeCode])) {
                 $customer->setData($attributeCode, $customerData[$attributeCode]);
             }
@@ -173,8 +166,9 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Delete customer
      *
-     * @param int $customerId
-     * @return boolean
+     * @param  int                 $customerId
+     * @return bool
+     * @throws Mage_Core_Exception
      */
     public function delete($customerId)
     {
@@ -186,11 +180,10 @@ class Mage_Customer_Model_Customer_Api extends Mage_Customer_Model_Api_Resource
 
         try {
             $customer->delete();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('not_deleted', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('not_deleted', $mageCoreException->getMessage());
         }
 
         return true;
     }
-
-} // Class Mage_Customer_Model_Customer_Api End
+}

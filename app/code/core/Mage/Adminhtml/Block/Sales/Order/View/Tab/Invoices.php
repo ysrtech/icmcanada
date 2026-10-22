@@ -1,40 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Order Invoices grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Sales_Order_View_Tab_Invoices
-    extends Mage_Adminhtml_Block_Widget_Grid
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Adminhtml_Block_Sales_Order_View_Tab_Invoices extends Mage_Adminhtml_Block_Widget_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
+    protected string $_eventPrefix = 'adminhtml_sales_order_view_tab_invoices';
+
     public function __construct()
     {
         parent::__construct();
@@ -52,9 +33,15 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Invoices
         return 'sales/order_invoice_grid_collection';
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        $collection = Mage::getResourceModel($this->_getCollectionClass())
+        /** @var Mage_Sales_Model_Resource_Order_Invoice_Grid_Collection $collection */
+        $collection = Mage::getResourceModel($this->_getCollectionClass());
+        $collection
             ->addFieldToSelect('entity_id')
             ->addFieldToSelect('created_at')
             ->addFieldToSelect('order_id')
@@ -72,38 +59,43 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Invoices
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('increment_id', array(
+        $this->addColumn('increment_id', [
             'header'    => Mage::helper('sales')->__('Invoice #'),
             'index'     => 'increment_id',
             'width'     => '120px',
-        ));
+        ]);
 
-        $this->addColumn('billing_name', array(
+        $this->addColumn('billing_name', [
             'header' => Mage::helper('sales')->__('Bill to Name'),
             'index' => 'billing_name',
-        ));
+        ]);
 
-        $this->addColumn('created_at', array(
+        $this->addColumn('created_at', [
             'header'    => Mage::helper('sales')->__('Invoice Date'),
             'index'     => 'created_at',
             'type'      => 'datetime',
-        ));
+        ]);
 
-        $this->addColumn('state', array(
+        $this->addColumn('state', [
             'header'    => Mage::helper('sales')->__('Status'),
             'index'     => 'state',
             'type'      => 'options',
-            'options'   => Mage::getModel('sales/order_invoice')->getStates(),
-        ));
+            'options'   => Mage::getModel('sales/order_invoice')::getStates(),
+        ]);
 
-        $this->addColumn('base_grand_total', array(
+        $this->addColumn('base_grand_total', [
             'header'    => Mage::helper('customer')->__('Amount'),
             'index'     => 'base_grand_total',
             'type'      => 'currency',
             'currency'  => 'base_currency_code',
-        ));
+        ]);
 
         return parent::_prepareColumns();
     }
@@ -118,40 +110,59 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Invoices
         return Mage::registry('current_order');
     }
 
+    /**
+     * @inheritDoc
+     * @param  Mage_Sales_Model_Order_Invoice $row
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/sales_order_invoice/view',
-            array(
-                'invoice_id'=> $row->getId(),
-                'order_id'  => $row->getOrderId()
-            )
+        return $this->getUrl(
+            '*/sales_order_invoice/view',
+            [
+                'invoice_id' => $row->getId(),
+                'order_id'  => $row->getOrderId(),
+            ],
         );
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/invoices', array('_current' => true));
+        return $this->getUrl('*/*/invoices', ['_current' => true]);
     }
 
-
     /**
-     * ######################## TAB settings #################################
+     * @inheritDoc
      */
     public function getTabLabel()
     {
         return Mage::helper('sales')->__('Invoices');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getTabTitle()
     {
-        return Mage::helper('sales')->__('Order Invoices');
+        return Mage::helper('sales')->__('Invoices');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function canShowTab()
     {
-        return true;
+        return Mage::getSingleton('admin/session')->isAllowed('sales/invoice');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isHidden()
     {
         return false;

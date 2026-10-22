@@ -1,39 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rule
  */
 
-
-class Mage_Rule_Block_Editable extends Mage_Core_Block_Abstract
-    implements Varien_Data_Form_Element_Renderer_Interface
+/**
+ * @package    Mage_Rule
+ */
+class Mage_Rule_Block_Editable extends Mage_Core_Block_Abstract implements Varien_Data_Form_Element_Renderer_Interface
 {
     /**
-     * Render element
-     *
-     * @param Varien_Data_Form_Element_Abstract $element
-     * @see Varien_Data_Form_Element_Renderer_Interface::render()
      * @return string
+     * @see Varien_Data_Form_Element_Renderer_Interface::render()
      */
     public function render(Varien_Data_Form_Element_Abstract $element)
     {
@@ -57,8 +38,9 @@ class Mage_Rule_Block_Editable extends Mage_Core_Block_Abstract
 
             $translate = Mage::getSingleton('core/translate_inline');
 
-            $html .= $translate->isAllowed() ? Mage::helper('core')->escapeHtml($valueName) :
-                Mage::helper('core')->escapeHtml(Mage::helper('core/string')->truncate($valueName, 33, '...'));
+            $html .= $translate->isAllowed()
+                ? Mage::helper('core')->escapeHtml($valueName)
+                : Mage::helper('core')->escapeHtml(Mage::helper('core/string')->truncate($valueName, 100, '...'));
 
             $html .= '</a><span class="element"> ' . $element->getElementHtml();
 

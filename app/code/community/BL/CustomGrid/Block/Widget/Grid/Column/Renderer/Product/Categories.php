@@ -70,7 +70,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories extends
         } elseif ($hash = $columnBlock->getCategoryHash()) {
             $result = $this->_getCategoryHashResult($hash, $categoryIds);
         } else {
-            $result = array_map(create_function('$v', 'return array($v);'), $categoryIds);
+            $result = array_map(function($v) { return array($v); }, $categoryIds);
         }
         
         return $result;
@@ -79,7 +79,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories extends
     protected function _renderRow(Varien_Object $row, $levelSeparator, $resultSeparator)
     {
         $result = $this->_getRowResult($row);
-        array_walk($result, create_function('&$v, $k, $s', '$v = implode($v, $s);'), $levelSeparator);
+        array_walk($result, function(&$v, $k, $s) { $v = implode($s, $v); }, $levelSeparator);
         return implode($resultSeparator, $result);
     }
     
@@ -87,8 +87,8 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories extends
     {
         return $this->_renderRow(
             $row,
-            $this->htmlEscape($this->getColumn()->getLevelSeparator()),
-            $this->htmlEscape($this->getColumn()->getResultSeparator())
+            $this->escapeHtml($this->getColumn()->getLevelSeparator()),
+            $this->escapeHtml($this->getColumn()->getResultSeparator())
         );
     }
     

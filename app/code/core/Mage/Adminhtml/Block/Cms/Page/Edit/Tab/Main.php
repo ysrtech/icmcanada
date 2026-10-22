@@ -1,122 +1,98 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Cms page edit form main tab
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
-class Mage_Adminhtml_Block_Cms_Page_Edit_Tab_Main
-    extends Mage_Adminhtml_Block_Widget_Form
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Adminhtml_Block_Cms_Page_Edit_Tab_Main extends Mage_Adminhtml_Block_Widget_Form implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareForm()
     {
-        /* @var $model Mage_Cms_Model_Page */
+        /** @var Mage_Cms_Model_Page $model */
         $model = Mage::registry('cms_page');
 
         /*
          * Checking if user have permissions to save information
          */
-        if ($this->_isAllowedAction('save')) {
-            $isElementDisabled = false;
-        } else {
-            $isElementDisabled = true;
-        }
-
+        $isElementDisabled = !$this->_isAllowedAction('save');
 
         $form = new Varien_Data_Form();
 
         $form->setHtmlIdPrefix('page_');
 
-        $fieldset = $form->addFieldset('base_fieldset', array('legend'=>Mage::helper('cms')->__('Page Information')));
+        $fieldset = $form->addFieldset('base_fieldset', ['legend' => Mage::helper('cms')->__('Page Information')]);
 
         if ($model->getPageId()) {
-            $fieldset->addField('page_id', 'hidden', array(
+            $fieldset->addField('page_id', 'hidden', [
                 'name' => 'page_id',
-            ));
+            ]);
         }
 
-        $fieldset->addField('title', 'text', array(
+        $fieldset->addField('title', 'text', [
             'name'      => 'title',
             'label'     => Mage::helper('cms')->__('Page Title'),
             'title'     => Mage::helper('cms')->__('Page Title'),
             'required'  => true,
-            'disabled'  => $isElementDisabled
-        ));
+            'disabled'  => $isElementDisabled,
+        ]);
 
-        $fieldset->addField('identifier', 'text', array(
+        $fieldset->addField('identifier', 'text', [
             'name'      => 'identifier',
             'label'     => Mage::helper('cms')->__('URL Key'),
             'title'     => Mage::helper('cms')->__('URL Key'),
             'required'  => true,
             'class'     => 'validate-identifier',
             'note'      => Mage::helper('cms')->__('Relative to Website Base URL'),
-            'disabled'  => $isElementDisabled
-        ));
+            'disabled'  => $isElementDisabled,
+        ]);
 
         /**
          * Check is single store mode
          */
         if (!Mage::app()->isSingleStoreMode()) {
-            $field = $fieldset->addField('store_id', 'multiselect', array(
+            $field = $fieldset->addField('store_id', 'multiselect', [
                 'name'      => 'stores[]',
                 'label'     => Mage::helper('cms')->__('Store View'),
                 'title'     => Mage::helper('cms')->__('Store View'),
                 'required'  => true,
                 'values'    => Mage::getSingleton('adminhtml/system_store')->getStoreValuesForForm(false, true),
                 'disabled'  => $isElementDisabled,
-            ));
-            $renderer = $this->getLayout()->createBlock('adminhtml/store_switcher_form_renderer_fieldset_element');
+            ]);
+            $renderer = $this->getStoreSwitcherRenderer();
             $field->setRenderer($renderer);
-        }
-        else {
-            $fieldset->addField('store_id', 'hidden', array(
+        } else {
+            $fieldset->addField('store_id', 'hidden', [
                 'name'      => 'stores[]',
-                'value'     => Mage::app()->getStore(true)->getId()
-            ));
+                'value'     => Mage::app()->getStore(true)->getId(),
+            ]);
             $model->setStoreId(Mage::app()->getStore(true)->getId());
         }
 
-        $fieldset->addField('is_active', 'select', array(
+        $fieldset->addField('is_active', 'select', [
             'label'     => Mage::helper('cms')->__('Status'),
             'title'     => Mage::helper('cms')->__('Page Status'),
             'name'      => 'is_active',
             'required'  => true,
             'options'   => $model->getAvailableStatuses(),
             'disabled'  => $isElementDisabled,
-        ));
+        ]);
         if (!$model->getId()) {
             $model->setData('is_active', $isElementDisabled ? '0' : '1');
         }
 
-        Mage::dispatchEvent('adminhtml_cms_page_edit_tab_main_prepare_form', array('form' => $form));
+        Mage::dispatchEvent('adminhtml_cms_page_edit_tab_main_prepare_form', ['form' => $form]);
 
         $form->setValues($model->getData());
         $this->setForm($form);
@@ -157,7 +133,7 @@ class Mage_Adminhtml_Block_Cms_Page_Edit_Tab_Main
     /**
      * Returns status flag about this tab hidden or not
      *
-     * @return true
+     * @return false
      */
     public function isHidden()
     {
@@ -167,7 +143,7 @@ class Mage_Adminhtml_Block_Cms_Page_Edit_Tab_Main
     /**
      * Check permission for passed action
      *
-     * @param string $action
+     * @param  string $action
      * @return bool
      */
     protected function _isAllowedAction($action)

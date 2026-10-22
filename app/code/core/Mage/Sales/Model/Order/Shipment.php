@@ -1,100 +1,107 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
+ */
 
 /**
  * Sales order shipment model
  *
- * @method Mage_Sales_Model_Resource_Order_Shipment _getResource()
- * @method Mage_Sales_Model_Resource_Order_Shipment getResource()
- * @method int getStoreId()
- * @method Mage_Sales_Model_Order_Shipment setStoreId(int $value)
- * @method float getTotalWeight()
- * @method Mage_Sales_Model_Order_Shipment setTotalWeight(float $value)
- * @method float getTotalQty()
- * @method Mage_Sales_Model_Order_Shipment setTotalQty(float $value)
- * @method int getEmailSent()
- * @method Mage_Sales_Model_Order_Shipment setEmailSent(int $value)
- * @method int getOrderId()
- * @method Mage_Sales_Model_Order_Shipment setOrderId(int $value)
- * @method int getCustomerId()
- * @method Mage_Sales_Model_Order_Shipment setCustomerId(int $value)
- * @method int getShippingAddressId()
- * @method Mage_Sales_Model_Order_Shipment setShippingAddressId(int $value)
- * @method int getBillingAddressId()
- * @method Mage_Sales_Model_Order_Shipment setBillingAddressId(int $value)
- * @method int getShipmentStatus()
- * @method Mage_Sales_Model_Order_Shipment setShipmentStatus(int $value)
- * @method string getIncrementId()
- * @method Mage_Sales_Model_Order_Shipment setIncrementId(string $value)
- * @method string getCreatedAt()
- * @method Mage_Sales_Model_Order_Shipment setCreatedAt(string $value)
- * @method string getUpdatedAt()
- * @method Mage_Sales_Model_Order_Shipment setUpdatedAt(string $value)
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Order_Shipment            _getResource()
+ * @method int                                                 getBillingAddressId()
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Collection getCollection()
+ * @method int                                                 getCustomerId()
+ * @method int                                                 getEmailSent()
+ * @method string                                              getIncrementId()
+ * @method int                                                 getOrderId()
+ * @method mixed                                               getPackages()
+ * @method Mage_Sales_Model_Resource_Order_Shipment            getResource()
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Collection getResourceCollection()
+ * @method int                                                 getShipmentStatus()
+ * @method int                                                 getShippingAddressId()
+ * @method int                                                 getStoreId()
+ * @method float                                               getTotalQty()
+ * @method float                                               getTotalWeight()
+ * @method $this                                               setBillingAddressId(int $value)
+ * @method $this                                               setCustomerId(int $value)
+ * @method $this                                               setEmailSent(int $value)
+ * @method $this                                               setIncrementId(string $value)
+ * @method $this                                               setOrderId(int $value)
+ * @method $this                                               setPackages(string $value)
+ * @method $this                                               setShipmentStatus(int $value)
+ * @method $this                                               setShippingAddressId(int $value)
+ * @method $this                                               setStoreId(int $value)
+ * @method $this                                               setTotalQty(float $value)
+ * @method $this                                               setTotalWeight(float $value)
  */
 class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
 {
-    const STATUS_NEW    = 1;
+    public const STATUS_NEW    = 1;
 
-    const XML_PATH_EMAIL_TEMPLATE               = 'sales_email/shipment/template';
-    const XML_PATH_EMAIL_GUEST_TEMPLATE         = 'sales_email/shipment/guest_template';
-    const XML_PATH_EMAIL_IDENTITY               = 'sales_email/shipment/identity';
-    const XML_PATH_EMAIL_COPY_TO                = 'sales_email/shipment/copy_to';
-    const XML_PATH_EMAIL_COPY_METHOD            = 'sales_email/shipment/copy_method';
-    const XML_PATH_EMAIL_ENABLED                = 'sales_email/shipment/enabled';
+    public const XML_PATH_EMAIL_TEMPLATE               = 'sales_email/shipment/template';
 
-    const XML_PATH_UPDATE_EMAIL_TEMPLATE        = 'sales_email/shipment_comment/template';
-    const XML_PATH_UPDATE_EMAIL_GUEST_TEMPLATE  = 'sales_email/shipment_comment/guest_template';
-    const XML_PATH_UPDATE_EMAIL_IDENTITY        = 'sales_email/shipment_comment/identity';
-    const XML_PATH_UPDATE_EMAIL_COPY_TO         = 'sales_email/shipment_comment/copy_to';
-    const XML_PATH_UPDATE_EMAIL_COPY_METHOD     = 'sales_email/shipment_comment/copy_method';
-    const XML_PATH_UPDATE_EMAIL_ENABLED         = 'sales_email/shipment_comment/enabled';
+    public const XML_PATH_EMAIL_GUEST_TEMPLATE         = 'sales_email/shipment/guest_template';
 
-    const REPORT_DATE_TYPE_ORDER_CREATED        = 'order_created';
-    const REPORT_DATE_TYPE_SHIPMENT_CREATED     = 'shipment_created';
+    public const XML_PATH_EMAIL_IDENTITY               = 'sales_email/shipment/identity';
 
-    /*
+    public const XML_PATH_EMAIL_COPY_TO                = 'sales_email/shipment/copy_to';
+
+    public const XML_PATH_EMAIL_COPY_METHOD            = 'sales_email/shipment/copy_method';
+
+    public const XML_PATH_EMAIL_ENABLED                = 'sales_email/shipment/enabled';
+
+    public const XML_PATH_UPDATE_EMAIL_TEMPLATE        = 'sales_email/shipment_comment/template';
+
+    public const XML_PATH_UPDATE_EMAIL_GUEST_TEMPLATE  = 'sales_email/shipment_comment/guest_template';
+
+    public const XML_PATH_UPDATE_EMAIL_IDENTITY        = 'sales_email/shipment_comment/identity';
+
+    public const XML_PATH_UPDATE_EMAIL_COPY_TO         = 'sales_email/shipment_comment/copy_to';
+
+    public const XML_PATH_UPDATE_EMAIL_COPY_METHOD     = 'sales_email/shipment_comment/copy_method';
+
+    public const XML_PATH_UPDATE_EMAIL_ENABLED         = 'sales_email/shipment_comment/enabled';
+
+    public const REPORT_DATE_TYPE_ORDER_CREATED        = 'order_created';
+
+    public const REPORT_DATE_TYPE_SHIPMENT_CREATED     = 'shipment_created';
+
+    /**
      * Identifier for order history item
      */
-    const HISTORY_ENTITY_NAME = 'shipment';
+    public const HISTORY_ENTITY_NAME = 'shipment';
 
+    /**
+     * @var Mage_Sales_Model_Resource_Order_Shipment_Item_Collection
+     */
     protected $_items;
+
+    /**
+     * @var Mage_Sales_Model_Resource_Order_Shipment_Track_Collection
+     */
     protected $_tracks;
+
+    /**
+     * @var Mage_Sales_Model_Order
+     */
     protected $_order;
+
+    /**
+     * @var null|Mage_Sales_Model_Resource_Order_Shipment_Comment_Collection
+     */
     protected $_comments;
 
     protected $_eventPrefix = 'sales_order_shipment';
+
     protected $_eventObject = 'shipment';
 
     /**
-     * Initialize shipment resource model
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -104,19 +111,18 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
     /**
      * Init mapping array of short fields to its full names
      *
-     * @return Mage_Sales_Model_Order_Shipment
+     * @return $this
      */
     protected function _initOldFieldsMap()
     {
-        $this->_oldFieldsMap = Mage::helper('sales')->getOldFieldMap('order_shipment');
         return $this;
     }
 
     /**
      * Load shipment by increment id
      *
-     * @param string $incrementId
-     * @return Mage_Sales_Model_Order_Shipment
+     * @param  string $incrementId
+     * @return $this
      */
     public function loadByIncrementId($incrementId)
     {
@@ -128,15 +134,14 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
             reset($ids);
             $this->load(current($ids));
         }
+
         return $this;
     }
-
 
     /**
      * Declare order for shipment
      *
-     * @param   Mage_Sales_Model_Order $order
-     * @return  Mage_Sales_Model_Order_Shipment
+     * @return $this
      */
     public function setOrder(Mage_Sales_Model_Order $order)
     {
@@ -146,7 +151,6 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         return $this;
     }
 
-
     /**
      * Retrieve hash code of current order
      *
@@ -154,7 +158,7 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
      */
     public function getProtectCode()
     {
-        return (string)$this->getOrder()->getProtectCode();
+        return (string) $this->getOrder()->getProtectCode();
     }
 
     /**
@@ -167,6 +171,7 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         if (!$this->_order instanceof Mage_Sales_Model_Order) {
             $this->_order = Mage::getModel('sales/order')->load($this->getOrderId());
         }
+
         return $this->_order->setHistoryEntityName(self::HISTORY_ENTITY_NAME);
     }
 
@@ -195,36 +200,40 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
      *
      * Apply to order, order items etc.
      *
-     * @return unknown
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function register()
     {
         if ($this->getId()) {
             Mage::throwException(
-                Mage::helper('sales')->__('Cannot register existing shipment')
+                Mage::helper('sales')->__('Cannot register existing shipment'),
             );
         }
 
         $totalQty = 0;
         foreach ($this->getAllItems() as $item) {
-            if ($item->getQty()>0) {
+            if ($item->getQty() > 0) {
                 $item->register();
                 if (!$item->getOrderItem()->isDummy(true)) {
-                    $totalQty+= $item->getQty();
+                    $totalQty += $item->getQty();
                 }
-            }
-            else {
+            } else {
                 $item->isDeleted(true);
             }
         }
+
         $this->setTotalQty($totalQty);
 
         return $this;
     }
 
+    /**
+     * @return Mage_Sales_Model_Resource_Order_Shipment_Item_Collection
+     */
     public function getItemsCollection()
     {
-        if (empty($this->_items)) {
+        if (is_null($this->_items)) {
             $this->_items = Mage::getResourceModel('sales/order_shipment_item_collection')
                 ->setShipmentFilter($this->getId());
 
@@ -234,30 +243,44 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
                 }
             }
         }
+
         return $this->_items;
     }
 
+    /**
+     * @return Mage_Sales_Model_Order_Shipment_Item[]
+     */
     public function getAllItems()
     {
-        $items = array();
+        $items = [];
         foreach ($this->getItemsCollection() as $item) {
             if (!$item->isDeleted()) {
                 $items[] =  $item;
             }
         }
+
         return $items;
     }
 
+    /**
+     * @param  int                                       $itemId
+     * @return null|Mage_Sales_Model_Order_Shipment_Item
+     */
     public function getItemById($itemId)
     {
         foreach ($this->getItemsCollection() as $item) {
-            if ($item->getId()==$itemId) {
+            if ($item->getId() == $itemId) {
                 return $item;
             }
         }
-        return false;
+
+        return null;
     }
 
+    /**
+     * @return $this
+     * @throws Exception
+     */
     public function addItem(Mage_Sales_Model_Order_Shipment_Item $item)
     {
         $item->setShipment($this)
@@ -266,13 +289,16 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         if (!$item->getId()) {
             $this->getItemsCollection()->addItem($item);
         }
+
         return $this;
     }
 
-
+    /**
+     * @return Mage_Sales_Model_Resource_Order_Shipment_Track_Collection
+     */
     public function getTracksCollection()
     {
-        if (empty($this->_tracks)) {
+        if (is_null($this->_tracks)) {
             $this->_tracks = Mage::getResourceModel('sales/order_shipment_track_collection')
                 ->setShipmentFilter($this->getId());
 
@@ -282,30 +308,44 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
                 }
             }
         }
+
         return $this->_tracks;
     }
 
+    /**
+     * @return Mage_Sales_Model_Order_Shipment_Track[]
+     */
     public function getAllTracks()
     {
-        $tracks = array();
+        $tracks = [];
         foreach ($this->getTracksCollection() as $track) {
             if (!$track->isDeleted()) {
                 $tracks[] =  $track;
             }
         }
+
         return $tracks;
     }
 
+    /**
+     * @param  int                                         $trackId
+     * @return false|Mage_Sales_Model_Order_Shipment_Track
+     */
     public function getTrackById($trackId)
     {
         foreach ($this->getTracksCollection() as $track) {
-            if ($track->getId()==$trackId) {
+            if ($track->getId() == $trackId) {
                 return $track;
             }
         }
+
         return false;
     }
 
+    /**
+     * @return $this
+     * @throws Exception
+     */
     public function addTrack(Mage_Sales_Model_Order_Shipment_Track $track)
     {
         $track->setShipment($this)
@@ -329,12 +369,14 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
      * Adds comment to shipment with additional possibility to send it to customer via email
      * and show it in customer account
      *
-     * @param bool $notify
-     * @param bool $visibleOnFront
+     * @param Mage_Sales_Model_Order_Shipment_Comment|string $comment
+     * @param bool                                           $notify
+     * @param bool                                           $visibleOnFront
      *
-     * @return Mage_Sales_Model_Order_Shipment
+     * @return $this
+     * @throws Exception
      */
-    public function addComment($comment, $notify=false, $visibleOnFront=false)
+    public function addComment($comment, $notify = false, $visibleOnFront = false)
     {
         if (!($comment instanceof Mage_Sales_Model_Order_Shipment_Comment)) {
             $comment = Mage::getModel('sales/order_shipment_comment')
@@ -342,17 +384,23 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
                 ->setIsCustomerNotified($notify)
                 ->setIsVisibleOnFront($visibleOnFront);
         }
+
         $comment->setShipment($this)
             ->setParentId($this->getId())
             ->setStoreId($this->getStoreId());
         if (!$comment->getId()) {
             $this->getCommentsCollection()->addItem($comment);
         }
+
         $this->_hasDataChanges = true;
         return $this;
     }
 
-    public function getCommentsCollection($reload=false)
+    /**
+     * @param  bool                                                        $reload
+     * @return Mage_Sales_Model_Resource_Order_Shipment_Comment_Collection
+     */
+    public function getCommentsCollection($reload = false)
     {
         if (is_null($this->_comments) || $reload) {
             $this->_comments = Mage::getResourceModel('sales/order_shipment_comment_collection')
@@ -371,15 +419,16 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
                 }
             }
         }
+
         return $this->_comments;
     }
 
     /**
      * Send email with shipment data
      *
-     * @param boolean $notifyCustomer
-     * @param string $comment
-     * @return Mage_Sales_Model_Order_Shipment
+     * @param  bool   $notifyCustomer
+     * @param  string $comment
+     * @return $this
      */
     public function sendEmail($notifyCustomer = true, $comment = '')
     {
@@ -389,17 +438,20 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         if (!Mage::helper('sales')->canSendNewShipmentEmail($storeId)) {
             return $this;
         }
+
         // Get the destination email addresses to send copies to
         $copyTo = $this->_getEmails(self::XML_PATH_EMAIL_COPY_TO);
         $copyMethod = Mage::getStoreConfig(self::XML_PATH_EMAIL_COPY_METHOD, $storeId);
-        // Check if at least one recepient is found
+        // Check if at least one recipient is found
         if (!$notifyCustomer && !$copyTo) {
             return $this;
         }
 
         // Start store emulation process
-        $appEmulation = Mage::getSingleton('core/app_emulation');
-        $initialEnvironmentInfo = $appEmulation->startEnvironmentEmulation($storeId);
+        if ($storeId != Mage::app()->getStore()->getId()) {
+            $appEmulation = Mage::getSingleton('core/app_emulation');
+            $initialEnvironmentInfo = $appEmulation->startEnvironmentEmulation($storeId);
+        }
 
         try {
             // Retrieve specified view block from appropriate design package (depends on emulated store)
@@ -409,12 +461,17 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
             $paymentBlockHtml = $paymentBlock->toHtml();
         } catch (Exception $exception) {
             // Stop store emulation process
-            $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+            if (isset($appEmulation, $initialEnvironmentInfo)) {
+                $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+            }
+
             throw $exception;
         }
 
         // Stop store emulation process
-        $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+        if (isset($appEmulation, $initialEnvironmentInfo)) {
+            $appEmulation->stopEnvironmentEmulation($initialEnvironmentInfo);
+        }
 
         // Retrieve corresponding email template id and customer name
         if ($order->getCustomerIsGuest()) {
@@ -428,13 +485,14 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         $mailer = Mage::getModel('core/email_template_mailer');
         if ($notifyCustomer) {
             $emailInfo = Mage::getModel('core/email_info');
-            $emailInfo->addTo($order->getCustomerEmail(), $customerName);
+            $emailInfo->addTo($order->getCurrentCustomerEmail(), $customerName);
             if ($copyTo && $copyMethod == 'bcc') {
                 // Add bcc to customer email
                 foreach ($copyTo as $email) {
                     $emailInfo->addBcc($email);
                 }
             }
+
             $mailer->addEmailInfo($emailInfo);
         }
 
@@ -451,14 +509,13 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         $mailer->setSender(Mage::getStoreConfig(self::XML_PATH_EMAIL_IDENTITY, $storeId));
         $mailer->setStoreId($storeId);
         $mailer->setTemplateId($templateId);
-        $mailer->setTemplateParams(array(
-                'order'        => $order,
-                'shipment'     => $this,
-                'comment'      => $comment,
-                'billing'      => $order->getBillingAddress(),
-                'payment_html' => $paymentBlockHtml
-            )
-        );
+        $mailer->setTemplateParams([
+            'order'        => $order,
+            'shipment'     => $this,
+            'comment'      => $comment,
+            'billing'      => $order->getBillingAddress(),
+            'payment_html' => $paymentBlockHtml,
+        ]);
         $mailer->send();
 
         return $this;
@@ -467,9 +524,9 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
     /**
      * Send email with shipment update information
      *
-     * @param boolean $notifyCustomer
-     * @param string $comment
-     * @return Mage_Sales_Model_Order_Shipment
+     * @param  bool   $notifyCustomer
+     * @param  string $comment
+     * @return $this
      */
     public function sendUpdateEmail($notifyCustomer = true, $comment = '')
     {
@@ -479,10 +536,11 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         if (!Mage::helper('sales')->canSendShipmentCommentEmail($storeId)) {
             return $this;
         }
+
         // Get the destination email addresses to send copies to
         $copyTo = $this->_getEmails(self::XML_PATH_UPDATE_EMAIL_COPY_TO);
         $copyMethod = Mage::getStoreConfig(self::XML_PATH_UPDATE_EMAIL_COPY_METHOD, $storeId);
-        // Check if at least one recepient is found
+        // Check if at least one recipient is found
         if (!$notifyCustomer && !$copyTo) {
             return $this;
         }
@@ -499,13 +557,14 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         $mailer = Mage::getModel('core/email_template_mailer');
         if ($notifyCustomer) {
             $emailInfo = Mage::getModel('core/email_info');
-            $emailInfo->addTo($order->getCustomerEmail(), $customerName);
+            $emailInfo->addTo($order->getCurrentCustomerEmail(), $customerName);
             if ($copyTo && $copyMethod == 'bcc') {
                 // Add bcc to customer email
                 foreach ($copyTo as $email) {
                     $emailInfo->addBcc($email);
                 }
             }
+
             $mailer->addEmailInfo($emailInfo);
         }
 
@@ -522,37 +581,42 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         $mailer->setSender(Mage::getStoreConfig(self::XML_PATH_UPDATE_EMAIL_IDENTITY, $storeId));
         $mailer->setStoreId($storeId);
         $mailer->setTemplateId($templateId);
-        $mailer->setTemplateParams(array(
-                'order'    => $order,
-                'shipment' => $this,
-                'comment'  => $comment,
-                'billing'  => $order->getBillingAddress()
-            )
-        );
+        $mailer->setTemplateParams([
+            'order'    => $order,
+            'shipment' => $this,
+            'comment'  => $comment,
+            'billing'  => $order->getBillingAddress(),
+        ]);
         $mailer->send();
 
         return $this;
     }
 
+    /**
+     * @param  string      $configPath
+     * @return array|false
+     */
     protected function _getEmails($configPath)
     {
         $data = Mage::getStoreConfig($configPath, $this->getStoreId());
         if (!empty($data)) {
             return explode(',', $data);
         }
+
         return false;
     }
 
     /**
      * Before object save
      *
-     * @return Mage_Sales_Model_Order_Shipment
+     * @inheritDoc
      */
+    #[Override]
     protected function _beforeSave()
     {
-        if ((!$this->getId() || null !== $this->_items) && !count($this->getAllItems())) {
+        if ((!$this->getId() || $this->_items !== null) && !count($this->getAllItems())) {
             Mage::throwException(
-                Mage::helper('sales')->__('Cannot create an empty shipment.')
+                Mage::helper('sales')->__('Cannot create an empty shipment.'),
             );
         }
 
@@ -568,6 +632,11 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
         return parent::_beforeSave();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     protected function _beforeDelete()
     {
         $this->_protectFromNonAdmin();
@@ -577,24 +646,25 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
     /**
      * After object save manipulations
      *
-     * @return Mage_Sales_Model_Order_Shipment
+     * @inheritDoc
      */
+    #[Override]
     protected function _afterSave()
     {
-        if (null !== $this->_items) {
+        if ($this->_items !== null) {
             foreach ($this->_items as $item) {
                 $item->save();
             }
         }
 
-        if (null !== $this->_tracks) {
-            foreach($this->_tracks as $track) {
+        if ($this->_tracks !== null) {
+            foreach ($this->_tracks as $track) {
                 $track->save();
             }
         }
 
-        if (null !== $this->_comments) {
-            foreach($this->_comments as $comment) {
+        if ($this->_comments !== null) {
+            foreach ($this->_comments as $comment) {
                 $comment->save();
             }
         }
@@ -615,8 +685,8 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
     /**
      * Set shipping label
      *
-     * @param string $label   label representation (image or pdf file)
-     * @return Mage_Sales_Model_Order_Shipment
+     * @param  string $label label representation (image or pdf file)
+     * @return $this
      */
     public function setShippingLabel($label)
     {
@@ -627,14 +697,15 @@ class Mage_Sales_Model_Order_Shipment extends Mage_Sales_Model_Abstract
     /**
      * Get shipping label and decode by db adapter
      *
-     * @return void
+     * @return string
      */
     public function getShippingLabel()
     {
-        $label = $this->getData('shipping_label');
+        $label = $this->getDataByKey('shipping_label');
         if ($label) {
             return $this->getResource()->getReadConnection()->decodeVarbinary($label);
         }
+
         return $label;
     }
 }

@@ -1,95 +1,81 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Range grid column filter
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Price
-    extends Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract
+class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Price extends Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract
 {
     protected $_currencyList = null;
+
     protected $_currencyModel = null;
 
+    #[Override]
     public function getHtml()
     {
-        $html  = '<div class="range">';
-        $html .= '<div class="range-line"><span class="label">' . Mage::helper('adminhtml')->__('From').':</span> <input type="text" name="'.$this->_getHtmlName().'[from]" id="'.$this->_getHtmlId().'_from" value="'.$this->getEscapedValue('from').'" class="input-text no-changes"/></div>';
-        $html .= '<div class="range-line"><span class="label">' . Mage::helper('adminhtml')->__('To').' : </span><input type="text" name="'.$this->_getHtmlName().'[to]" id="'.$this->_getHtmlId().'_to" value="'.$this->getEscapedValue('to').'" class="input-text no-changes"/></div>';
-        if ($this->getDisplayCurrencySelect())
-            $html .= '<div class="range-line"><span class="label">' . Mage::helper('adminhtml')->__('In').' : </span>' . $this->_getCurrencySelectHtml() . '</div>';
-        $html .= '</div>';
+        $fromLabel = Mage::helper('adminhtml')->__('From');
+        $toLabel = Mage::helper('adminhtml')->__('To');
 
-        return $html;
+        $html  = '<div class="range filter-price">';
+        $html .= '<div class="range-line"><span class="label">' . $fromLabel . '</span> <input type="number" placeholder="' . $fromLabel . '" name="' . $this->_getHtmlName() . '[from]" id="' . $this->_getHtmlId() . '_from" value="' . $this->getEscapedValue('from') . '" class="input-text no-changes"/></div>';
+        $html .= '<div class="range-line"><span class="label">' . $toLabel . '</span><input type="number" placeholder="' . $toLabel . '" name="' . $this->_getHtmlName() . '[to]" id="' . $this->_getHtmlId() . '_to" value="' . $this->getEscapedValue('to') . '" class="input-text no-changes"/></div>';
+        if ($this->getDisplayCurrencySelect()) {
+            $html .= '<div class="range-line"><span class="label">' . Mage::helper('adminhtml')->__('In') . '</span>' . $this->_getCurrencySelectHtml() . '</div>';
+        }
+
+        return $html . '</div>';
     }
 
     public function getDisplayCurrencySelect()
     {
-        if (!is_null($this->getColumn()->getData('display_currency_select'))) {
-            return $this->getColumn()->getData('display_currency_select');
-        } else {
-            return true;
+        if (!is_null($this->getColumn()->getDataByKey('display_currency_select'))) {
+            return $this->getColumn()->getDataByKey('display_currency_select');
         }
+
+        return true;
     }
 
     public function getCurrencyAffect()
     {
-        if (!is_null($this->getColumn()->getData('currency_affect'))) {
-            return $this->getColumn()->getData('currency_affect');
-        } else {
-            return true;
+        if (!is_null($this->getColumn()->getDataByKey('currency_affect'))) {
+            return $this->getColumn()->getDataByKey('currency_affect');
         }
+
+        return true;
     }
 
     protected function _getCurrencyModel()
     {
-        if (is_null($this->_currencyModel))
+        if (is_null($this->_currencyModel)) {
             $this->_currencyModel = Mage::getModel('directory/currency');
+        }
 
         return $this->_currencyModel;
     }
 
     protected function _getCurrencySelectHtml()
     {
-
         $value = $this->getEscapedValue('currency');
-        if (!$value)
+        if (!$value) {
             $value = $this->getColumn()->getCurrencyCode();
+        }
 
         $html  = '';
-        $html .= '<select name="'.$this->_getHtmlName().'[currency]" id="'.$this->_getHtmlId().'_currency">';
+        $html .= '<select name="' . $this->_getHtmlName() . '[currency]" id="' . $this->_getHtmlId() . '_currency">';
         foreach ($this->_getCurrencyList() as $currency) {
-            $html .= '<option value="' . $currency . '" '.($currency == $value ? 'selected="selected"' : '').'>'
+            $html .= '<option value="' . $currency . '" ' . ($currency == $value ? 'selected="selected"' : '') . '>'
                 . $currency . '</option>';
         }
-        $html .= '</select>';
-        return $html;
+
+        return $html . '</select>';
     }
 
     protected function _getCurrencyList()
@@ -97,24 +83,30 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Price
         if (is_null($this->_currencyList)) {
             $this->_currencyList = $this->_getCurrencyModel()->getConfigAllowCurrencies();
         }
+
         return $this->_currencyList;
     }
 
-    public function getValue($index=null)
+    public function getValue($index = null)
     {
         if ($index) {
             return $this->getData('value', $index);
         }
-        $value = $this->getData('value');
-        if ((isset($value['from']) && strlen($value['from']) > 0)
-            || (isset($value['to']) && strlen($value['to']) > 0)
+
+        $value = $this->getDataByKey('value');
+        if ((isset($value['from']) && (string) $value['from'] !== '')
+            || (isset($value['to']) && (string) $value['to'] !== '')
         ) {
             return $value;
         }
+
         return null;
     }
 
-
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getCondition()
     {
         $value = $this->getValue();
@@ -124,25 +116,22 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Price
         } else {
             $displayCurrency = $this->getColumn()->getCurrencyCode();
         }
+
         $rate = $this->_getRate($displayCurrency, $this->getColumn()->getCurrencyCode());
 
-        if (isset($value['from'])) {
-            $from = $value['from'] * $rate;
-            $value['from'] = sprintf('%F', $from);
-        }
-
-        if (isset($value['to'])) {
-            $to = $value['to'] * $rate;
-            $value['to'] = sprintf('%F', $to);
+        foreach (['from', 'to'] as $key) {
+            if (isset($value[$key]) && is_numeric($value[$key])) {
+                $value[$key] = sprintf('%F', $value[$key] * $rate);
+            }
         }
 
         $this->prepareRates($displayCurrency);
         return $value;
     }
 
-    protected function _getRate($from, $to)
+    protected function _getRate($min, $max)
     {
-        return Mage::getModel('directory/currency')->load($from)->getAnyRate($to);
+        return Mage::getModel('directory/currency')->load($min)->getAnyRate($max);
     }
 
     public function prepareRates($displayCurrency)

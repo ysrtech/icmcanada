@@ -1,37 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Sales order view block
  *
- * @method int|null getCustomerId()
- *
- * @category   Mage
  * @package    Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method int                                        getCustomerId()
+ * @method Mage_Sales_Model_Resource_Order_Collection getOrders()
+ * @method $this                                      setOrders(Mage_Sales_Model_Resource_Order_Collection $value)
  */
 class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
 {
@@ -58,11 +41,12 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
 
         $orders = Mage::getResourceModel('sales/order_collection')
             ->addAttributeToFilter('customer_id', $customerId)
-            ->addAttributeToFilter('state',
-                array('in' => Mage::getSingleton('sales/order_config')->getVisibleOnFrontStates())
+            ->addAttributeToFilter(
+                'state',
+                ['in' => Mage::getSingleton('sales/order_config')->getVisibleOnFrontStates()],
             )
             ->addAttributeToSort('created_at', 'desc')
-            ->setPage(1,1);
+            ->setPage(1, 1);
         //TODO: add filter by current website
 
         $this->setOrders($orders);
@@ -71,11 +55,11 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
     /**
      * Get list of last ordered products
      *
-     * @return array
+     * @return Mage_Sales_Model_Order_Item[]
      */
     public function getItems()
     {
-        $items = array();
+        $items = [];
         $order = $this->getLastOrder();
         $limit = 5;
 
@@ -94,14 +78,14 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
     /**
      * Check item product availability for reorder
      *
-     * @param  Mage_Sales_Model_Order_Item $orderItem
-     * @return boolean
+     * @return bool
      */
     public function isItemAvailableForReorder(Mage_Sales_Model_Order_Item $orderItem)
     {
         if ($orderItem->getProduct()) {
             return $orderItem->getProduct()->getStockItem()->getIsInStock();
         }
+
         return false;
     }
 
@@ -113,13 +97,13 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
      */
     public function getFormActionUrl()
     {
-        return $this->getUrl('checkout/cart/addgroup', array('_secure' => true));
+        return $this->getUrl('checkout/cart/addgroup', ['_secure' => true]);
     }
 
     /**
      * Last order getter
      *
-     * @return Mage_Sales_Model_Order|bool
+     * @return bool|Mage_Sales_Model_Order
      */
     public function getLastOrder()
     {
@@ -130,6 +114,7 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
         foreach ($this->getOrders() as $order) {
             return $order;
         }
+
         return false;
     }
 
@@ -138,6 +123,7 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
      *
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
         return $this->_getCustomerSession()->isLoggedIn() || $this->getCustomerId() ? parent::_toHtml() : '';
@@ -158,25 +144,27 @@ class Mage_Sales_Block_Reorder_Sidebar extends Mage_Core_Block_Template
      *
      * @return array
      */
+    #[Override]
     public function getCacheTags()
     {
         return array_merge(
             parent::getCacheTags(),
-            $this->getItemsTags($this->_getItemProducts())
+            $this->getItemsTags($this->_getItemProducts()),
         );
     }
 
     /**
      * Retrieve products list from items
      *
-     * @return array
+     * @return Mage_Catalog_Model_Product[]
      */
     protected function _getItemProducts()
     {
-        $products =  array();
+        $products =  [];
         foreach ($this->getItems() as $item) {
             $products[] = $item->getProduct();
         }
+
         return $products;
     }
 }

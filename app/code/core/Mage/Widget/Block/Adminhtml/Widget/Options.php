@@ -1,37 +1,22 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Widget
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Widget
  */
 
 /**
  * WYSIWYG widget options form
  *
- * @category   Mage
  * @package    Mage_Widget
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method string getMainFieldsetHtmlId()
+ * @method string getWidgetType()
+ * @method array  getWidgetValues()
+ * @method $this  setMainFieldsetHtmlId(string $value)
  */
-
 class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Widget_Form
 {
     /**
@@ -51,7 +36,10 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
      *
      * widget_type must be set in data before
      * widget_values may be set before to render element values
+     *
+     * @return $this
      */
+    #[Override]
     protected function _prepareForm()
     {
         $this->getForm()->setUseContainer(false);
@@ -64,11 +52,13 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
      *
      * @return Varien_Data_Form
      */
+    #[Override]
     public function getForm()
     {
         if ($this->_form instanceof Varien_Data_Form) {
             return $this->_form;
         }
+
         $form = new Varien_Data_Form();
         $this->setForm($form);
         return $form;
@@ -84,12 +74,13 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
         if ($this->_getData('main_fieldset') instanceof Varien_Data_Form_Element_Fieldset) {
             return $this->_getData('main_fieldset');
         }
+
         $mainFieldsetHtmlId = 'options_fieldset' . md5($this->getWidgetType());
         $this->setMainFieldsetHtmlId($mainFieldsetHtmlId);
-        $fieldset = $this->getForm()->addFieldset($mainFieldsetHtmlId, array(
+        $fieldset = $this->getForm()->addFieldset($mainFieldsetHtmlId, [
             'legend'    => $this->helper('widget')->__('Widget Options'),
             'class'     => 'fieldset-wide',
-        ));
+        ]);
         $this->setData('main_fieldset', $fieldset);
 
         // add dependence javascript block
@@ -102,7 +93,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
     /**
      * Add fields to main fieldset based on specified widget type
      *
-     * @return Mage_Adminhtml_Block_Widget_Form
+     * @return $this
      */
     public function addFields()
     {
@@ -110,10 +101,12 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
         if (!$this->getWidgetType()) {
             Mage::throwException($this->__('Widget Type is not specified'));
         }
+
         $config = Mage::getSingleton('widget/widget')->getConfigAsObject($this->getWidgetType());
         if (!$config->getParameters()) {
             return $this;
         }
+
         $module = $config->getModule();
         $this->_translationHelper = Mage::helper($module ? $module : 'widget');
         foreach ($config->getParameters() as $parameter) {
@@ -126,7 +119,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
     /**
      * Add field to Options form based on parameter configuration
      *
-     * @param Varien_Object $parameter
+     * @param  Varien_Object                     $parameter
      * @return Varien_Data_Form_Element_Abstract
      */
     protected function _addField($parameter)
@@ -136,39 +129,39 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
 
         // prepare element data with values (either from request of from default values)
         $fieldName = $parameter->getKey();
-        $data = array(
+        $data = [
             'name'      => $form->addSuffixToName($fieldName, 'parameters'),
             'label'     => $this->_translationHelper->__($parameter->getLabel()),
             'required'  => $parameter->getRequired(),
             'class'     => 'widget-option',
             'note'      => $this->_translationHelper->__($parameter->getDescription()),
-        );
+        ];
 
         if ($values = $this->getWidgetValues()) {
-            $data['value'] = (isset($values[$fieldName]) ? $values[$fieldName] : '');
-        }
-        else {
+            $data['value'] = $values[$fieldName] ?? '';
+        } else {
             $data['value'] = $parameter->getValue();
             //prepare unique id value
             if ($fieldName == 'unique_id' && $data['value'] == '') {
-                $data['value'] = md5(microtime(1));
+                $data['value'] = md5((string) microtime(true));
             }
         }
 
         // prepare element dropdown values
         if ($values  = $parameter->getValues()) {
             // dropdown options are specified in configuration
-            $data['values'] = array();
+            $data['values'] = [];
             foreach ($values as $option) {
-                $data['values'][] = array(
+                $data['values'][] = [
                     'label' => $this->_translationHelper->__($option['label']),
-                    'value' => $option['value']
-                );
+                    'value' => $option['value'],
+                ];
             }
-        }
-        // otherwise, a source model is specified
-        elseif ($sourceModel = $parameter->getSourceModel()) {
-            $data['values'] = Mage::getModel($sourceModel)->toOptionArray();
+        } elseif ($sourceModel = $parameter->getSourceModel()) { // otherwise, a source model is specified
+            $model = Mage::getModel($sourceModel);
+            if (method_exists($model, 'toOptionArray')) {
+                $data['values'] = $model->toOptionArray();
+            }
         }
 
         // prepare field type or renderer
@@ -177,16 +170,14 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
         // hidden element
         if (!$parameter->getVisible()) {
             $fieldType = 'hidden';
-        }
-        // just an element renderer
-        elseif (false !== strpos($fieldType, '/')) {
+        } elseif (str_contains($fieldType, '/')) { // just an element renderer
             $fieldRenderer = $this->getLayout()->createBlock($fieldType);
             $fieldType = $this->_defaultElementType;
         }
 
         // instantiate field and render html
         $field = $fieldset->addField($this->getMainFieldsetHtmlId() . '_' . $fieldName, $fieldType, $data);
-        if ($fieldRenderer) {
+        if ($fieldRenderer instanceof Varien_Data_Form_Element_Renderer_Interface) {
             $field->setRenderer($fieldRenderer);
         }
 
@@ -202,11 +193,12 @@ class Mage_Widget_Block_Adminhtml_Widget_Options extends Mage_Adminhtml_Block_Wi
         }
 
         // dependencies from other fields
+        /** @var Mage_Adminhtml_Block_Widget_Form_Element_Dependence $dependenceBlock */
         $dependenceBlock = $this->getChild('form_after');
         $dependenceBlock->addFieldMap($field->getId(), $fieldName);
         if ($parameter->getDepends()) {
             foreach ($parameter->getDepends() as $from => $row) {
-                $values = isset($row['values']) ? array_values($row['values']) : (string)$row['value'];
+                $values = isset($row['values']) ? array_values($row['values']) : (string) $row['value'];
                 $dependenceBlock->addFieldDependence($fieldName, $from, $values);
             }
         }

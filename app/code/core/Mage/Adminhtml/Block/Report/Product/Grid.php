@@ -1,50 +1,38 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml products report grid block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Reports_Model_Resource_Report_Collection getCollection()
  */
 class Mage_Adminhtml_Block_Report_Product_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_report_product_grid';
 
     public function __construct()
     {
         parent::__construct();
         $this->setId('productsReportGrid');
         $this->setDefaultSort('entity_id');
-        $this->setDefaultDir('desc');
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-
+        /** @var Mage_Reports_Model_Resource_Product_Collection $collection */
         $collection = Mage::getResourceModel('reports/product_collection');
         $collection->getEntity()->setStore(0);
 
@@ -53,73 +41,81 @@ class Mage_Adminhtml_Block_Report_Product_Grid extends Mage_Adminhtml_Block_Widg
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _afterLoadCollection()
     {
         $totalObj = new Mage_Reports_Model_Totals();
         $this->setTotals($totalObj->countTotals($this));
+
+        return parent::_afterLoadCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('entity_id', array(
-            'header'    =>Mage::helper('reports')->__('ID'),
-            'width'     =>'50px',
-            'index'     =>'entity_id',
-            'total'     =>'Total'
-        ));
+        $this->addColumn('entity_id', [
+            'header'    => Mage::helper('reports')->__('ID'),
+            'index'     => 'entity_id',
+            'total'     => 'Total',
+        ]);
 
-        $this->addColumn('name', array(
-            'header'    =>Mage::helper('reports')->__('Name'),
-            'index'     =>'name'
-        ));
+        $this->addColumn('name', [
+            'header'    => Mage::helper('reports')->__('Name'),
+            'index'     => 'name',
+        ]);
 
-        $this->addColumn('viewed', array(
-            'header'    =>Mage::helper('reports')->__('Number Viewed'),
-            'width'     =>'50px',
-            'align'     =>'right',
-            'index'     =>'viewed',
-            'total'     =>'sum'
-        ));
+        $this->addColumn('viewed', [
+            'header'    => Mage::helper('reports')->__('Number Viewed'),
+            'width'     => '50px',
+            'align'     => 'right',
+            'index'     => 'viewed',
+            'total'     => 'sum',
+        ]);
 
-        $this->addColumn('added', array(
-            'header'    =>Mage::helper('reports')->__('Number Added'),
-            'width'     =>'50px',
-            'align'     =>'right',
-            'index'     =>'added',
-            'total'     =>'sum'
-        ));
+        $this->addColumn('added', [
+            'header'    => Mage::helper('reports')->__('Number Added'),
+            'width'     => '50px',
+            'align'     => 'right',
+            'index'     => 'added',
+            'total'     => 'sum',
+        ]);
 
-        $this->addColumn('purchased', array(
-            'header'    =>Mage::helper('reports')->__('Number Purchased'),
-            'width'     =>'50px',
-            'align'     =>'right',
-            'index'     =>'purchased',
-            'total'     =>'sum'
-        ));
+        $this->addColumn('purchased', [
+            'header'    => Mage::helper('reports')->__('Number Purchased'),
+            'width'     => '50px',
+            'align'     => 'right',
+            'index'     => 'purchased',
+            'total'     => 'sum',
+        ]);
 
-        $this->addColumn('fulfilled', array(
-            'header'    =>Mage::helper('reports')->__('Number Fulfilled'),
-            'width'     =>'50px',
-            'align'     =>'right',
-            'index'     =>'fulfilled',
-            'total'     =>'sum'
-        ));
+        $this->addColumn('fulfilled', [
+            'header'    => Mage::helper('reports')->__('Number Fulfilled'),
+            'width'     => '50px',
+            'align'     => 'right',
+            'index'     => 'fulfilled',
+            'total'     => 'sum',
+        ]);
 
-        $this->addColumn('revenue', array(
-            'header'    =>Mage::helper('reports')->__('Revenue'),
-            'width'     =>'50px',
-            'align'     =>'right',
-            'index'     =>'revenue',
-            'total'     =>'sum'
-        ));
+        $this->addColumn('revenue', [
+            'header'    => Mage::helper('reports')->__('Revenue'),
+            'width'     => '50px',
+            'align'     => 'right',
+            'index'     => 'revenue',
+            'total'     => 'sum',
+        ]);
 
-        $this->setCountTotals(true);
+        $this->setCountTotals();
 
         $this->addExportType('*/*/exportProductsCsv', Mage::helper('reports')->__('CSV'));
         $this->addExportType('*/*/exportProductsExcel', Mage::helper('reports')->__('Excel XML'));
 
         return parent::_prepareColumns();
     }
-
 }
-

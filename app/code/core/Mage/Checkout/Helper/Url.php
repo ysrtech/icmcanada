@@ -1,36 +1,23 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Checkout url helper
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Checkout
  */
 class Mage_Checkout_Helper_Url extends Mage_Core_Helper_Url
 {
+    protected $_moduleName = 'Mage_Checkout';
+
     /**
      * Retrieve shopping cart url
      *
@@ -65,21 +52,33 @@ class Mage_Checkout_Helper_Url extends Mage_Core_Helper_Url
         return $this->_getUrl('checkout/multishipping');
     }
 
+    /**
+     * @return string
+     */
     public function getMSLoginUrl()
     {
-        return $this->_getUrl('checkout/multishipping/login', array('_secure'=>true, '_current'=>true));
+        return $this->_getUrl('checkout/multishipping/login', ['_secure' => true, '_current' => true]);
     }
 
+    /**
+     * @return string
+     */
     public function getMSAddressesUrl()
     {
         return $this->_getUrl('checkout/multishipping/addresses');
     }
 
+    /**
+     * @return string
+     */
     public function getMSShippingAddressSavedUrl()
     {
         return $this->_getUrl('checkout/multishipping_address/shippingSaved');
     }
 
+    /**
+     * @return string
+     */
     public function getMSRegisterUrl()
     {
         return $this->_getUrl('checkout/multishipping/register');

@@ -1,35 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Session abstaract class
  *
- * @category   Mage
  * @package    Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method string getCookieDomain()
+ * @method string getCookieLifetime()
+ * @method string getCookiePath()
  */
 abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
 {
@@ -40,41 +25,50 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
      */
     protected $_namespace;
 
+    /**
+     * @return Zend_Session_Namespace
+     */
     public function getNamespace()
     {
         return $this->_namespace;
     }
 
+    /**
+     * @return $this
+     */
     public function start()
     {
-        Varien_Profiler::start(__METHOD__.'/setOptions');
-        $options = array(
-            'save_path'=>Mage::getBaseDir('session'),
-            'use_only_cookies'=>'off',
+        Varien_Profiler::start(__METHOD__ . '/setOptions');
+        $options = [
+            'save_path' => Mage::getBaseDir('session'),
+            'use_only_cookies' => 'off',
             'throw_startup_exceptions' => E_ALL ^ E_NOTICE,
-        );
+        ];
         if ($this->getCookieDomain()) {
             $options['cookie_domain'] = $this->getCookieDomain();
         }
+
         if ($this->getCookiePath()) {
             $options['cookie_path'] = $this->getCookiePath();
         }
+
         if ($this->getCookieLifetime()) {
             $options['cookie_lifetime'] = $this->getCookieLifetime();
         }
+
         Zend_Session::setOptions($options);
-        Varien_Profiler::stop(__METHOD__.'/setOptions');
-/*
-        Varien_Profiler::start(__METHOD__.'/setHandler');
-        $sessionResource = Mage::getResourceSingleton('core/session');
-        if ($sessionResource->hasConnection()) {
-            Zend_Session::setSaveHandler($sessionResource);
-        }
-        Varien_Profiler::stop(__METHOD__.'/setHandler');
-*/
-        Varien_Profiler::start(__METHOD__.'/start');
+        Varien_Profiler::stop(__METHOD__ . '/setOptions');
+        /*
+                Varien_Profiler::start(__METHOD__.'/setHandler');
+                $sessionResource = Mage::getResourceSingleton('core/session');
+                if ($sessionResource->hasConnection()) {
+                    Zend_Session::setSaveHandler($sessionResource);
+                }
+                Varien_Profiler::stop(__METHOD__.'/setHandler');
+        */
+        Varien_Profiler::start(__METHOD__ . '/start');
         Zend_Session::start();
-        Varien_Profiler::stop(__METHOD__.'/start');
+        Varien_Profiler::stop(__METHOD__ . '/start');
 
         return $this;
     }
@@ -82,7 +76,8 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
     /**
      * Initialization session namespace
      *
-     * @param string $namespace
+     * @param  string $namespace
+     * @return $this
      */
     public function init($namespace)
     {
@@ -90,24 +85,27 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
             $this->start();
         }
 
-        Varien_Profiler::start(__METHOD__.'/init');
+        Varien_Profiler::start(__METHOD__ . '/init');
         $this->_namespace = new Zend_Session_Namespace($namespace, Zend_Session_Namespace::SINGLE_INSTANCE);
-        Varien_Profiler::stop(__METHOD__.'/init');
+        Varien_Profiler::stop(__METHOD__ . '/init');
         return $this;
     }
 
     /**
      * Redeclaration object setter
      *
-     * @param   string $key
-     * @param   mixed $value
-     * @return  Mage_Core_Model_Session_Abstract
+     * @param  string $key
+     * @param  mixed  $value
+     * @param  bool   $isChanged
+     * @return $this
      */
-    public function setData($key, $value='', $isChanged = false)
+    #[Override]
+    public function setData($key, $value = '', $isChanged = false)
     {
         if (!$this->_namespace->data) {
             $this->_namespace->data = new Varien_Object();
         }
+
         $this->_namespace->data->setData($key, $value, $isChanged);
         return $this;
     }
@@ -115,11 +113,12 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
     /**
      * Redeclaration object getter
      *
-     * @param   string $var
-     * @param   bool $clear
-     * @return  mixed
+     * @param  string $var
+     * @param  bool   $clear
+     * @return mixed
      */
-    public function getData($var=null, $clear=false)
+    #[Override]
+    public function getData($var = null, $clear = false)
     {
         if (!$this->_namespace->data) {
             $this->_namespace->data = new Varien_Object();
@@ -135,9 +134,9 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
     }
 
     /**
-     * Cleare session data
+     * Clear session data
      *
-     * @return Mage_Core_Model_Session_Abstract
+     * @return $this
      */
     public function unsetAll()
     {
@@ -155,18 +154,23 @@ abstract class Mage_Core_Model_Session_Abstract_Zend extends Varien_Object
         return Zend_Session::getId();
     }
 
-    public function setSessionId($id=null)
+    /**
+     * @param  null|string $id
+     * @return $this
+     */
+    public function setSessionId($id = null)
     {
         if (!is_null($id)) {
             Zend_Session::setId($id);
         }
+
         return $this;
     }
 
     /**
      * Regenerate session Id
      *
-     * @return Mage_Core_Model_Session_Abstract_Zend
+     * @return $this
      */
     public function regenerateSessionId()
     {

@@ -7,6 +7,11 @@ class FreeLunchLabs_MailGun_Model_Email extends Mage_Core_Model_Abstract {
     }
 
     public function saveInitialSend($message, $sendResponse) {
+        // nothing to track when the API call failed
+        if (!is_object($sendResponse) || empty($sendResponse->id)) {
+            return;
+        }
+
         $customer = Mage::getModel('customer/customer');
         $customer->setWebsiteId($message->getStore()->getWebsite()->getId());
         $customer->loadByEmail($message->getPrimaryRecipient());

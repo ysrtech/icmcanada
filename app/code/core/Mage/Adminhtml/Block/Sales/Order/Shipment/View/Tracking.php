@@ -1,55 +1,38 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Shipment tracking control form
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Sales_Order_Shipment_View_Tracking extends Mage_Adminhtml_Block_Template
 {
     /**
      * Prepares layout of block
      *
-     * @return Mage_Adminhtml_Block_Sales_Order_View_Giftmessage
+     * @return $this
      */
+    #[Override]
     protected function _prepareLayout()
     {
-        $onclick = "submitAndReloadArea($('shipment_tracking_info').parentNode, '".$this->getSubmitUrl()."')";
-        $this->setChild('save_button',
+        $onclick = "submitAndReloadArea($('shipment_tracking_info').parentNode, '" . $this->getSubmitUrl() . "')";
+        $this->setChild(
+            'save_button',
             $this->getLayout()->createBlock('adminhtml/widget_button')
-                ->setData(array(
+                ->setData([
                     'label'   => Mage::helper('sales')->__('Add'),
                     'class'   => 'save',
-                    'onclick' => $onclick
-                ))
-
+                    'onclick' => $onclick,
+                ]),
         );
+        return $this;
     }
 
     /**
@@ -69,11 +52,11 @@ class Mage_Adminhtml_Block_Sales_Order_Shipment_View_Tracking extends Mage_Admin
      */
     public function getSubmitUrl()
     {
-        return $this->getUrl('*/*/addTrack/', array('shipment_id'=>$this->getShipment()->getId()));
+        return $this->getUrl('*/*/addTrack/', ['shipment_id' => $this->getShipment()->getId()]);
     }
 
     /**
-     * Retrive save button html
+     * Retrieve save button html
      *
      * @return string
      */
@@ -89,10 +72,10 @@ class Mage_Adminhtml_Block_Sales_Order_Shipment_View_Tracking extends Mage_Admin
      */
     public function getRemoveUrl($track)
     {
-        return $this->getUrl('*/*/removeTrack/', array(
+        return $this->getUrl('*/*/removeTrack/', [
             'shipment_id' => $this->getShipment()->getId(),
-            'track_id' => $track->getId()
-        ));
+            'track_id' => $track->getId(),
+        ]);
     }
 
     /**
@@ -102,22 +85,22 @@ class Mage_Adminhtml_Block_Sales_Order_Shipment_View_Tracking extends Mage_Admin
      */
     public function getTrackInfoUrl($track)
     {
-        return $this->getUrl('*/*/viewTrack/', array(
+        return $this->getUrl('*/*/viewTrack/', [
             'shipment_id' => $this->getShipment()->getId(),
-            'track_id' => $track->getId()
-        ));
+            'track_id' => $track->getId(),
+        ]);
     }
 
     /**
      * Retrieve
      *
-     * @return unknown
+     * @return array
      */
     public function getCarriers()
     {
-        $carriers = array();
+        $carriers = [];
         $carrierInstances = Mage::getSingleton('shipping/config')->getAllCarriers(
-            $this->getShipment()->getStoreId()
+            $this->getShipment()->getStoreId(),
         );
         $carriers['custom'] = Mage::helper('sales')->__('Custom Value');
         foreach ($carrierInstances as $code => $carrier) {
@@ -125,17 +108,20 @@ class Mage_Adminhtml_Block_Sales_Order_Shipment_View_Tracking extends Mage_Admin
                 $carriers[$code] = $carrier->getConfigData('title');
             }
         }
+
         return $carriers;
     }
 
+    /**
+     * @param               $code
+     * @return false|string
+     */
     public function getCarrierTitle($code)
     {
         if ($carrier = Mage::getSingleton('shipping/config')->getCarrierInstance($code)) {
             return $carrier->getConfigData('title');
         }
-        else {
-            return Mage::helper('sales')->__('Custom Value');
-        }
-        return false;
+
+        return Mage::helper('sales')->__('Custom Value');
     }
 }

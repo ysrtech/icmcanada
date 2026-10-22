@@ -1,50 +1,30 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Report collection abstract model
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
     /**
      * From date
      *
-     * @var string
+     * @var null|string
      */
     protected $_from               = null;
 
     /**
      * To date
      *
-     * @var string
+     * @var null|string
      */
     protected $_to                 = null;
 
@@ -58,7 +38,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Store ids
      *
-     * @var int|array
+     * @var array|int
      */
     protected $_storesIds          = 0;
 
@@ -88,13 +68,12 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
      *
      * @var array
      */
-    protected $_aggregatedColumns  = array();
+    protected $_aggregatedColumns  = [];
 
     /**
      * Set array of columns that should be aggregated
      *
-     * @param array $columns
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @return $this
      */
     public function setAggregatedColumns(array $columns)
     {
@@ -115,22 +94,22 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Set date range
      *
-     * @param mixed $from
-     * @param mixed $to
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  null|string $dateFrom
+     * @param  null|string $dateTo
+     * @return $this
      */
-    public function setDateRange($from = null, $to = null)
+    public function setDateRange($dateFrom = null, $dateTo = null)
     {
-        $this->_from = $from;
-        $this->_to   = $to;
+        $this->_from = $dateFrom;
+        $this->_to   = $dateTo;
         return $this;
     }
 
     /**
      * Set period
      *
-     * @param string $period
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  string $period
+     * @return $this
      */
     public function setPeriod($period)
     {
@@ -141,7 +120,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Apply date range filter
      *
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @return $this
      */
     protected function _applyDateRangeFilter()
     {
@@ -149,6 +128,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
         if ($this->_from !== null) {
             $this->getSelect()->where('period >= ?', $this->_from);
         }
+
         if ($this->_to !== null) {
             $this->getSelect()->where('period <= ?', $this->_to);
         }
@@ -159,8 +139,8 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Set store ids
      *
-     * @param mixed $storeIds (null, int|string, array, array may contain null)
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  mixed $storeIds (null, int|string, array, array may contain null)
+     * @return $this
      */
     public function addStoreFilter($storeIds)
     {
@@ -171,8 +151,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Apply stores filter to select object
      *
-     * @param Zend_Db_Select $select
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @return $this
      */
     protected function _applyStoresFilterToSelect(Zend_Db_Select $select)
     {
@@ -180,7 +159,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
         $storeIds  = $this->_storesIds;
 
         if (!is_array($storeIds)) {
-            $storeIds = array($storeIds);
+            $storeIds = [$storeIds];
         }
 
         $storeIds = array_unique($storeIds);
@@ -204,7 +183,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Apply stores filter
      *
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @return $this
      */
     protected function _applyStoresFilter()
     {
@@ -214,8 +193,8 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Set apply filters flag
      *
-     * @param boolean $flag
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  bool  $flag
+     * @return $this
      */
     public function setApplyFilters($flag)
     {
@@ -226,14 +205,15 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Getter/Setter for isTotals
      *
-     * @param null|boolean $flag
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  null|bool  $flag
+     * @return $this|bool
      */
     public function isTotals($flag = null)
     {
         if (is_null($flag)) {
             return $this->_isTotals;
         }
+
         $this->_isTotals = $flag;
         return $this;
     }
@@ -241,14 +221,15 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Getter/Setter for isSubTotals
      *
-     * @param null|boolean $flag
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @param  null|bool  $flag
+     * @return $this|bool
      */
     public function isSubTotals($flag = null)
     {
         if (is_null($flag)) {
             return $this->_isSubTotals;
         }
+
         $this->_isSubTotals = $flag;
         return $this;
     }
@@ -256,7 +237,7 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
     /**
      * Custom filters application ability
      *
-     * @return Mage_Reports_Model_Resource_Report_Collection_Abstract
+     * @return $this
      */
     protected function _applyCustomFilter()
     {
@@ -267,21 +248,69 @@ class Mage_Reports_Model_Resource_Report_Collection_Abstract extends Mage_Core_M
      * Load data
      * Redeclare parent load method just for adding method _beforeLoad
      *
-     * @param bool $printQuery
-     * @param bool $logQuery
-     * @return Mage_Sales_Model_Resource_Report_Collection_Abstract
+     * @inheritDoc
      */
+    #[Override]
     public function load($printQuery = false, $logQuery = false)
     {
         if ($this->isLoaded()) {
             return $this;
         }
+
         $this->_initSelect();
         if ($this->_applyFilters) {
             $this->_applyDateRangeFilter();
             $this->_applyStoresFilter();
             $this->_applyCustomFilter();
         }
+
         return parent::load($printQuery, $logQuery);
+    }
+
+
+    /**
+     * Get SQL for get record count
+     *
+     * @return Varien_Db_Select
+     * @see Mage_Reports_Model_Resource_Report_Product_Viewed_Collection
+     * @see Mage_Sales_Model_Resource_Report_Bestsellers_Collection
+     */
+    #[Override]
+    public function getSelectCountSql()
+    {
+        $this->_renderFilters();
+        $select = clone $this->getSelect();
+        $select->reset(Zend_Db_Select::ORDER);
+        return $this->getConnection()->select()->from($select, 'COUNT(*)');
+    }
+
+    /**
+     * Set ids for store restrictions
+     *
+     * @param  array $storeIds
+     * @return $this
+     * @see Mage_Reports_Model_Resource_Report_Product_Viewed_Collection
+     * @see Mage_Sales_Model_Resource_Report_Bestsellers_Collection
+     */
+    public function addStoreRestrictions($storeIds)
+    {
+        if (!is_array($storeIds)) {
+            $storeIds = [$storeIds];
+        }
+
+        $currentStoreIds = $this->_storesIds;
+        if (isset($currentStoreIds) && $currentStoreIds != Mage_Core_Model_App::ADMIN_STORE_ID
+            && $currentStoreIds != [Mage_Core_Model_App::ADMIN_STORE_ID]
+        ) {
+            if (!is_array($currentStoreIds)) {
+                $currentStoreIds = [$currentStoreIds];
+            }
+
+            $this->_storesIds = array_intersect($currentStoreIds, $storeIds);
+        } else {
+            $this->_storesIds = $storeIds;
+        }
+
+        return $this;
     }
 }

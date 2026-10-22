@@ -1,48 +1,36 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml newsletter problem grid block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Newsletter_Problem_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_newsletter_problem_grid';
+
     public function __construct()
     {
         parent::__construct();
         $this->setId('problemGrid');
+        $this->setDefaultSort('problem_id');
         $this->setSaveParametersInSession(true);
-        $this->setMessageBlockVisibility(true);
+        $this->setMessageBlockVisibility();
         $this->setUseAjax(true);
         $this->setEmptyText(Mage::helper('newsletter')->__('No problems found.'));
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('newsletter/problem_collection')
@@ -54,49 +42,54 @@ class Mage_Adminhtml_Block_Newsletter_Problem_Grid extends Mage_Adminhtml_Block_
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('checkbox', array(
-             'sortable' 	=> false,
-            'filter'	=> 'adminhtml/newsletter_problem_grid_filter_checkbox',
-            'renderer'	=> 'adminhtml/newsletter_problem_grid_renderer_checkbox',
-            'width'		=> '20px'
-        ));
+        $this->addColumn('checkbox', [
+            'sortable'     => false,
+            'filter'    => 'adminhtml/newsletter_problem_grid_filter_checkbox',
+            'renderer'  => 'adminhtml/newsletter_problem_grid_renderer_checkbox',
+            'width'     => '20px',
+        ]);
 
-        $this->addColumn('problem_id', array(
+        $this->addColumn('problem_id', [
             'header' => Mage::helper('newsletter')->__('ID'),
             'index'  => 'problem_id',
-            'width'	 => '50px'
-        ));
+            'width'  => '50px',
+        ]);
 
-        $this->addColumn('subscriber', array(
+        $this->addColumn('subscriber', [
             'header' => Mage::helper('newsletter')->__('Subscriber'),
             'index'  => 'subscriber_id',
-            'format' => '#$subscriber_id $customer_name ($subscriber_email)'
-        ));
+            'format' => '#$subscriber_id $customer_name ($subscriber_email)',
+        ]);
 
-        $this->addColumn('queue_start', array(
+        $this->addColumn('queue_start', [
             'header' => Mage::helper('newsletter')->__('Queue Date Start'),
             'index'  => 'queue_start_at',
             'gmtoffset' => true,
-            'type'	 => 'datetime'
-        ));
+            'type'   => 'datetime',
+        ]);
 
-        $this->addColumn('queue', array(
+        $this->addColumn('queue', [
             'header' => Mage::helper('newsletter')->__('Queue Subject'),
-            'index'  => 'template_subject'
-        ));
+            'index'  => 'template_subject',
+        ]);
 
-        $this->addColumn('problem_code', array(
+        $this->addColumn('problem_code', [
             'header' => Mage::helper('newsletter')->__('Error Code'),
             'index'  => 'problem_error_code',
-            'type'   => 'number'
-        ));
+            'type'   => 'number',
+        ]);
 
-        $this->addColumn('problem_text', array(
+        $this->addColumn('problem_text', [
             'header' => Mage::helper('newsletter')->__('Error Text'),
-            'index'  => 'problem_error_text'
-        ));
+            'index'  => 'problem_error_text',
+        ]);
         return parent::_prepareColumns();
     }
-}// Class Mage_Adminhtml_Block_Newsletter_Problem_Grid END
+}

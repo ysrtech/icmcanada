@@ -344,7 +344,7 @@ class Clarion_Customerattribute_Adminhtml_CustomerattributeController extends Ma
      *
      * @return boolean
      */
-    protected function _isAllowed()
+    protected function _isAllowed(): bool
     {
         switch ($this->getRequest()->getActionName()) {
             case 'new':

@@ -1,81 +1,101 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Customer
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Customer
  */
 
 /**
  * Customer account navigation sidebar
  *
- * @category   Mage
  * @package    Mage_Customer
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Customer_Block_Account_Navigation extends Mage_Core_Block_Template
 {
+    /**
+     * @var array
+     */
+    protected $_links = [];
 
-    protected $_links = array();
-
+    /**
+     * @var false|string
+     */
     protected $_activeLink = false;
 
-    public function addLink($name, $path, $label, $urlParams=array())
+    /**
+     * @param  string $name
+     * @param  string $path
+     * @param  string $label
+     * @param  array  $urlParams
+     * @return $this
+     */
+    public function addLink($name, $path, $label, $urlParams = [])
     {
-        $this->_links[$name] = new Varien_Object(array(
+        $this->_links[$name] = new Varien_Object([
             'name' => $name,
             'path' => $path,
             'label' => $label,
             'url' => $this->getUrl($path, $urlParams),
-        ));
+        ]);
         return $this;
     }
 
+    /**
+     * Remove a link
+     *
+     * @param  string $name Name of the link
+     * @return $this
+     */
+    public function removeLink($name)
+    {
+        if (isset($this->_links[$name])) {
+            unset($this->_links[$name]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  string $path
+     * @return $this
+     */
     public function setActive($path)
     {
         $this->_activeLink = $this->_completePath($path);
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getLinks()
     {
         return $this->_links;
     }
 
+    /**
+     * @param  Varien_Object $link
+     * @return bool
+     */
     public function isActive($link)
     {
         if (empty($this->_activeLink)) {
             $this->_activeLink = $this->getAction()->getFullActionName('/');
         }
-        if ($this->_completePath($link->getPath()) == $this->_activeLink) {
-            return true;
-        }
-        return false;
+
+        return $this->_completePath($link->getPath()) == $this->_activeLink;
     }
 
+    /**
+     * @param  string $path
+     * @return string
+     */
     protected function _completePath($path)
     {
         $path = rtrim($path, '/');
-        switch (sizeof(explode('/', $path))) {
+        switch (count(explode('/', $path))) {
             case 1:
                 $path .= '/index';
                 // no break
@@ -83,7 +103,7 @@ class Mage_Customer_Block_Account_Navigation extends Mage_Core_Block_Template
             case 2:
                 $path .= '/index';
         }
+
         return $path;
     }
-
 }

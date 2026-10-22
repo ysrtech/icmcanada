@@ -11,25 +11,48 @@ include 'cloudflare.php';
 
 class DM_Cloudflare_Model_Observer {
 
-        private $cf_apikey;
-        private $cf_email;
-        private $cf_domain;
-
+        private $cf_api_token;
+        private $cf_zone_id;
 
         public $cf;
 
      public function __construct()
       {
-
-        $this->cf_apikey = Mage::getStoreConfig('general/cf_group/cf_api');
-        $this->cf_email = Mage::getStoreConfig('general/cf_group/cf_email');
-        $this->cf_domain = $this->clearUrl();
-        $this->cf= new cloudflare_api($this->cf_email, $this->cf_apikey);
+        $this->cf_api_token = trim(Mage::getStoreConfig('general/cf_group/cf_api_token'));
+        $this->cf_zone_id   = trim(Mage::getStoreConfig('general/cf_group/cf_zone_id'));
+        $this->cf           = new cloudflare_api($this->cf_api_token);
       }
 
     public function purgeCache(){
-        $obj = $this->cf->fpurge_ts($this->cf_domain);
-        return $obj->result;
+        if (empty($this->cf_api_token) || empty($this->cf_zone_id)) {
+            Mage::getSingleton('adminhtml/session')->addError(
+                'Cloudflare: API Token or Zone ID is not configured. Check System → Configuration → General → CloudFlare.'
+            );
+            return 'error';
+        }
+
+        $obj = $this->cf->purge_everything($this->cf_zone_id);
+
+        if (isset($obj->success) && $obj->success) {
+            return 'success';
+        }
+
+        // Surface the actual error from Cloudflare
+        $errorMsg = 'Cloudflare API error.';
+        if (!empty($obj->errors) && is_array($obj->errors)) {
+            $parts = array();
+            foreach ($obj->errors as $e) {
+                $parts[] = isset($e->message) ? '[' . $e->code . '] ' . $e->message : (string)$e;
+            }
+            $errorMsg = implode(' | ', $parts);
+        }
+        $tokenHint = strlen($this->cf_api_token) > 8
+            ? substr($this->cf_api_token, 0, 4) . '...' . substr($this->cf_api_token, -4)
+            : '(empty or too short)';
+        Mage::getSingleton('adminhtml/session')->addError(
+            'Cloudflare: ' . $errorMsg . ' (token: ' . $tokenHint . ', zone: ' . $this->cf_zone_id . ')'
+        );
+        return 'error';
     }
 
     public function injectHtml(Varien_Event_Observer $observer) {

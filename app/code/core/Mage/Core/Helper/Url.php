@@ -1,38 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Core URL helper
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
  */
 class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
 {
+    protected $_moduleName = 'Mage_Core';
 
     /**
      * Retrieve current url
@@ -44,15 +26,15 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
         $request = Mage::app()->getRequest();
         $port = $request->getServer('SERVER_PORT');
         if ($port) {
-            $defaultPorts = array(
+            $defaultPorts = [
                 Mage_Core_Controller_Request_Http::DEFAULT_HTTP_PORT,
-                Mage_Core_Controller_Request_Http::DEFAULT_HTTPS_PORT
-            );
+                Mage_Core_Controller_Request_Http::DEFAULT_HTTPS_PORT,
+            ];
             $port = (in_array($port, $defaultPorts)) ? '' : ':' . $port;
         }
+
         $url = $request->getScheme() . '://' . $request->getHttpHost() . $port . $request->getServer('REQUEST_URI');
         return $this->escapeUrl($url);
-//        return $this->_getUrl('*/*/*', array('_current' => true, '_use_rewrite' => true));
     }
 
     /**
@@ -68,7 +50,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
     /**
      * Return encoded url
      *
-     * @param null|string $url
+     * @param  null|string $url
      * @return string
      */
     public function getEncodedUrl($url = null)
@@ -76,6 +58,7 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
         if (!$url) {
             $url = $this->getCurrentUrl();
         }
+
         return $this->urlEncode($url);
     }
 
@@ -92,37 +75,39 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
     /**
      * Formatting string
      *
-     * @param string $string
+     * @param  string $string
      * @return string
      */
     protected function _prepareString($string)
     {
         $string = preg_replace('#[^0-9a-z]+#i', '-', $string);
         $string = strtolower($string);
-        $string = trim($string, '-');
 
-        return $string;
+        return trim($string, '-');
     }
 
     /**
      * Add request parameter into url
      *
-     * @param  $url string
-     * @param  $param array( 'key' => value )
+     * @param  string $url
+     * @param  array  $param ( 'key' => value )
      * @return string
      */
     public function addRequestParam($url, $param)
     {
-        $startDelimiter = (false === strpos($url,'?'))? '?' : '&';
+        $startDelimiter = (str_contains($url, '?')) ? '&' : '?';
 
-        $arrQueryParams = array();
+        $arrQueryParams = [];
         foreach ($param as $key => $value) {
-            if (is_numeric($key) || is_object($value)) {
+            if (is_numeric($key)) {
+                continue;
+            }
+
+            if (is_object($value)) {
                 continue;
             }
 
             if (is_array($value)) {
-                // $key[]=$value1&$key[]=$value2 ...
                 $arrQueryParams[] = $key . '[]=' . implode('&' . $key . '[]=', $value);
             } elseif (is_null($value)) {
                 $arrQueryParams[] = $key;
@@ -130,41 +115,51 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
                 $arrQueryParams[] = $key . '=' . $value;
             }
         }
-        $url .= $startDelimiter . implode('&', $arrQueryParams);
 
-        return $url;
+        return $url . ($startDelimiter . implode('&', $arrQueryParams));
     }
 
     /**
      * Remove request parameter from url
      *
-     * @param string $url
-     * @param string $paramKey
-     * @param boolean $caseSensitive
+     * @param  string $url
+     * @param  string $paramKey
+     * @param  bool   $caseSensitive
      * @return string
      */
     public function removeRequestParam($url, $paramKey, $caseSensitive = false)
     {
-        $regExpression = '/\\?[^#]*?(' . preg_quote($paramKey, '/') . '\\=[^#&]*&?)/' . ($caseSensitive ? '' : 'i');
-        while (preg_match($regExpression, $url, $mathes) != 0) {
-            $paramString = $mathes[1];
-            if (preg_match('/&$/', $paramString) == 0) {
-                $url = preg_replace('/(&|\\?)?' . preg_quote($paramString, '/') . '/', '', $url);
-            } else {
-                $url = str_replace($paramString, '', $url);
+        if (!str_contains($url, '?')) {
+            return $url;
+        }
+
+        [$baseUrl, $query] = explode('?', $url, 2);
+        parse_str($query, $params);
+
+        if (!$caseSensitive) {
+            $paramsLower = array_change_key_case($params);
+            $paramKeyLower = strtolower($paramKey);
+
+            if (array_key_exists($paramKeyLower, $paramsLower)) {
+                $params[$paramKey] = $paramsLower[$paramKeyLower];
             }
         }
-        return $url;
+
+        if (array_key_exists($paramKey, $params)) {
+            unset($params[$paramKey]);
+        }
+
+        return $baseUrl . ($params === [] ? '' : '?' . http_build_query($params));
     }
 
     /**
      * Return singleton model instance
      *
-     * @param string $name
-     * @param array $arguments
+     * @param  string                   $name
+     * @param  array                    $arguments
      * @return Mage_Core_Model_Abstract
      */
-    protected function _getSingletonModel($name, $arguments = array())
+    protected function _getSingletonModel($name, $arguments = [])
     {
         return Mage::getSingleton($name, $arguments);
     }
@@ -172,60 +167,48 @@ class Mage_Core_Helper_Url extends Mage_Core_Helper_Abstract
     /**
      * Retrieve encoding domain name in punycode
      *
-     * @param string $url encode url to Punycode
+     * @param  string $url encode url to Punycode
      * @return string
      */
     public function encodePunycode($url)
     {
         $parsedUrl = parse_url($url);
         if (!$this->_isPunycode($parsedUrl['host'])) {
-            if (function_exists('idn_to_ascii')) {
-                $host = idn_to_ascii($parsedUrl['host']);
-            } else {
-                $idn = new Net_IDNA2();
-                $host = $idn->encode($parsedUrl['host']);
-            }
+            $host = idn_to_ascii($parsedUrl['host']);
             return str_replace($parsedUrl['host'], $host, $url);
-        } else {
-            return $url;
         }
+
+        return $url;
     }
 
     /**
      * Retrieve decoding domain name from punycode
      *
-     * @param string $url decode url from Punycode
+     * @param  string    $url decode url from Punycode
      * @return string
+     * @throws Exception
      */
     public function decodePunycode($url)
     {
         $parsedUrl = parse_url($url);
         if ($this->_isPunycode($parsedUrl['host'])) {
-            if (function_exists('idn_to_utf8')) {
-                $host = idn_to_utf8($parsedUrl['host']);
-            } else {
-                $idn = new Net_IDNA2();
-                $host = $idn->decode($parsedUrl['host']);
-            }
+            $host = idn_to_utf8($parsedUrl['host']);
             return str_replace($parsedUrl['host'], $host, $url);
-        } else {
-            return $url;
         }
+
+        return $url;
     }
 
     /**
      * Check domain name for IDN using ACE prefix http://tools.ietf.org/html/rfc3490#section-5
      *
-     * @param string $host domain name
-     * @return boolean
+     * @param  string $host domain name
+     * @return bool
      */
+    // phpcs:ignore Ecg.PHP.PrivateClassMember.PrivateClassMemberError
     private function _isPunycode($host)
     {
-        if (strpos($host, 'xn--') === 0 || strpos($host, '.xn--') !== false
-            || strpos($host, 'XN--') === 0 || strpos($host, '.XN--') !== false
-        ) {
-            return true;
-        }
-        return false;
+        return str_starts_with($host, 'xn--') || str_contains($host, '.xn--')
+            || str_starts_with($host, 'XN--') || str_contains($host, '.XN--');
     }
 }

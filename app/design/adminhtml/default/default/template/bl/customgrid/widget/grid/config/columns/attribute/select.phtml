@@ -17,7 +17,7 @@
 <div class="nobr">
     <select name="<?php echo $this->getAttributeSelectName() ?>" id="<?php echo $this->getAttributeSelectHtmlId() ?>" class="<?php echo $this->getAttributeSelectClassNames() ?>">
     <?php foreach ($this->getAttributesCodes() as $_attributeCode): ?>
-        <option value="<?php echo $this->htmlEscape($_attributeCode) ?>"<?php if ($this->getAttributeCode() == $_attributeCode): ?> selected="selected"<?php endif ?>><?php echo $this->htmlEscape($_attributeCode) ?></option>
+        <option value="<?php echo $this->escapeHtml($_attributeCode) ?>"<?php if ($this->getAttributeCode() == $_attributeCode): ?> selected="selected"<?php endif ?>><?php echo $this->escapeHtml($_attributeCode) ?></option>
     <?php endforeach ?>
     </select>
     <?php if ($this->getRendererTargetName()): ?>

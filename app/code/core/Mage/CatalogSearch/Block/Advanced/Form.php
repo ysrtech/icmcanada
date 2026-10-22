@@ -1,50 +1,38 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogSearch
  */
 
 /**
  * Advanced search form
  *
- * @category   Mage
  * @package    Mage_CatalogSearch
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
 {
-    public function _prepareLayout()
+    /**
+     * @inheritDoc
+     */
+    #[Override]
+    protected function _prepareLayout()
     {
         // add Home breadcrumb
-        if ($breadcrumbs = $this->getLayout()->getBlock('breadcrumbs')) {
-            $breadcrumbs->addCrumb('home', array(
-                'label'=>Mage::helper('catalogsearch')->__('Home'),
-                'title'=>Mage::helper('catalogsearch')->__('Go to Home Page'),
-                'link'=>Mage::getBaseUrl()
-            ))->addCrumb('search', array(
-                'label'=>Mage::helper('catalogsearch')->__('Catalog Advanced Search')
-            ));
+        /** @var Mage_Page_Block_Html_Breadcrumbs $breadcrumbs */
+        $breadcrumbs = $this->getLayout()->getBlock('breadcrumbs');
+        if ($breadcrumbs) {
+            $breadcrumbs->addCrumb('home', [
+                'label' => Mage::helper('catalogsearch')->__('Home'),
+                'title' => Mage::helper('catalogsearch')->__('Go to Home Page'),
+                'link' => Mage::getBaseUrl(),
+            ])->addCrumb('search', [
+                'label' => Mage::helper('catalogsearch')->__('Catalog Advanced Search'),
+            ]);
         }
+
         return parent::_prepareLayout();
     }
 
@@ -55,14 +43,13 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
      */
     public function getSearchableAttributes()
     {
-        $attributes = $this->getModel()->getAttributes();
-        return $attributes;
+        return $this->getModel()->getAttributes();
     }
 
     /**
      * Retrieve attribute label
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
      * @return string
      */
     public function getAttributeLabel($attribute)
@@ -73,7 +60,7 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
     /**
      * Retrieve attribute input validation class
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
      * @return string
      */
     public function getAttributeValidationClass($attribute)
@@ -84,19 +71,15 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
     /**
      * Retrieve search string for given field from request
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @param string|null $part
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
+     * @param  null|string                                            $part
      * @return mixed|string
      */
     public function getAttributeValue($attribute, $part = null)
     {
         $value = $this->getRequest()->getQuery($attribute->getAttributeCode());
         if ($part && $value) {
-            if (isset($value[$part])) {
-                $value = $value[$part];
-            } else {
-                $value = '';
-            }
+            return $value[$part] ?? '';
         }
 
         return $value;
@@ -109,14 +92,14 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
      */
     public function getAvailableCurrencies()
     {
-        $currencies = $this->getData('_currencies');
+        $currencies = $this->getDataByKey('_currencies');
         if (is_null($currencies)) {
-            $currencies = array();
+            $currencies = [];
             $codes = Mage::app()->getStore()->getAvailableCurrencyCodes(true);
             if (is_array($codes) && count($codes)) {
                 $rates = Mage::getModel('directory/currency')->getCurrencyRates(
                     Mage::app()->getStore()->getBaseCurrency(),
-                    $codes
+                    $codes,
                 );
 
                 foreach ($codes as $code) {
@@ -128,6 +111,7 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
 
             $this->setData('currencies', $currencies);
         }
+
         return $currencies;
     }
 
@@ -144,23 +128,19 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
     /**
      * Retrieve currency code for attribute
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
      * @return string
      */
     public function getCurrency($attribute)
     {
         return Mage::app()->getStore()->getCurrentCurrencyCode();
-
-        $baseCurrency = Mage::app()->getStore()->getBaseCurrency()->getCurrencyCode();
-        return $this->getAttributeValue($attribute, 'currency') ?
-            $this->getAttributeValue($attribute, 'currency') : $baseCurrency;
     }
 
     /**
      * Retrieve attribute input type
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @return  string
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
+     * @return string
      */
     public function getAttributeInputType($attribute)
     {
@@ -192,7 +172,7 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
     /**
      * Build attribute select element html string
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
      * @return string
      */
     public function getAttributeSelectElement($attribute)
@@ -203,12 +183,11 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
         $name = $attribute->getAttributeCode();
 
         // 2 - avoid yes/no selects to be multiselects
-        if (is_array($options) && count($options)>2) {
+        if (is_array($options) && count($options) > 2) {
             $extra = 'multiple="multiple" size="4"';
-            $name.= '[]';
-        }
-        else {
-            array_unshift($options, array('value'=>'', 'label'=>Mage::helper('catalogsearch')->__('All')));
+            $name .= '[]';
+        } else {
+            array_unshift($options, ['value' => '', 'label' => Mage::helper('catalogsearch')->__('All')]);
         }
 
         return $this->_getSelectBlock()
@@ -225,45 +204,53 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
     /**
      * Retrieve yes/no element html for provided attribute
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
      * @return string
      */
     public function getAttributeYesNoElement($attribute)
     {
-        $options = array(
-            array('value' => '',  'label' => Mage::helper('catalogsearch')->__('All')),
-            array('value' => '1', 'label' => Mage::helper('catalogsearch')->__('Yes')),
-            array('value' => '0', 'label' => Mage::helper('catalogsearch')->__('No'))
-        );
+        $options = [
+            ['value' => '',  'label' => Mage::helper('catalogsearch')->__('All')],
+            ['value' => '1', 'label' => Mage::helper('catalogsearch')->__('Yes')],
+            ['value' => '0', 'label' => Mage::helper('catalogsearch')->__('No')],
+        ];
 
         $name = $attribute->getAttributeCode();
         return $this->_getSelectBlock()
             ->setName($name)
             ->setId($attribute->getAttributeCode())
             ->setTitle($this->getAttributeLabel($attribute))
-            ->setExtraParams("")
+            ->setExtraParams('')
             ->setValue($this->getAttributeValue($attribute))
             ->setOptions($options)
             ->getHtml();
     }
 
+    /**
+     * @return Mage_Core_Block_Abstract|Mage_Core_Block_Html_Select
+     */
     protected function _getSelectBlock()
     {
-        $block = $this->getData('_select_block');
+        $block = $this->getDataByKey('_select_block');
         if (is_null($block)) {
             $block = $this->getLayout()->createBlock('core/html_select');
             $this->setData('_select_block', $block);
         }
+
         return $block;
     }
 
+    /**
+     * @return Mage_Core_Block_Abstract|Mage_Core_Block_Html_Date
+     */
     protected function _getDateBlock()
     {
-        $block = $this->getData('_date_block');
+        $block = $this->getDataByKey('_date_block');
         if (is_null($block)) {
             $block = $this->getLayout()->createBlock('core/html_date');
             $this->setData('_date_block', $block);
         }
+
         return $block;
     }
 
@@ -284,14 +271,14 @@ class Mage_CatalogSearch_Block_Advanced_Form extends Mage_Core_Block_Template
      */
     public function getSearchPostUrl()
     {
-        return $this->getUrl('*/*/result', array('_secure' => $this->_isSecure()));
+        return $this->getUrl('*/*/result', ['_secure' => $this->_isSecure()]);
     }
 
     /**
      * Build date element html string for attribute
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @param string $part
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract|Varien_Object $attribute
+     * @param  string                                                 $part
      * @return string
      */
     public function getDateInput($attribute, $part = 'from')

@@ -1,55 +1,55 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Image
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Image
  */
 
 /**
  * Image handler library
  *
- * @category   Varien
  * @package    Varien_Image
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Varien_Image
 {
+    /**
+     * @var null|Varien_Image_Adapter_Abstract|Varien_Image_Adapter_Gd2
+     */
     protected $_adapter;
 
+    /**
+     * Absolute path to an image
+     *
+     * @var string
+     */
     protected $_fileName;
 
     /**
      * Constructor
      *
-     * @param Varien_Image_Adapter $adapter. Default value is GD2
      * @param string $fileName
-     * @return void
+     * @param string $adapter  Default value is GD2
      */
-    function __construct($fileName=null, $adapter=Varien_Image_Adapter::ADAPTER_GD2)
+    public function __construct($fileName = null, $adapter = Varien_Image_Adapter::ADAPTER_GD2)
     {
         $this->_getAdapter($adapter);
         $this->_fileName = $fileName;
-        if( isset($fileName) ) {
+        if (isset($fileName)) {
             $this->open();
+        }
+    }
+
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        if ($this->_adapter instanceof Varien_Image_Adapter_Abstract
+            && method_exists($this->_adapter, 'destruct')
+        ) {
+            $this->_adapter->destruct();
         }
     }
 
@@ -63,7 +63,11 @@ class Varien_Image
     {
         $this->_getAdapter()->checkDependencies();
 
-        if( !file_exists($this->_fileName) ) {
+        if (str_starts_with($this->_fileName, 'phar://')) {
+            throw new Exception("File '{$this->_fileName}' is not readable.");
+        }
+
+        if (!file_exists($this->_fileName)) {
             throw new Exception("File '{$this->_fileName}' does not exists.");
         }
 
@@ -89,7 +93,7 @@ class Varien_Image
      * @access public
      * @return void
      */
-    public function save($destination=null, $newFileName=null)
+    public function save($destination = null, $newFileName = null)
     {
         $this->_getAdapter()->save($destination, $newFileName);
     }
@@ -109,14 +113,14 @@ class Varien_Image
     /**
      * Crop an image.
      *
-     * @param int $top. Default value is 0
-     * @param int $left. Default value is 0
-     * @param int $right. Default value is 0
+     * @param int $top.    Default value is 0
+     * @param int $left.   Default value is 0
+     * @param int $right.  Default value is 0
      * @param int $bottom. Default value is 0
      * @access public
      * @return void
      */
-    public function crop($top=0, $left=0, $right=0, $bottom=0)
+    public function crop($top = 0, $left = 0, $right = 0, $bottom = 0)
     {
         $this->_getAdapter()->crop($top, $left, $right, $bottom);
     }
@@ -162,7 +166,7 @@ class Varien_Image
     /**
      * Get/set quality, values in percentage from 0 to 100
      *
-     * @param int $value
+     * @param  int $value
      * @return int
      */
     public function quality($value)
@@ -173,19 +177,20 @@ class Varien_Image
     /**
      * Adds watermark to our image.
      *
-     * @param string $watermarkImage. Absolute path to watermark image.
-     * @param int $positionX. Watermark X position.
-     * @param int $positionY. Watermark Y position.
-     * @param int $watermarkImageOpacity. Watermark image opacity.
-     * @param bool $repeat. Enable or disable watermark brick.
+     * @param string $watermarkImage.        Absolute path to watermark image.
+     * @param int    $positionX.             Watermark X position.
+     * @param int    $positionY.             Watermark Y position.
+     * @param int    $watermarkImageOpacity. Watermark image opacity.
+     * @param bool   $repeat.                Enable or disable watermark brick.
      * @access public
      * @return void
      */
-    public function watermark($watermarkImage, $positionX=0, $positionY=0, $watermarkImageOpacity=30, $repeat=false)
+    public function watermark($watermarkImage, $positionX = 0, $positionY = 0, $watermarkImageOpacity = 30, $repeat = false)
     {
-        if( !file_exists($watermarkImage) ) {
+        if (!file_exists($watermarkImage)) {
             throw new Exception("Required file '{$watermarkImage}' does not exists.");
         }
+
         $this->_getAdapter()->watermark($watermarkImage, $positionX, $positionY, $watermarkImageOpacity, $repeat);
     }
 
@@ -206,10 +211,7 @@ class Varien_Image
      * @access public
      * @return void
      */
-    public function process()
-    {
-
-    }
+    public function process() {}
 
     /**
      * instruction
@@ -217,10 +219,7 @@ class Varien_Image
      * @access public
      * @return void
      */
-    public function instruction()
-    {
-
-    }
+    public function instruction() {}
 
     /**
      * Set image background color
@@ -231,14 +230,14 @@ class Varien_Image
      */
     public function setImageBackgroundColor($color)
     {
-        $this->_getAdapter()->imageBackgroundColor = intval($color);
+        $this->_getAdapter()->imageBackgroundColor = (int) $color;
     }
 
     /**
      * Set watermark position
      *
-     * @param string $position
-     * @return Varien_Image
+     * @param  string $position
+     * @return $this
      */
     public function setWatermarkPosition($position)
     {
@@ -249,8 +248,8 @@ class Varien_Image
     /**
      * Set watermark image opacity
      *
-     * @param int $imageOpacity
-     * @return Varien_Image
+     * @param  int   $imageOpacity
+     * @return $this
      */
     public function setWatermarkImageOpacity($imageOpacity)
     {
@@ -261,8 +260,8 @@ class Varien_Image
     /**
      * Set watermark width
      *
-     * @param int $width
-     * @return Varien_Image
+     * @param  int   $width
+     * @return $this
      */
     public function setWatermarkWidth($width)
     {
@@ -271,10 +270,10 @@ class Varien_Image
     }
 
     /**
-     * Set watermark heigth
+     * Set watermark height
      *
-     * @param int $heigth
-     * @return Varien_Image
+     * @param  int   $heigth
+     * @return $this
      */
     public function setWatermarkHeigth($heigth)
     {
@@ -285,21 +284,22 @@ class Varien_Image
     /**
      * Retrieve image adapter object
      *
-     * @param string $adapter
+     * @param  string                        $adapter
      * @return Varien_Image_Adapter_Abstract
      */
-    protected function _getAdapter($adapter=null)
+    protected function _getAdapter($adapter = null)
     {
-        if( !isset($this->_adapter) ) {
-            $this->_adapter = Varien_Image_Adapter::factory( $adapter );
+        if (!isset($this->_adapter)) {
+            $this->_adapter = Varien_Image_Adapter::factory($adapter);
         }
+
         return $this->_adapter;
     }
 
     /**
      * Retrieve original image width
      *
-     * @return int|null
+     * @return null|int
      */
     public function getOriginalWidth()
     {
@@ -309,7 +309,7 @@ class Varien_Image
     /**
      * Retrieve original image height
      *
-     * @return int|null
+     * @return null|int
      */
     public function getOriginalHeight()
     {

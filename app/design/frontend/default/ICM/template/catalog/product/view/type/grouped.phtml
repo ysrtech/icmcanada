@@ -43,18 +43,18 @@
         <?php $_finalPriceInclTax = $this->helper('tax')->getPrice($_item, $_item->getFinalPrice(), true) ?>
         <li class="group-item">
             <div class="item-basics" >
-                <p class="item-name" ><?php echo $this->htmlEscape($_item->getName()) ?></p>
+                <p class="item-name" ><?php echo $this->escapeHtml($_item->getName()) ?></p>
                 <p class="sku" >SKU: <?php echo $_item->getData('sku')?></p>
                 <p class="item-link" ><a href="<?php echo $_item->getProductUrl()?>">More details >></a></p>
             </div>
             <div class="item-image" >
                 <?php if ($_item->getImage() != 'no_selection' && $_item->getImage()): ?>
                 <a rel="gallery" class="pirobox_gall" href="<?php echo $this->helper('catalog/image')->init($_item, 'image')->resize(600); ?>" title="">
-                <img width="80" class="thumbnail" src="<?php echo $this->helper('catalog/image')->init($_item, 'image')->resize(80); ?>" title="<?php echo $this->htmlEscape($_item->getName()) ?>"/>
+                <img width="80" class="thumbnail" src="<?php echo $this->helper('catalog/image')->init($_item, 'image')->resize(80); ?>" title="<?php echo $this->escapeHtml($_item->getName()) ?>"/>
                 <p class="zoom-notice"><img src="<?php echo $this->getSkinUrl(); ?>images/zoom.gif" style="margin-right: 5px"/><?php echo $this->__('Zoom') ?></p>
                 </a>
                 <?php else: ?>
-                    <img width="80" class="thumbnail" src="<?php echo $this->helper('catalog/image')->init($_item, 'image')->resize(80); ?>" title="<?php echo $this->htmlEscape($_item->getName()) ?>"/>
+                    <img width="80" class="thumbnail" src="<?php echo $this->helper('catalog/image')->init($_item, 'image')->resize(80); ?>" title="<?php echo $this->escapeHtml($_item->getName()) ?>"/>
                 <?php endif;?>
             </div>
             <?php if(Mage::getStoreConfig("catalog/frontend/hidepriceforguest") != 1 || Mage::getSingleton('customer/session')->isLoggedIn()):?>

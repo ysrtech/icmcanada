@@ -59,7 +59,7 @@ class DC_Catalog_Helper_AttributeInfo extends Mage_Core_Helper_Abstract
 
         //the product collection that will be further filtered
 		$collection = $layer->getProductCollection();
-		/* @var $collection Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Collection */
+		/* @var $collection Mage_Catalog_Model_Resource_Product_Collection */
 
         //set the store id and the main category from the store
         $collection->setStoreId(Mage::app()->getStore()->getId());
@@ -194,9 +194,10 @@ class DC_Catalog_Helper_AttributeInfo extends Mage_Core_Helper_Abstract
 		        } else {
 		        	$label = $attribute->getFrontendLabel();
 		        }
+                $urlPrefix = Mage::helper('dc_catalog')->getAttributeUrlPrefix($attributeInfo->getAttributeCode());
                 $breadcrumbs->addCrumb('allvalues', array(
                     'label' => Mage::helper('dc_catalog')->__($label.'s'),
-                    'link'  => Mage::getUrl(''.$attributeInfo->getAttributeCode().'/'),
+                    'link'  => Mage::getUrl($urlPrefix.'/'),
                 ));
 
 
@@ -208,6 +209,10 @@ class DC_Catalog_Helper_AttributeInfo extends Mage_Core_Helper_Abstract
         if (($attributeInfo->getRootTemplate()) && ('empty' != $attributeInfo->getRootTemplate())) {
             $action->getLayout()->helper('page/layout')
                 ->applyTemplate($attributeInfo->getRootTemplate());
+        }
+
+        if ($head = $action->getLayout()->getBlock('head')) {
+            $head->setTitle($this->__('Products by %s', $attributeInfo->getValue()));
         }
 
         if ($storage = Mage::getSingleton('catalog/session')) {
@@ -266,6 +271,16 @@ class DC_Catalog_Helper_AttributeInfo extends Mage_Core_Helper_Abstract
                 ->applyTemplate($attributeInfo->getRootTemplate());
         }*/
 
+        // Resolve the translated attribute label for this store — used in both
+        // breadcrumbs and page title, so it must be set before either block.
+        $attributeCode = Mage::registry('attribute_code');
+        $attribute      = Mage::getSingleton('eav/config')->getAttribute('catalog_product', $attributeCode);
+        if (is_array($storeLabels = $attribute->getStoreLabels()) && isset($storeLabels[Mage::app()->getStore()->getId()])) {
+            $label = $storeLabels[Mage::app()->getStore()->getId()];
+        } else {
+            $label = $attribute->getFrontendLabel();
+        }
+
         // show breadcrumbs
         if (Mage::getStoreConfig('web/default/show_cms_breadcrumbs')
             && ($breadcrumbs = $action->getLayout()->getBlock('breadcrumbs'))) {
@@ -278,17 +293,14 @@ class DC_Catalog_Helper_AttributeInfo extends Mage_Core_Helper_Abstract
                 	'link'=>Mage::getBaseUrl()
                 )
                 );
-        	$attributeCode = Mage::registry('attribute_code');
 
-	        $attribute = Mage::getSingleton('eav/config')->getAttribute('catalog_product', $attributeCode);
-	        if (is_array($labels = $attribute->getStoreLabels()) && (isset($labels[Mage::app()->getStore()->getId()]))) {
-	        	$label = $labels[Mage::app()->getStore()->getId()];
-	        } else {
-	        	$label = $attribute->getFrontendLabel();
-	        }
         	$breadcrumbs->addCrumb('allvalues', array(
                     'label' => Mage::helper('dc_catalog')->__($label.'s'),
                 ));
+        }
+
+        if ($head = $action->getLayout()->getBlock('head')) {
+            $head->setTitle($this->__('Shop by') . ' ' . $label);
         }
 
         if ($storage = Mage::getSingleton('catalog/session')) {

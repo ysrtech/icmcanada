@@ -1,138 +1,134 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
+ */
 
 /**
  * Sales Quote Item Model
  *
- * @method Mage_Sales_Model_Resource_Quote_Item _getResource()
- * @method Mage_Sales_Model_Resource_Quote_Item getResource()
- * @method int getQuoteId()
- * @method Mage_Sales_Model_Quote_Item setQuoteId(int $value)
- * @method string getCreatedAt()
- * @method Mage_Sales_Model_Quote_Item setCreatedAt(string $value)
- * @method string getUpdatedAt()
- * @method Mage_Sales_Model_Quote_Item setUpdatedAt(string $value)
- * @method int getProductId()
- * @method Mage_Sales_Model_Quote_Item setProductId(int $value)
- * @method int getStoreId()
- * @method Mage_Sales_Model_Quote_Item setStoreId(int $value)
- * @method int getParentItemId()
- * @method Mage_Sales_Model_Quote_Item setParentItemId(int $value)
- * @method int getIsVirtual()
- * @method Mage_Sales_Model_Quote_Item setIsVirtual(int $value)
- * @method string getSku()
- * @method Mage_Sales_Model_Quote_Item setSku(string $value)
- * @method string getName()
- * @method Mage_Sales_Model_Quote_Item setName(string $value)
- * @method string getDescription()
- * @method Mage_Sales_Model_Quote_Item setDescription(string $value)
- * @method string getAppliedRuleIds()
- * @method Mage_Sales_Model_Quote_Item setAppliedRuleIds(string $value)
- * @method string getAdditionalData()
- * @method Mage_Sales_Model_Quote_Item setAdditionalData(string $value)
- * @method int getFreeShipping()
- * @method Mage_Sales_Model_Quote_Item setFreeShipping(int $value)
- * @method int getIsQtyDecimal()
- * @method Mage_Sales_Model_Quote_Item setIsQtyDecimal(int $value)
- * @method int getNoDiscount()
- * @method Mage_Sales_Model_Quote_Item setNoDiscount(int $value)
- * @method float getWeight()
- * @method Mage_Sales_Model_Quote_Item setWeight(float $value)
- * @method float getBasePrice()
- * @method Mage_Sales_Model_Quote_Item setBasePrice(float $value)
- * @method float getCustomPrice()
- * @method float getDiscountPercent()
- * @method Mage_Sales_Model_Quote_Item setDiscountPercent(float $value)
- * @method float getDiscountAmount()
- * @method Mage_Sales_Model_Quote_Item setDiscountAmount(float $value)
- * @method float getBaseDiscountAmount()
- * @method Mage_Sales_Model_Quote_Item setBaseDiscountAmount(float $value)
- * @method float getTaxPercent()
- * @method Mage_Sales_Model_Quote_Item setTaxPercent(float $value)
- * @method Mage_Sales_Model_Quote_Item setTaxAmount(float $value)
- * @method Mage_Sales_Model_Quote_Item setBaseTaxAmount(float $value)
- * @method float getRowTotal()
- * @method Mage_Sales_Model_Quote_Item setRowTotal(float $value)
- * @method float getBaseRowTotal()
- * @method Mage_Sales_Model_Quote_Item setBaseRowTotal(float $value)
- * @method float getRowTotalWithDiscount()
- * @method Mage_Sales_Model_Quote_Item setRowTotalWithDiscount(float $value)
- * @method float getRowWeight()
- * @method Mage_Sales_Model_Quote_Item setRowWeight(float $value)
- * @method Mage_Sales_Model_Quote_Item setProductType(string $value)
- * @method float getBaseTaxBeforeDiscount()
- * @method Mage_Sales_Model_Quote_Item setBaseTaxBeforeDiscount(float $value)
- * @method float getTaxBeforeDiscount()
- * @method Mage_Sales_Model_Quote_Item setTaxBeforeDiscount(float $value)
- * @method float getOriginalCustomPrice()
- * @method Mage_Sales_Model_Quote_Item setOriginalCustomPrice(float $value)
- * @method string getRedirectUrl()
- * @method Mage_Sales_Model_Quote_Item setRedirectUrl(string $value)
- * @method float getBaseCost()
- * @method Mage_Sales_Model_Quote_Item setBaseCost(float $value)
- * @method float getPriceInclTax()
- * @method Mage_Sales_Model_Quote_Item setPriceInclTax(float $value)
- * @method float getBasePriceInclTax()
- * @method Mage_Sales_Model_Quote_Item setBasePriceInclTax(float $value)
- * @method float getRowTotalInclTax()
- * @method Mage_Sales_Model_Quote_Item setRowTotalInclTax(float $value)
- * @method float getBaseRowTotalInclTax()
- * @method Mage_Sales_Model_Quote_Item setBaseRowTotalInclTax(float $value)
- * @method int getGiftMessageId()
- * @method Mage_Sales_Model_Quote_Item setGiftMessageId(int $value)
- * @method string getWeeeTaxApplied()
- * @method Mage_Sales_Model_Quote_Item setWeeeTaxApplied(string $value)
- * @method float getWeeeTaxAppliedAmount()
- * @method Mage_Sales_Model_Quote_Item setWeeeTaxAppliedAmount(float $value)
- * @method float getWeeeTaxAppliedRowAmount()
- * @method Mage_Sales_Model_Quote_Item setWeeeTaxAppliedRowAmount(float $value)
- * @method float getBaseWeeeTaxAppliedAmount()
- * @method Mage_Sales_Model_Quote_Item setBaseWeeeTaxAppliedAmount(float $value)
- * @method float getBaseWeeeTaxAppliedRowAmount()
- * @method Mage_Sales_Model_Quote_Item setBaseWeeeTaxAppliedRowAmount(float $value)
- * @method float getWeeeTaxDisposition()
- * @method Mage_Sales_Model_Quote_Item setWeeeTaxDisposition(float $value)
- * @method float getWeeeTaxRowDisposition()
- * @method Mage_Sales_Model_Quote_Item setWeeeTaxRowDisposition(float $value)
- * @method float getBaseWeeeTaxDisposition()
- * @method Mage_Sales_Model_Quote_Item setBaseWeeeTaxDisposition(float $value)
- * @method float getBaseWeeeTaxRowDisposition()
- * @method Mage_Sales_Model_Quote_Item setBaseWeeeTaxRowDisposition(float $value)
- * @method float getHiddenTaxAmount()
- * @method Mage_Sales_Model_Quote_Item setHiddenTaxAmount(float $value)
- * @method float getBaseHiddenTaxAmount()
- * @method Mage_Sales_Model_Quote_Item setBaseHiddenTaxAmount(float $value)
- * @method null|bool getHasConfigurationUnavailableError()
- * @method Mage_Sales_Model_Quote_Item setHasConfigurationUnavailableError(bool $value)
- * @method Mage_Sales_Model_Quote_Item unsHasConfigurationUnavailableError()
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Quote_Item            _getResource()
+ * @method string                                          getAdditionalData()
+ * @method null|string                                     getAppliedRuleIds()
+ * @method float                                           getBaseCost()
+ * @method float                                           getBaseDiscountAmount()
+ * @method float                                           getBaseHiddenTaxAmount()
+ * @method float                                           getBasePrice()
+ * @method float                                           getBasePriceInclTax()
+ * @method float                                           getBaseRowTotal()
+ * @method float                                           getBaseRowTotalInclTax()
+ * @method float                                           getBaseTaxBeforeDiscount()
+ * @method float                                           getBaseWeeeTaxAppliedAmount()
+ * @method float                                           getBaseWeeeTaxAppliedRowAmount()
+ * @method float                                           getBaseWeeeTaxDisposition()
+ * @method float                                           getBaseWeeeTaxRowDisposition()
+ * @method Mage_Sales_Model_Resource_Quote_Item_Collection getCollection()
+ * @method float                                           getCost()
+ * @method float                                           getCustomPrice()
+ * @method string                                          getDescription()
+ * @method float                                           getDiscountAmount()
+ * @method float                                           getDiscountPercent()
+ * @method int                                             getFreeShipping()
+ * @method int                                             getGiftMessageId()
+ * @method bool                                            getHasConfigurationUnavailableError()
+ * @method bool                                            getHasError()
+ * @method float                                           getHiddenTaxAmount()
+ * @method int                                             getIsQtyDecimal()
+ * @method int                                             getIsVirtual()
+ * @method int                                             getItemId()
+ * @method int                                             getMultishippingQty()
+ * @method string                                          getName()
+ * @method int                                             getNoDiscount()
+ * @method float                                           getOriginalCustomPrice()
+ * @method int                                             getParentItemId()
+ * @method float                                           getPriceInclTax()
+ * @method int                                             getProductId()
+ * @method float                                           getQtyToAdd()
+ * @method int                                             getQuoteId()
+ * @method string                                          getRedirectUrl()
+ * @method Mage_Sales_Model_Resource_Quote_Item            getResource()
+ * @method Mage_Sales_Model_Resource_Quote_Item_Collection getResourceCollection()
+ * @method float                                           getRowTotal()
+ * @method float                                           getRowTotalInclTax()
+ * @method float                                           getRowTotalWithDiscount()
+ * @method float                                           getRowWeight()
+ * @method string                                          getSku()
+ * @method int                                             getStoreId()
+ * @method float                                           getTaxBeforeDiscount()
+ * @method float                                           getTaxPercent()
+ * @method bool                                            getUseOldQty()
+ * @method string                                          getWeeeTaxApplied()
+ * @method float                                           getWeeeTaxAppliedAmount()
+ * @method float                                           getWeeeTaxAppliedRowAmount()
+ * @method float                                           getWeeeTaxDisposition()
+ * @method float                                           getWeeeTaxRowDisposition()
+ * @method float                                           getWeight()
+ * @method $this                                           setAdditionalData(string $value)
+ * @method $this                                           setAppliedRuleIds(string $value)
+ * @method $this                                           setBackorders(float $value)
+ * @method $this                                           setBaseCost(float $value)
+ * @method $this                                           setBaseDiscountAmount(float $value)
+ * @method $this                                           setBaseHiddenTaxAmount(float $value)
+ * @method $this                                           setBasePrice(float $value)
+ * @method $this                                           setBasePriceInclTax(float $value)
+ * @method $this                                           setBaseRowTotal(float $value)
+ * @method $this                                           setBaseRowTotalInclTax(float $value)
+ * @method $this                                           setBaseRowTotalWithDiscount(float $value)
+ * @method $this                                           setBaseTaxAmount(float $value)
+ * @method $this                                           setBaseTaxBeforeDiscount(float $value)
+ * @method $this                                           setBaseWeeeTaxAppliedAmount(float $value)
+ * @method $this                                           setBaseWeeeTaxAppliedRowAmount(float $value)
+ * @method $this                                           setBaseWeeeTaxDisposition(float $value)
+ * @method $this                                           setBaseWeeeTaxRowDisposition(float $value)
+ * @method $this                                           setDescription(string $value)
+ * @method $this                                           setDiscountAmount(float $value)
+ * @method $this                                           setDiscountPercent(float $value)
+ * @method $this                                           setFreeShipping(int $value)
+ * @method $this                                           setGiftMessage(string $value)
+ * @method $this                                           setGiftMessageId(int $value)
+ * @method $this                                           setHasConfigurationUnavailableError(bool $value)
+ * @method $this                                           setHiddenTaxAmount(float $value)
+ * @method $this                                           setIsQtyDecimal(int $value)
+ * @method $this                                           setIsRecurring(int $value)
+ * @method $this                                           setIsVirtual(int $value)
+ * @method $this                                           setMultishippingQty(int $value)
+ * @method $this                                           setName(string $value)
+ * @method $this                                           setNoDiscount(int $value)
+ * @method $this                                           setOriginalCustomPrice(float $value)
+ * @method $this                                           setParentItemId(int $value)
+ * @method $this                                           setParentProductId(int $value)
+ * @method $this                                           setPriceInclTax(float $value)
+ * @method $this                                           setProductId(int $value)
+ * @method $this                                           setProductOrderOptions(array $value)
+ * @method $this                                           setProductType(string $value)
+ * @method $this                                           setQtyToAdd(float $value)
+ * @method $this                                           setQuoteId(int $value)
+ * @method $this                                           setQuoteItemId(int $value)
+ * @method $this                                           setQuoteMessage(string $value)
+ * @method $this                                           setQuoteMessageIndex(string $value)
+ * @method $this                                           setRedirectUrl(string $value)
+ * @method $this                                           setRowTotal(float $value)
+ * @method $this                                           setRowTotalInclTax(float $value)
+ * @method $this                                           setRowTotalWithDiscount(float $value)
+ * @method $this                                           setRowWeight(float $value)
+ * @method $this                                           setSku(string $value)
+ * @method $this                                           setStoreId(int $value)
+ * @method $this                                           setTaxAmount(float $value)
+ * @method $this                                           setTaxBeforeDiscount(float $value)
+ * @method $this                                           setTaxClassId(int $value)
+ * @method $this                                           setTaxPercent(float $value)
+ * @method $this                                           setWeeeTaxApplied(string $value)
+ * @method $this                                           setWeeeTaxAppliedAmount(float $value)
+ * @method $this                                           setWeeeTaxAppliedRowAmount(float $value)
+ * @method $this                                           setWeeeTaxDisposition(float $value)
+ * @method $this                                           setWeeeTaxRowDisposition(float $value)
+ * @method $this                                           setWeight(float $value)
+ * @method $this                                           unsHasConfigurationUnavailableError()
  */
 class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
 {
@@ -155,7 +151,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Quote model object
      *
-     * @var Mage_Sales_Model_Quote
+     * @var null|Mage_Sales_Model_Quote
      */
     protected $_quote;
 
@@ -164,25 +160,24 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      *
      * @var array
      */
-    protected $_options = array();
+    protected $_options = [];
 
     /**
      * Item options by code cache
      *
      * @var array
      */
-    protected $_optionsByCode = array();
+    protected $_optionsByCode = [];
 
     /**
      * Not Represent options
      *
      * @var array
      */
-    protected $_notRepresentOptions = array('info_buyRequest');
+    protected $_notRepresentOptions = ['info_buyRequest'];
 
     /**
      * Flag stating that options were successfully saved
-     *
      */
     protected $_flagOptionsSaved = null;
 
@@ -194,8 +189,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     protected $_errorInfos = null;
 
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -207,19 +201,19 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * Init mapping array of short fields to
      * its full names
      *
-     * @return Varien_Object
+     * @return $this
      */
     protected function _initOldFieldsMap()
     {
-        $this->_oldFieldsMap = Mage::helper('sales')->getOldFieldMap('quote_item');
         return $this;
     }
 
     /**
      * Quote Item Before Save prepare data process
      *
-     * @return Mage_Sales_Model_Quote_Item
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         parent::_beforeSave();
@@ -227,19 +221,22 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if ($this->getQuote()) {
             $this->setQuoteId($this->getQuote()->getId());
         }
+
         return $this;
     }
 
     /**
      * Declare quote model object
      *
-     * @param   Mage_Sales_Model_Quote $quote
-     * @return  Mage_Sales_Model_Quote_Item
+     * @return $this
      */
     public function setQuote(Mage_Sales_Model_Quote $quote)
     {
         $this->_quote = $quote;
-        $this->setQuoteId($quote->getId());
+        if ($this->getQuoteId() != $quote->getId()) {
+            $this->setQuoteId($quote->getId());
+        }
+
         return $this;
     }
 
@@ -250,20 +247,23 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      */
     public function getQuote()
     {
+        if (is_null($this->_quote)) {
+            $this->_quote = Mage::getModel('sales/quote')->load($this->getQuoteId());
+        }
+
         return $this->_quote;
     }
 
     /**
      * Prepare quantity
      *
-     * @param float|int $qty
-     * @return int|float
+     * @param  float|int $qty
+     * @return float|int
      */
     protected function _prepareQty($qty)
     {
         $qty = Mage::app()->getLocale()->getNumber($qty);
-        $qty = ($qty > 0) ? $qty : 1;
-        return $qty;
+        return ($qty > 0) ? $qty : 1;
     }
 
     /**
@@ -279,8 +279,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Adding quantity to quote item
      *
-     * @param float $qty
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  float $qty
+     * @return $this
      */
     public function addQty($qty)
     {
@@ -295,14 +295,15 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
             $this->setQtyToAdd($qty);
             $this->setQty($oldQty + $qty);
         }
+
         return $this;
     }
 
     /**
      * Declare quote item quantity
      *
-     * @param float $qty
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  float $qty
+     * @return $this
      */
     public function setQty($qty)
     {
@@ -310,11 +311,12 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         $oldQty = $this->_getData('qty');
         $this->setData('qty', $qty);
 
-        Mage::dispatchEvent('sales_quote_item_qty_set_after', array('item' => $this));
+        Mage::dispatchEvent('sales_quote_item_qty_set_after', ['item' => $this]);
 
         if ($this->getQuote() && $this->getQuote()->getIgnoreOldQty()) {
             return $this;
         }
+
         if ($this->getUseOldQty()) {
             $this->setData('qty', $oldQty);
         }
@@ -333,12 +335,12 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      */
     public function getQtyOptions()
     {
-        $qtyOptions = $this->getData('qty_options');
+        $qtyOptions = $this->getDataByKey('qty_options');
         if (is_null($qtyOptions)) {
-            $productIds = array();
-            $qtyOptions = array();
+            $productIds = [];
+            $qtyOptions = [];
             foreach ($this->getOptions() as $option) {
-                /** @var $option Mage_Sales_Model_Quote_Item_Option */
+                /** @var Mage_Sales_Model_Quote_Item_Option $option */
                 if (is_object($option->getProduct())
                     && $option->getProduct()->getId() != $this->getProduct()->getId()
                 ) {
@@ -362,8 +364,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Set option product with Qty
      *
-     * @param  $qtyOptions
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  array $qtyOptions
+     * @return $this
      */
     public function setQtyOptions($qtyOptions)
     {
@@ -373,8 +375,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Setup product for quote item
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  Mage_Sales_Model_Quote_Item
+     * @param  Mage_Catalog_Model_Product $product
+     * @return $this
      */
     public function setProduct($product)
     {
@@ -382,6 +384,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
             $product->setStoreId($this->getQuote()->getStoreId());
             $product->setCustomerGroupId($this->getQuote()->getCustomerGroupId());
         }
+
         $this->setData('product', $product)
             ->setProductId($product->getId())
             ->setProductType($product->getTypeId())
@@ -396,25 +399,19 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
             $this->setIsQtyDecimal($product->getStockItem()->getIsQtyDecimal());
         }
 
-        Mage::dispatchEvent('sales_quote_item_set_product', array(
+        Mage::dispatchEvent('sales_quote_item_set_product', [
             'product' => $product,
-            'quote_item' => $this
-        ));
+            'quote_item' => $this,
+        ]);
 
-
-//        if ($options = $product->getCustomOptions()) {
-//            foreach ($options as $option) {
-//                $this->addOption($option);
-//            }
-//        }
         return $this;
     }
 
     /**
      * Check product representation in item
      *
-     * @param   Mage_Catalog_Model_Product $product
-     * @return  bool
+     * @param  Mage_Catalog_Model_Product $product
+     * @return bool
      */
     public function representProduct($product)
     {
@@ -428,10 +425,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
          * only within same parent item
          */
         $stickWithinParent = $product->getStickWithinParent();
-        if ($stickWithinParent) {
-            if ($this->getParentItem() !== $stickWithinParent) {
-                return false;
-            }
+        if ($stickWithinParent && $this->getParentItem() !== $stickWithinParent) {
+            return false;
         }
 
         // Check options
@@ -441,10 +436,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if (!$this->compareOptions($itemOptions, $productOptions)) {
             return false;
         }
-        if (!$this->compareOptions($productOptions, $itemOptions)) {
-            return false;
-        }
-        return true;
+
+        return $this->compareOptions($productOptions, $itemOptions);
     }
 
     /**
@@ -452,8 +445,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * First options array is prerogative
      * Second options array checked against first one
      *
-     * @param array $options1
-     * @param array $options2
+     * @param  array $options1
+     * @param  array $options2
      * @return bool
      */
     public function compareOptions($options1, $options2)
@@ -463,6 +456,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
             if (in_array($code, $this->_notRepresentOptions)) {
                 continue;
             }
+
             if (!isset($options2[$code])
                 || ($options2[$code]->getValue() === null)
                 || $options2[$code]->getValue() != $option->getValue()
@@ -470,26 +464,29 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
                 return false;
             }
         }
+
         return true;
     }
 
     /**
      * Compare item
      *
-     * @param   Mage_Sales_Model_Quote_Item $item
-     * @return  bool
+     * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+     * @return bool
      */
     public function compare($item)
     {
         if ($this->getProductId() != $item->getProductId()) {
             return false;
         }
+
         foreach ($this->getOptions() as $option) {
             if (in_array($option->getCode(), $this->_notRepresentOptions)
                 && !$item->getProduct()->hasCustomOptions()
             ) {
                 continue;
             }
+
             if ($itemOption = $item->getOptionByCode($option->getCode())) {
                 $itemOptionValue = $itemOption->getValue();
                 $optionValue = $option->getValue();
@@ -497,24 +494,27 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
                 // dispose of some options params, that can cramp comparing of arrays
                 if (is_string($itemOptionValue) && is_string($optionValue)) {
                     try {
-                        /** @var Unserialize_Parser $parser */
+                        /**
+                         * @var Mage_Core_Helper_UnserializeArray $parser
+                         * @var Mage_Core_Helper_String           $stringHelper
+                         */
                         $parser = Mage::helper('core/unserializeArray');
+                        $stringHelper = Mage::helper('core/string');
 
-                        $_itemOptionValue =
-                            is_numeric($itemOptionValue) ? $itemOptionValue : $parser->unserialize($itemOptionValue);
-                        $_optionValue = is_numeric($optionValue) ? $optionValue : $parser->unserialize($optionValue);
+                        // only ever try to unserialize, if it looks like a serialized array
+                        $_itemOptionValue = $stringHelper->isSerializedArrayOrObject($itemOptionValue) ? $parser->unserialize($itemOptionValue) : $itemOptionValue;
+                        $_optionValue = $stringHelper->isSerializedArrayOrObject($optionValue) ? $parser->unserialize($optionValue) : $optionValue;
 
                         if (is_array($_itemOptionValue) && is_array($_optionValue)) {
                             $itemOptionValue = $_itemOptionValue;
                             $optionValue = $_optionValue;
                             // looks like it does not break bundle selection qty
-                            foreach (array('qty', 'uenc', 'form_key', 'item', 'original_qty') as $key) {
+                            foreach (['qty', 'uenc', 'form_key', 'item', 'original_qty'] as $key) {
                                 unset($itemOptionValue[$key], $optionValue[$key]);
                             }
                         }
-
-                    } catch (Exception $e) {
-                        Mage::logException($e);
+                    } catch (Exception $exception) {
+                        Mage::logException($exception);
                     }
                 }
 
@@ -525,6 +525,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
                 return false;
             }
         }
+
         return true;
     }
 
@@ -538,16 +539,18 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if ($option = $this->getOptionByCode('product_type')) {
             return $option->getValue();
         }
+
         if ($product = $this->getProduct()) {
             return $product->getTypeId();
         }
+
         return $this->_getData('product_type');
     }
 
     /**
      * Return real product type of item
      *
-     * @return unknown
+     * @return string
      */
     public function getRealProductType()
     {
@@ -557,30 +560,32 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Convert Quote Item to array
      *
-     * @param array $arrAttributes
      * @return array
      */
-    public function toArray(array $arrAttributes = array())
+    #[Override]
+    public function toArray(array $arrAttributes = [])
     {
         $data = parent::toArray($arrAttributes);
 
         if ($product = $this->getProduct()) {
             $data['product'] = $product->toArray();
         }
+
         return $data;
     }
 
     /**
      * Initialize quote item options
      *
-     * @param   array $options
-     * @return  Mage_Sales_Model_Quote_Item
+     * @param  array $options
+     * @return $this
      */
     public function setOptions($options)
     {
         foreach ($options as $option) {
             $this->addOption($option);
         }
+
         return $this;
     }
 
@@ -607,8 +612,9 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Add option to item
      *
-     * @param   Mage_Sales_Model_Quote_Item_Option|Varien_Object $option
-     * @return  Mage_Sales_Model_Quote_Item
+     * @param  array|Mage_Sales_Model_Quote_Item_Option|Varien_Object $option
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function addOption($option)
     {
@@ -631,17 +637,17 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
             $this->_addOptionCode($option);
             $this->_options[] = $option;
         }
+
         return $this;
     }
 
     /**
      * Can specify specific actions for ability to change given quote options values
-     * Exemple: cataloginventory decimal qty validation may change qty to int,
+     * Example: cataloginventory decimal qty validation may change qty to int,
      * so need to change quote item qty option value.
      *
-     * @param Varien_Object $option
-     * @param int|float|null $value
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  null|float|int $value
+     * @return $this
      */
     public function updateQtyOption(Varien_Object $option, $value)
     {
@@ -661,8 +667,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      *Remove option from item options
      *
-     * @param string $code
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  string $code
+     * @return $this
      */
     public function removeOption($code)
     {
@@ -670,14 +676,15 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if ($option) {
             $option->isDeleted(true);
         }
+
         return $this;
     }
 
     /**
      * Register option code
      *
-     * @param   Mage_Sales_Model_Quote_Item_Option $option
-     * @return  Mage_Sales_Model_Quote_Item
+     * @param  Mage_Sales_Model_Quote_Item_Option $option
+     * @return $this
      */
     protected function _addOptionCode($option)
     {
@@ -686,20 +693,22 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         } else {
             Mage::throwException(Mage::helper('sales')->__('An item option with code %s already exists.', $option->getCode()));
         }
+
         return $this;
     }
 
     /**
      * Get item option by code
      *
-     * @param   string $code
-     * @return  Mage_Sales_Model_Quote_Item_Option || null
+     * @param  string                                  $code
+     * @return null|Mage_Sales_Model_Quote_Item_Option
      */
     public function getOptionByCode($code)
     {
         if (isset($this->_optionsByCode[$code]) && !$this->_optionsByCode[$code]->isDeleted()) {
             return $this->_optionsByCode[$code];
         }
+
         return null;
     }
 
@@ -707,8 +716,9 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * Checks that item model has data changes.
      * Call save item options if model isn't need to save in DB
      *
-     * @return boolean
+     * @return bool
      */
+    #[Override]
     protected function _hasModelChanged()
     {
         if (!$this->hasDataChanges()) {
@@ -721,16 +731,18 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Save item options
      *
-     * @return Mage_Sales_Model_Quote_Item
+     * @return $this
      */
     protected function _saveItemOptions()
     {
         foreach ($this->_options as $index => $option) {
             if ($option->isDeleted()) {
+                // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                 $option->delete();
                 unset($this->_options[$index]);
                 unset($this->_optionsByCode[$option->getCode()]);
             } else {
+                // phpcs:ignore Ecg.Performance.Loop.ModelLSD
                 $option->save();
             }
         }
@@ -744,6 +756,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * Save model plus its options
      * Ensures saving options in case when resource model was not changed
      */
+    #[Override]
     public function save()
     {
         $hasDataChanges = $this->hasDataChanges();
@@ -754,13 +767,16 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if ($hasDataChanges && !$this->_flagOptionsSaved) {
             $this->_saveItemOptions();
         }
+
+        return $this;
     }
 
     /**
      * Save item options after item saved
      *
-     * @return Mage_Sales_Model_Quote_Item
+     * @inheritDoc
      */
+    #[Override]
     protected function _afterSave()
     {
         $this->_saveItemOptions();
@@ -769,20 +785,18 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
 
     /**
      * Clone quote item
-     *
-     * @return Mage_Sales_Model_Quote_Item
      */
+    #[Override]
     public function __clone()
     {
         parent::__clone();
         $options = $this->getOptions();
         $this->_quote = null;
-        $this->_options = array();
-        $this->_optionsByCode = array();
+        $this->_options = [];
+        $this->_optionsByCode = [];
         foreach ($options as $option) {
             $this->addOption(clone $option);
         }
-        return $this;
     }
 
     /**
@@ -794,7 +808,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     public function getBuyRequest()
     {
         $option = $this->getOptionByCode('info_buyRequest');
-        $buyRequest = new Varien_Object($option ? unserialize($option->getValue()) : null);
+        $buyRequest = new Varien_Object($option ? unserialize($option->getValue(), ['allowed_classes' => false]) : null);
 
         // Overwrite standard buy request qty, because item qty could have changed since adding to quote
         $buyRequest->setOriginalQty($buyRequest->getQty())
@@ -806,8 +820,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
     /**
      * Sets flag, whether this quote item has some error associated with it.
      *
-     * @param bool $flag
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  bool  $flag
+     * @return $this
      */
     protected function _setHasError($flag)
     {
@@ -820,8 +834,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * When FALSE - clears whole list of quote item errors.
      * It's recommended to use addErrorInfo() instead - to be able to remove error statuses later.
      *
-     * @param bool $flag
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  bool  $flag
+     * @return $this
      * @see addErrorInfo()
      */
     public function setHasError($flag)
@@ -831,6 +845,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         } else {
             $this->_clearErrorInfo();
         }
+
         return $this;
     }
 
@@ -838,7 +853,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * Clears list of errors, associated with this quote item.
      * Also automatically removes error-flag from oneself.
      *
-     * @return Mage_Sales_Model_Quote_Item
+     * @return $this
      */
     protected function _clearErrorInfo()
     {
@@ -851,11 +866,11 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * Adds error information to the quote item.
      * Automatically sets error flag.
      *
-     * @param string|null $origin Usually a name of module, that embeds error
-     * @param int|null $code Error code, unique for origin, that sets it
-     * @param string|null $message Error message
-     * @param Varien_Object|null $additionalData Any additional data, that caller would like to store
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  null|string        $origin         Usually a name of module, that embeds error
+     * @param  null|int           $code           Error code, unique for origin, that sets it
+     * @param  null|string        $message        Error message
+     * @param  null|Varien_Object $additionalData Any additional data, that caller would like to store
+     * @return $this
      */
     public function addErrorInfo($origin = null, $code = null, $message = null, $additionalData = null)
     {
@@ -863,6 +878,7 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
         if ($message !== null) {
             $this->setMessage($message);
         }
+
         $this->_setHasError(true);
 
         return $this;
@@ -883,8 +899,8 @@ class Mage_Sales_Model_Quote_Item extends Mage_Sales_Model_Quote_Item_Abstract
      * $params can have following keys (if not set - then any item is good for this key):
      *   'origin', 'code', 'message'
      *
-     * @param array $params
-     * @return Mage_Sales_Model_Quote_Item
+     * @param  array $params
+     * @return $this
      */
     public function removeErrorInfosByParams($params)
     {

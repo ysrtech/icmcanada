@@ -1,35 +1,19 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml sales order create sidebar block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method string getDataId()
+ * @method $this  setDataId(string $value)
  */
 class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Adminhtml_Block_Sales_Order_Create_Abstract
 {
@@ -57,9 +41,14 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
      */
     public function canDisplay()
     {
-        return $this->getCustomerId();
+        return (bool) $this->getCustomerId();
     }
 
+    /**
+     * Retrieve possibility to display quantity column in grid of wishlist block
+     *
+     * @return bool
+     */
     public function canDisplayItemQty()
     {
         return false;
@@ -78,8 +67,8 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
     /**
      * Retrieve identifier of block item
      *
-     * @param   Varien_Object $item
-     * @return  int
+     * @param  Varien_Object $item
+     * @return int
      */
     public function getIdentifierId($item)
     {
@@ -89,8 +78,8 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
     /**
      * Retrieve item identifier of block item
      *
-     * @param   mixed $item
-     * @return  int
+     * @param  mixed $item
+     * @return int
      */
     public function getItemId($item)
     {
@@ -100,8 +89,8 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
     /**
      * Retrieve product identifier linked with item
      *
-     * @param   mixed $item
-     * @return  int
+     * @param  mixed $item
+     * @return int
      */
     public function getProductId($item)
     {
@@ -109,17 +98,18 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
     }
 
     /**
-     * Retreive item count
+     * Retrieve item count
      *
      * @return int
      */
     public function getItemCount()
     {
-        $count = $this->getData('item_count');
+        $count = $this->getDataByKey('item_count');
         if (is_null($count)) {
             $count = count($this->getItems());
             $this->setData('item_count', $count);
         }
+
         return $count;
     }
 
@@ -130,25 +120,21 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
      */
     public function getItems()
     {
-        $items = array();
+        $items = [];
         $collection = $this->getItemCollection();
         if ($collection) {
             $productTypes = Mage::getConfig()->getNode('adminhtml/sales/order/create/available_product_types')->asArray();
-            if (is_array($collection)) {
-                $items = $collection;
-            } else {
-                $items = $collection->getItems();
-            }
+            $items = is_array($collection) ? $collection : $collection->getItems();
 
             /*
              * Filtering items by allowed product type
              */
-            foreach($items as $key => $item) {
+            foreach ($items as $key => $item) {
                 if ($item instanceof Mage_Catalog_Model_Product) {
                     $type = $item->getTypeId();
-                } else if ($item instanceof Mage_Sales_Model_Order_Item) {
+                } elseif ($item instanceof Mage_Sales_Model_Order_Item) {
                     $type = $item->getProductType();
-                } else if ($item instanceof Mage_Sales_Model_Quote_Item) {
+                } elseif ($item instanceof Mage_Sales_Model_Quote_Item) {
                     $type = $item->getProductType();
                 } else {
                     $type = '';
@@ -160,6 +146,7 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
                         }
                     }
                 }
+
                 if (!isset($productTypes[$type])) {
                     unset($items[$key]);
                 }
@@ -179,9 +166,11 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract extends Mage_Admi
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public function canDisplayPrice()
     {
         return true;
     }
-
 }

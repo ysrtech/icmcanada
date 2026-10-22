@@ -231,7 +231,7 @@ class Uni_Fileuploader_Adminhtml_FileuploaderController extends Mage_Adminhtml_C
         $result = $io->rmdir($directory, true);
     }
 
-    protected function _isAllowed() {
+    protected function _isAllowed(): bool {
         return true;
     }
 

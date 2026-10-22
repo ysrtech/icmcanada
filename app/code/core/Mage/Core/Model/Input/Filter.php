@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
@@ -30,7 +13,7 @@
  * Model for multi-filtering all data which set to models
  * Example:
  * <code>
- * /** @var $filter Mage_Core_Model_Input_Filter {@*}
+ * /** @var Mage_Core_Model_Input_Filter $filter {@*}
  * $filter = Mage::getModel('core/input_filter');
  * $filter->setFilters(array(
  *      'list_values' => array(
@@ -99,10 +82,8 @@
  *  ));
  * </code>
  *
- * @see Mage_Core_Model_Input_FilterTest    See this class for manual
- * @category   Mage
  * @package    Mage_Core
- * @author     Magento Api Team <api-team@magento.com>
+ * @see Mage_Core_Model_Input_FilterTest See this class for manual
  */
 class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
 {
@@ -111,15 +92,15 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
      *
      * @var array
      */
-    protected $_filters = array();
+    protected $_filters = [];
 
     /**
      * Add filter
      *
-     * @param string $name
-     * @param array|Zend_Filter_Interface $filter
-     * @param string $placement
-     * @return Mage_Core_Model_Input_Filter
+     * @param  string|Zend_Filter_Interface $name
+     * @param  string|Zend_Filter_Interface $filter
+     * @param  string                       $placement
+     * @return $this
      */
     public function addFilter($name, $filter, $placement = Zend_Filter::CHAIN_APPEND)
     {
@@ -128,14 +109,14 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
         } else {
             $this->_filters[$name][] = $filter;
         }
+
         return $this;
     }
 
     /**
      * Add a filter to the end of the chain
      *
-     * @param  array|Zend_Filter_Interface $filter
-     * @return Mage_Core_Model_Input_Filter
+     * @return $this
      */
     public function appendFilter(Zend_Filter_Interface $filter)
     {
@@ -146,7 +127,7 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
      * Add a filter to the start of the chain
      *
      * @param  array|Zend_Filter_Interface $filter
-     * @return Mage_Core_Model_Input_Filter
+     * @return $this
      */
     public function prependFilter($filter)
     {
@@ -163,8 +144,7 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
      *          'key2' => $filters
      *      )
      *
-     * @param array $filters
-     * @return Mage_Core_Model_Input_Filter
+     * @return $this
      */
     public function addFilters(array $filters)
     {
@@ -175,8 +155,7 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
     /**
      * Set filters
      *
-     * @param array $filters
-     * @return Mage_Core_Model_Input_Filter
+     * @return $this
      */
     public function setFilters(array $filters)
     {
@@ -187,23 +166,23 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
     /**
      * Get filters
      *
-     * @param string|null $name     Get filter for selected name
+     * @param  null|string $name Get filter for selected name
      * @return array
      */
     public function getFilters($name = null)
     {
-        if (null === $name) {
+        if ($name === null) {
             return $this->_filters;
-        } else {
-            return isset($this->_filters[$name]) ? $this->_filters[$name] : null;
         }
+
+        return $this->_filters[$name] ?? null;
     }
 
     /**
      * Filter data
      *
-     * @param array $data
-     * @return array    Return filtered data
+     * @param  array $data
+     * @return array Return filtered data
      */
     public function filter($data)
     {
@@ -213,17 +192,18 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
     /**
      * Recursive filtering
      *
-     * @param array $data
-     * @param array|null $filters
-     * @param bool $isFilterListSimple
+     * @param null|array $filters
+     * @param bool       $isFilterListSimple
+     * @param-out array $filters
      * @return array
-     * @throws Exception    Exception when filter is not found or not instance of defined instances
+     * @throws Exception Exception when filter is not found or not instance of defined instances
      */
     protected function _filter(array $data, &$filters = null, $isFilterListSimple = false)
     {
-        if (null === $filters) {
+        if ($filters === null) {
             $filters = &$this->_filters;
         }
+
         foreach ($data as $key => $value) {
             if (!$isFilterListSimple && !empty($filters[$key])) {
                 $itemFilters = $filters[$key];
@@ -245,38 +225,40 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
                     }
                 }
             }
+
             $data[$key] = $value;
         }
+
         return $data;
     }
 
     /**
      * Call specified helper method for $value filtration
      *
-     * @param mixed $value
-     * @param Mage_Core_Helper_Abstract $helper
-     * @param array $filterData
+     * @param  mixed $value
      * @return mixed
      */
     protected function _applyFiltrationWithHelper($value, Mage_Core_Helper_Abstract $helper, array $filterData)
     {
         if (!isset($filterData['method']) || empty($filterData['method'])) {
-            throw new Exception("Helper filtration method is not set");
+            throw new Exception('Helper filtration method is not set');
         }
+
         if (!isset($filterData['args']) || empty($filterData['args'])) {
-            $filterData['args'] = array();
+            $filterData['args'] = [];
         }
-        $filterData['args'] = array(-100 => $value) + $filterData['args'];
+
+        $filterData['args'] = [-100 => $value] + $filterData['args'];
         // apply filter
-        $value = call_user_func_array(array($helper, $filterData['method']), $filterData['args']);
+        $value = call_user_func_array([$helper, $filterData['method']], $filterData['args']);
         return $value;
     }
 
     /**
      * Try to create Magento helper for filtration based on $filterData. Return false on failure
      *
-     * @param $filterData
-     * @return bool|Mage_Core_Helper_Abstract
+     * @param  array                     $filterData
+     * @return Mage_Core_Helper_Abstract
      * @throws Exception
      */
     protected function _getFiltrationHelper($filterData)
@@ -287,37 +269,39 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
             if (is_string($helper)) {
                 $helper = Mage::helper($helper);
             }
+
             if (!($helper instanceof Mage_Core_Helper_Abstract)) {
                 throw new Exception("Filter '{$filterData['helper']}' not found");
             }
         }
+
         return $helper;
     }
 
     /**
      * Try to create Zend filter based on $filterData. Return false on failure
      *
-     * @param $filterData
-     * @return bool|Zend_Filter_Interface
+     * @param  array|Zend_Filter_Interface $filterData
+     * @return false|Zend_Filter_Interface
      */
     protected function _getZendFilter($filterData)
     {
         $zendFilter = false;
-        if (is_object($filterData) && $filterData instanceof Zend_Filter_Interface) {
-            /** @var $zendFilter Zend_Filter_Interface */
+        if ($filterData instanceof Zend_Filter_Interface) {
             $zendFilter = $filterData;
         } elseif (isset($filterData['model'])) {
             $zendFilter = $this->_createCustomZendFilter($filterData);
         } elseif (isset($filterData['zend'])) {
             $zendFilter = $this->_createNativeZendFilter($filterData);
         }
+
         return $zendFilter;
     }
 
     /**
      * Get Magento filters
      *
-     * @param $filterData
+     * @param  array                 $filterData
      * @return Zend_Filter_Interface
      * @throws Exception
      */
@@ -330,19 +314,22 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
             //use only first element because Mage factory cannot get more
             $filterData['args'] = $filterData['args'][0];
         }
+
         if (is_string($filterData['model'])) {
             $filter = Mage::getModel($filterData['model'], $filterData['args']);
         }
+
         if (!($filter instanceof Zend_Filter_Interface)) {
             throw new Exception('Filter is not instance of Zend_Filter_Interface');
         }
+
         return $filter;
     }
 
     /**
      * Get native Zend_Filter
      *
-     * @param $filterData
+     * @param  array                 $filterData
      * @return Zend_Filter_Interface
      * @throws Exception
      */
@@ -361,6 +348,7 @@ class Mage_Core_Model_Input_Filter implements Zend_Filter_Interface
                 throw new Exception('Filter is not instance of Zend_Filter_Interface');
             }
         }
+
         return $filter;
     }
 }

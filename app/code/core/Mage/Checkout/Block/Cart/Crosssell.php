@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Cart crosssell list
  *
- * @category   Mage
  * @package    Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abstract
 {
@@ -47,19 +28,18 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
      */
     public function getItems()
     {
-        $items = $this->getData('items');
+        $items = $this->getDataByKey('items');
         if (is_null($items)) {
-            $items = array();
+            $items = [];
             $ninProductIds = $this->_getCartProductIds();
             if ($ninProductIds) {
                 $lastAdded = (int) $this->_getLastAddedProductId();
                 if ($lastAdded) {
                     $collection = $this->_getCollection()
-                        ->addProductFilter($lastAdded);
-                    if (!empty($ninProductIds)) {
-                        $collection->addExcludeProductFilter($ninProductIds);
-                    }
-                    $collection->setPositionOrder()->load();
+                        ->addProductFilter($lastAdded)
+                        ->addExcludeProductFilter($ninProductIds)
+                        ->setPositionOrder()
+                        ->load();
 
                     foreach ($collection as $item) {
                         $ninProductIds[] = $item->getId();
@@ -72,7 +52,7 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
                     $collection = $this->_getCollection()
                         ->addProductFilter($filterProductIds)
                         ->addExcludeProductFilter($ninProductIds)
-                        ->setPageSize($this->_maxItemCount-count($items))
+                        ->setPageSize($this->_maxItemCount - count($items))
                         ->setGroupBy()
                         ->setPositionOrder()
                         ->load();
@@ -80,11 +60,11 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
                         $items[] = $item;
                     }
                 }
-                
             }
 
             $this->setData('items', $items);
         }
+
         return $items;
     }
 
@@ -105,16 +85,18 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
      */
     protected function _getCartProductIds()
     {
-        $ids = $this->getData('_cart_product_ids');
+        $ids = $this->getDataByKey('_cart_product_ids');
         if (is_null($ids)) {
-            $ids = array();
+            $ids = [];
             foreach ($this->getQuote()->getAllItems() as $item) {
                 if ($product = $item->getProduct()) {
                     $ids[] = $product->getId();
                 }
             }
+
             $this->setData('_cart_product_ids', $ids);
         }
+
         return $ids;
     }
 
@@ -126,7 +108,7 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
      */
     protected function _getCartProductIdsRel()
     {
-        $productIds = array();
+        $productIds = [];
         foreach ($this->getQuote()->getAllItems() as $quoteItem) {
             $productTypeOpt = $quoteItem->getOptionByCode('product_type');
             if ($productTypeOpt instanceof Mage_Sales_Model_Quote_Item_Option
@@ -143,7 +125,7 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
     /**
      * Get last product ID that was added to cart and remove this information from session
      *
-     * @return int
+     * @return null|int|string
      */
     protected function _getLastAddedProductId()
     {
@@ -163,7 +145,7 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
     /**
      * Get crosssell products collection
      *
-     * @return Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Link_Product_Collection
+     * @return Mage_Catalog_Model_Resource_Product_Link_Product_Collection
      */
     protected function _getCollection()
     {
@@ -171,11 +153,13 @@ class Mage_Checkout_Block_Cart_Crosssell extends Mage_Catalog_Block_Product_Abst
             ->getProductCollection()
             ->setStoreId(Mage::app()->getStore()->getId())
             ->addStoreFilter()
+            ->setVisibility(Mage::getSingleton('catalog/product_visibility')::getVisibleInCatalogIds())
+            ->addAttributeToFilter('status', [
+                'in' => Mage::getSingleton('catalog/product_status')->getSaleableStatusIds(),
+            ])
             ->setPageSize($this->_maxItemCount);
         $this->_addProductAttributesAndPrices($collection);
 
-        Mage::getSingleton('catalog/product_status')->addSaleableFilterToCollection($collection);
-        Mage::getSingleton('catalog/product_visibility')->addVisibleInCatalogFilterToCollection($collection);
         Mage::getSingleton('cataloginventory/stock')->addInStockFilterToCollection($collection);
 
         return $collection;

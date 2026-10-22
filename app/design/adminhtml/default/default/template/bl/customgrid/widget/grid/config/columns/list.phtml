@@ -24,7 +24,12 @@
     $_alignments   = $this->getColumnAlignments();
     $_origins      = $this->getColumnOrigins();
 ?>
-<div class="blcg-custom-grid-config" id="<?php echo $this->getHtmlId() ?>" <?php if (!$this->isStandAlone()): ?>style="display:none;"<?php endif ?>>
+<?php if (!$this->isStandAlone()): ?>
+<form id="<?php echo $this->getFormId() ?>" action="<?php echo $this->getSaveUrl() ?>" method="post">
+    <input type="hidden" name="grid_id" value="<?php echo $_gridModel->getId() ?>" />
+    <input type="hidden" name="profile_id" value="<?php echo $_gridModel->getProfileId() ?>" />
+<?php endif ?>
+<div class="blcg-custom-grid-config" id="<?php echo $this->getHtmlId() ?>">
     <div id="<?php echo $this->getHtmlId() ?>-header">
         <table class="massaction" cellspacing="0" cellpadding="0">
             <tr>
@@ -36,6 +41,7 @@
                     <strong id="<?php echo $this->getHtmlId() ?>-count">0</strong> <?php echo $this->__('columns selected') ?>
                     (<strong id="<?php echo $this->getHtmlId() ?>-filter-count">0</strong> <?php echo $this->__('for filtering only') ?>)
                 </td>
+                <?php if ($this->isStandAlone()): ?>
                 <td>
                     <div class="right">
                         <div class="entry-edit">
@@ -45,15 +51,11 @@
                                         <?php echo $this->getAttributeColumnButtonHtml() ?>
                                     </span>
                                 <?php endif ?>
-                                <?php if (!$this->isStandAlone()): ?>
-                                    <span class="field-row">
-                                        <?php echo $this->getSaveButtonHtml() ?>
-                                    </span>
-                                <?php endif ?>
                             </fieldset>
                         </div>
                     </div>
                 </td>
+                <?php endif ?>
             </tr>
         </table>
     </div>
@@ -157,7 +159,7 @@
                         <td>
                             <?php if ($_column->isAttribute()): ?>
                                 <?php if ($_column->isMissing()): ?>
-                                    <em><?php echo $this->htmlEscape($_column->getIndex()) ?></em>
+                                    <em><?php echo $this->escapeHtml($_column->getIndex()) ?></em>
                                 <?php else: ?>
                                     <?php echo $this->getAttributesSelectHtml($_column) ?>
                                 <?php endif ?>
@@ -200,35 +202,35 @@ new blcg.Grid.CustomColumn.ConfigButton(
                         <?php endif ?>
                         <td>
                             <?php if ($_value = $this->getColumnLockedValue($_columnBlockId, 'header')): ?>
-                                <span class="nobr"><?php echo $this->htmlEscape($_value) ?></span>
+                                <span class="nobr"><?php echo $this->escapeHtml($_value) ?></span>
                             <?php else: ?>
-                                <input name="columns[<?php echo $_columnId ?>][header]" class="input-text" type="text" value="<?php echo $this->htmlEscape($_column->getHeader()) ?>" />
+                                <input name="columns[<?php echo $_columnId ?>][header]" class="input-text" type="text" value="<?php echo $this->escapeHtml($_column->getHeader()) ?>" />
                             <?php endif ?>
                         </td>
                         <td>
                             <?php if ($_value = $this->getColumnLockedValue($_columnId, 'width')): ?>
-                                <span class="nobr"><?php echo $this->htmlEscape($_value) ?></span>
+                                <span class="nobr"><?php echo $this->escapeHtml($_value) ?></span>
                             <?php else: ?>
-                                <input name="columns[<?php echo $_columnId ?>][width]" class="input-text" type="text" value="<?php echo $this->htmlEscape($_column->getWidth()) ?>" />
+                                <input name="columns[<?php echo $_columnId ?>][width]" class="input-text" type="text" value="<?php echo $this->escapeHtml($_column->getWidth()) ?>" />
                             <?php endif ?>
                         </td>
                         <td>
                             <?php if ($_value = $this->getColumnLockedValue($_columnId, 'align')): ?>
                                 <?php if (isset($_alignments[$_value])): ?>
-                                    <span class="nobr"><?php echo $this->htmlEscape($_alignments[$_value]) ?></span>
+                                    <span class="nobr"><?php echo $this->escapeHtml($_alignments[$_value]) ?></span>
                                 <?php endif ?>
                             <?php else: ?>
                                 <select name="columns[<?php echo $_columnId ?>][align]" class="select validate-select">
                                 <?php foreach ($_alignments as $_value => $_label): ?>
-                                    <option value="<?php echo $this->htmlEscape($_value) ?>"<?php if ($_value == $_column->getAlign()): ?> selected="selected"<?php endif ?>>
-                                        <?php echo $this->htmlEscape($_label) ?>
+                                    <option value="<?php echo $this->escapeHtml($_value) ?>"<?php if ($_value == $_column->getAlign()): ?> selected="selected"<?php endif ?>>
+                                        <?php echo $this->escapeHtml($_label) ?>
                                     </option>
                                 <?php endforeach ?>
                                 </select>
                             <?php endif ?>
                         </td>
                         <td>
-                            <input name="columns[<?php echo $_columnId ?>][order]" id="<?php echo $this->getOrderInputHtmlId($_columnId) ?>" class="input-text validate-number" type="text" <?php if ($this->getUseDragNDrop()): ?>readonly="readonly" value="<?php echo $_i*$this->getColumnsOrderPitch() ?>"<?php else: ?>value="<?php echo $this->htmlEscape($_column->getOrder()) ?>"<?php endif ?> />
+                            <input name="columns[<?php echo $_columnId ?>][order]" id="<?php echo $this->getOrderInputHtmlId($_columnId) ?>" class="input-text validate-number" type="text" <?php if ($this->getUseDragNDrop()): ?>readonly="readonly" value="<?php echo $_i*$this->getColumnsOrderPitch() ?>"<?php else: ?>value="<?php echo $this->escapeHtml($_column->getOrder()) ?>"<?php endif ?> />
                         </td>
                         <td class="a-center">
                             <?php echo ($_column->isMissing() ? '<strong>'.$this->__('Yes').'</strong>' : $this->__('No')) ?>
@@ -246,6 +248,9 @@ new blcg.Grid.CustomColumn.ConfigButton(
         </div>
     </div>
 </div>
+<?php if (!$this->isStandAlone()): ?>
+</form>
+<?php endif ?>
 <script type="text/javascript">
 //<![CDATA[
 <?php if ($this->canHaveAttributeColumns()): ?>
@@ -254,16 +259,15 @@ var blcgAttributeSelectTemplate = <?php echo $this->getAttributesSelectHtml() ?>
 
 var blcgAlignmentSelectTemplate = '<select name="columns[{{id}}][align]" class="select validate-select">'
 <?php foreach ($_alignments as $_value => $_label): ?>
-+ '<option value="<?php echo $this->jsQuoteEscape($this->htmlEscape($_value)) ?>"><?php echo $this->jsQuoteEscape($this->htmlEscape($_label)) ?></option>'
++ '<option value="<?php echo $this->jsQuoteEscape($this->escapeHtml($_value)) ?>"><?php echo $this->jsQuoteEscape($this->escapeHtml($_label)) ?></option>'
 <?php endforeach ?>
 + '</select>';
 
 var blcgStoreSelectTemplate = <?php echo $this->getStoreSelectHtml() ?>;
 
-<?php echo $this->getConfigJsObjectName() ?> = new blcg.Grid.ColumnsConfigForm(
+<?php echo $this->getConfigJsObjectName() ?> = new blcg.Grid.ColumnsListConfig(
     '<?php echo $_htmlId ?>',
     '<?php echo $_htmlId ?>-table-column',
-    '<?php echo $this->getSaveUrl() ?>',
     {
         newRowId: '<?php echo $this->getTableRowHtmlId() ?>',
         orderInputId: '<?php echo $this->getOrderInputHtmlId() ?>',
@@ -294,9 +298,7 @@ var blcgStoreSelectTemplate = <?php echo $this->getStoreSelectHtml() ?>;
         ],
         maxOrder: <?php echo ($this->getUseDragNDrop() ? $_maxDndOrder : $this->getColumnsMaxOrder()) ?>, 
         orderPitch: <?php echo $this->getColumnsOrderPitch() ?>, 
-        useDnd: <?php if ($this->getUseDragNDrop()): ?>true<?php else: ?>false<?php endif ?>,
-        gridObjectName: '<?php echo $this->jsQuoteEscape($this->getGridJsObjectName()) ?>',
-        additionalSaveParams: <?php echo $this->getAdditionalParamsJsonConfig() ?>
+        useDnd: <?php if ($this->getUseDragNDrop()): ?>true<?php else: ?>false<?php endif ?>
     }
 );
 
@@ -304,10 +306,9 @@ var blcgStoreSelectTemplate = <?php echo $this->getStoreSelectHtml() ?>;
 
 <?php else: ?>
 
-<?php echo $this->getConfigJsObjectName() ?> = new blcg.Grid.ColumnsConfigForm(
+<?php echo $this->getConfigJsObjectName() ?> = new blcg.Grid.ColumnsListConfig(
     '<?php echo $_htmlId ?>',
     '<?php echo $_htmlId ?>-table-column',
-    '<?php echo $this->getSaveUrl() ?>',
     {
         newRowId: '<?php echo $this->getTableRowHtmlId() ?>',
         orderInputId: '<?php echo $this->getOrderInputHtmlId() ?>',
@@ -315,9 +316,7 @@ var blcgStoreSelectTemplate = <?php echo $this->getStoreSelectHtml() ?>;
         newRowColumns: [],
         maxOrder: <?php echo ($this->getUseDragNDrop() ? $_maxDndOrder : $this->getColumnsMaxOrder()) ?>, 
         orderPitch: <?php echo $this->getColumnsOrderPitch() ?>,
-        useDnd: <?php if ($this->getUseDragNDrop()): ?>true<?php else: ?>false<?php endif ?>,
-        gridObjectName: '<?php echo $this->jsQuoteEscape($this->getGridJsObjectName()) ?>',
-        additionalSaveParams: <?php echo $this->getAdditionalParamsJsonConfig() ?>
+        useDnd: <?php if ($this->getUseDragNDrop()): ?>true<?php else: ?>false<?php endif ?>
     }
 );
 

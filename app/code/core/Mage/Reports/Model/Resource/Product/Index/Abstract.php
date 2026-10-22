@@ -1,51 +1,30 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Reports Product Index Abstract Resource Model
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Fields List for update in forsedSave
+     * Fields List for update in forcedSave
      *
      * @var array
      */
-    protected $_fieldsForUpdate    = array('store_id', 'added_at');
+    protected $_fieldsForUpdate    = ['store_id', 'added_at'];
 
     /**
      * Update Customer from visitor (Customer logged in)
      *
-     * @param Mage_Reports_Model_Product_Index_Abstract $object
-     * @return Mage_Reports_Model_Resource_Product_Index_Abstract
+     * @return $this
      */
     public function updateCustomerFromVisitor(Mage_Reports_Model_Product_Index_Abstract $object)
     {
@@ -55,6 +34,7 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
         if (!$object->getCustomerId() || !$object->getVisitorId()) {
             return $this;
         }
+
         $adapter = $this->_getWriteAdapter();
         $select  = $adapter->select()
             ->from($this->getMainTable())
@@ -62,7 +42,6 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
 
         $rowSet = $select->query()->fetchAll();
         foreach ($rowSet as $row) {
-
             /* We need to determine if there are rows with known
                customer for current product.
              */
@@ -74,37 +53,36 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
             $idx = $adapter->fetchRow($select);
 
             if ($idx) {
-            /* If we are here it means that we have two rows: one with known customer, but second just visitor is set
-             * One row should be updated with customer_id, second should be deleted
-             *
-             */
-                $adapter->delete($this->getMainTable(), array('index_id = ?' => $row['index_id']));
-                $where = array('index_id = ?' => $idx['index_id']);
-                $data  = array(
+                /* If we are here it means that we have two rows: one with known customer, but second just visitor is set
+                 * One row should be updated with customer_id, second should be deleted
+                 *
+                 */
+                $adapter->delete($this->getMainTable(), ['index_id = ?' => $row['index_id']]);
+                $where = ['index_id = ?' => $idx['index_id']];
+                $data  = [
                     'visitor_id'    => $object->getVisitorId(),
                     'store_id'      => $object->getStoreId(),
                     'added_at'      => Varien_Date::now(),
-                );
+                ];
             } else {
-                $where = array('index_id = ?' => $row['index_id']);
-                $data  = array(
+                $where = ['index_id = ?' => $row['index_id']];
+                $data  = [
                     'customer_id'   => $object->getCustomerId(),
                     'store_id'      => $object->getStoreId(),
-                    'added_at'      => Varien_Date::now()
-                );
+                    'added_at'      => Varien_Date::now(),
+                ];
             }
 
             $adapter->update($this->getMainTable(), $data, $where);
-
         }
+
         return $this;
     }
 
     /**
      * Purge visitor data by customer (logout)
      *
-     * @param Mage_Reports_Model_Product_Index_Abstract $object
-     * @return Mage_Reports_Model_Resource_Product_Index_Abstract
+     * @return $this
      */
     public function purgeVisitorByCustomer(Mage_Reports_Model_Product_Index_Abstract $object)
     {
@@ -115,8 +93,8 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
             return $this;
         }
 
-        $bind   = array('visitor_id'      => null);
-        $where  = array('customer_id = ?' => (int)$object->getCustomerId());
+        $bind   = ['visitor_id'      => null];
+        $where  = ['customer_id = ?' => (int) $object->getCustomerId()];
         $this->_getWriteAdapter()->update($this->getMainTable(), $bind, $where);
 
         return $this;
@@ -125,9 +103,10 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
     /**
      * Save Product Index data (forced save)
      *
-     * @param Mage_Reports_Model_Product_Index_Abstract $object
      * @return Mage_Reports_Model_Resource_Product_Index_Abstract
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     public function save(Mage_Core_Model_Abstract  $object)
     {
         if ($object->isDeleted()) {
@@ -141,14 +120,15 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
         $data = $this->_prepareDataForSave($object);
         unset($data[$this->getIdFieldName()]);
 
-        $matchFields = array('product_id', 'store_id');
+        $matchFields = ['product_id', 'store_id'];
 
-        Mage::getResourceHelper('reports')->mergeVisitorProductIndex(
+        /** @var Mage_Reports_Model_Resource_Helper_Mysql4 $helper */
+        $helper = Mage::getResourceHelper('reports');
+        $helper->mergeVisitorProductIndex(
             $this->getMainTable(),
             $data,
-            $matchFields
+            $matchFields,
         );
-
 
         $this->unserializeFields($object);
         $this->_afterSave($object);
@@ -156,21 +136,21 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
         return $this;
     }
 
-
     /**
      * Clean index (visitor)
      *
-     * @return Mage_Reports_Model_Resource_Product_Index_Abstract
+     * @return $this
      */
     public function clean()
     {
         while (true) {
             $select = $this->_getReadAdapter()->select()
-                ->from(array('main_table' => $this->getMainTable()), array($this->getIdFieldName()))
+                ->from(['main_table' => $this->getMainTable()], [$this->getIdFieldName()])
                 ->joinLeft(
-                    array('visitor_table' => $this->getTable('log/visitor')),
+                    ['visitor_table' => $this->getTable('log/visitor')],
                     'main_table.visitor_id = visitor_table.visitor_id',
-                    array())
+                    [],
+                )
                 ->where('main_table.visitor_id > ?', 0)
                 ->where('visitor_table.visitor_id IS NULL')
                 ->limit(100);
@@ -182,29 +162,28 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
 
             $this->_getWriteAdapter()->delete(
                 $this->getMainTable(),
-                $this->_getWriteAdapter()->quoteInto($this->getIdFieldName() . ' IN(?)', $indexIds)
+                $this->_getWriteAdapter()->quoteInto($this->getIdFieldName() . ' IN(?)', $indexIds),
             );
         }
+
         return $this;
     }
 
     /**
      * Add information about product ids to visitor/customer
      *
-     *
-     * @param Mage_Reports_Model_Product_Index_Abstract $object
-     * @param array $productIds
-     * @return Mage_Reports_Model_Resource_Product_Index_Abstract
+     * @param  array $productIds
+     * @return $this
      */
     public function registerIds(Varien_Object $object, $productIds)
     {
-        $row = array(
+        $row = [
             'visitor_id'    => $object->getVisitorId(),
             'customer_id'   => $object->getCustomerId(),
             'store_id'      => $object->getStoreId(),
-        );
+        ];
         $addedAt    = Varien_Date::toTimestamp(true);
-        $data = array();
+        $data = [];
         foreach ($productIds as $productId) {
             $productId = (int) $productId;
             if ($productId) {
@@ -212,17 +191,22 @@ abstract class Mage_Reports_Model_Resource_Product_Index_Abstract extends Mage_C
                 $row['added_at']   = Varien_Date::formatDate($addedAt);
                 $data[] = $row;
             }
+
             $addedAt -= ($addedAt > 0) ? 1 : 0;
         }
 
-        $matchFields = array('product_id', 'store_id');
+        $matchFields = ['product_id', 'store_id'];
+
+        /** @var Mage_Reports_Model_Resource_Helper_Mysql4 $helper */
+        $helper = Mage::getResourceHelper('reports');
         foreach ($data as $row) {
-            Mage::getResourceHelper('reports')->mergeVisitorProductIndex(
+            $helper->mergeVisitorProductIndex(
                 $this->getMainTable(),
                 $row,
-                $matchFields
+                $matchFields,
             );
         }
+
         return $this;
     }
 }

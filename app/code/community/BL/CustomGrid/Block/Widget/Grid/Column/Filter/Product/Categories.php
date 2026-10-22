@@ -32,7 +32,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories extends M
             $helper = $this->helper('core');
             $jsId   = $helper->uniqHash('blcgCategoriesFilter');
             $htmlId = $helper->uniqHash($this->_getHtmlId());
-            $windowUrl = $this->getUrl('customgrid/grid_column_filter/categories', array('js_object_name' => $jsId));
+            $windowUrl = $this->getUrl('adminhtml/blcg_grid_column_filter/categories', array('js_object_name' => $jsId));
             $windowJsonConfig = $helper->jsonEncode(
                 array(
                     'width'  => '700px',
@@ -52,7 +52,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Product_Categories extends M
                     . '<span class="label">' . $this->__('IDs:') . ' </span>'
                     . '<span class="blcg-filter-value" id="' . $htmlId . '_container">' . $idsString . '</span>'
                     . '<input type="hidden" name="' . $this->_getHtmlName() . '" id="' . $htmlId . '"'
-                    . ' value="' . $this->htmlEscape($this->getValue()) . '" />'
+                    . ' value="' . $this->escapeHtml($this->getValue()) . '" />'
                     . '<span class="blcg-filter-button" id="' . $htmlId . '_button"></span>'
                 . '</div>'
                 . '<script type="text/javascript">'

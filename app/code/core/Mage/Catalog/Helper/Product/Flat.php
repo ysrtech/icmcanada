@@ -1,54 +1,39 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog Product Flat Helper
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
 {
     /**
      * Catalog Product Flat Config
      */
-    const XML_PATH_USE_PRODUCT_FLAT          = 'catalog/frontend/flat_catalog_product';
-    const XML_NODE_ADD_FILTERABLE_ATTRIBUTES = 'global/catalog/product/flat/add_filterable_attributes';
-    const XML_NODE_ADD_CHILD_DATA            = 'global/catalog/product/flat/add_child_data';
+    public const XML_PATH_USE_PRODUCT_FLAT          = 'catalog/frontend/flat_catalog_product';
+
+    public const XML_NODE_ADD_FILTERABLE_ATTRIBUTES = 'global/catalog/product/flat/add_filterable_attributes';
+
+    public const XML_NODE_ADD_CHILD_DATA            = 'global/catalog/product/flat/add_child_data';
 
     /**
      * Path for flat flag model
      */
-    const XML_PATH_FLAT_FLAG                 = 'global/catalog/product/flat/flag/model';
+    public const XML_PATH_FLAT_FLAG                 = 'global/catalog/product/flat/flag/model';
 
     /**
      * Catalog Flat Product index process code
      */
-    const CATALOG_FLAT_PROCESS_CODE = 'catalog_product_flat';
+    public const CATALOG_FLAT_PROCESS_CODE = 'catalog_product_flat';
+
+    protected $_moduleName = 'Mage_Catalog';
 
     /**
      * Catalog Product Flat index process code
@@ -60,7 +45,7 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
     /**
      * Catalog Product Flat index process instance
      *
-     * @var Mage_Index_Model_Process|null
+     * @var null|Mage_Index_Model_Process
      */
     protected $_process = null;
 
@@ -71,12 +56,12 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
      *
      * @var array
      */
-    protected $_isEnabled = array();
+    protected $_isEnabled = [];
 
     /**
      * Catalog Product Flat Flag object
      *
-     * @var Mage_Catalog_Model_Product_Flat_Flag
+     * @var null|Mage_Catalog_Model_Product_Flat_Flag
      */
     protected $_flagObject;
 
@@ -85,14 +70,14 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
      * to force EAV for products in quote
      * store settings will be used by default
      *
-     * @var boolean
+     * @var bool
      */
     protected $_forceFlatStatus = false;
 
     /**
      * Old Catalog Product Flat forced status
      *
-     * @var boolean
+     * @var null|bool
      */
     protected $_forceFlatStatusOld;
 
@@ -104,17 +89,20 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
     public function getFlag()
     {
         if (is_null($this->_flagObject)) {
-            $className = (string)Mage::getConfig()->getNode(self::XML_PATH_FLAT_FLAG);
-            $this->_flagObject = Mage::getSingleton($className)
-                ->loadSelf();
+            $className = (string) Mage::getConfig()->getNode(self::XML_PATH_FLAT_FLAG);
+            /** @var Mage_Catalog_Model_Product_Flat_Flag $classInstance */
+            $classInstance = Mage::getSingleton($className);
+            $this->_flagObject = $classInstance;
+            $this->_flagObject->loadSelf();
         }
+
         return $this->_flagObject;
     }
 
     /**
      * Check Catalog Product Flat functionality is enabled
      *
-     * @param int|string|null|Mage_Core_Model_Store $store this parameter is deprecated and no longer in use
+     * @param null|int|Mage_Core_Model_Store|string $store this parameter is deprecated and no longer in use
      *
      * @return bool
      */
@@ -126,7 +114,7 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
     /**
      * Check if Catalog Product Flat Data has been initialized
      *
-     * @param null|bool|int|Mage_Core_Model_Store $store Store(id) for which the value is checked
+     * @param  null|bool|int|Mage_Core_Model_Store $store Store(id) for which the value is checked
      * @return bool
      */
     public function isBuilt($store = null)
@@ -134,6 +122,7 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
         if ($store !== null) {
             return $this->getFlag()->isStoreBuilt(Mage::app()->getStore($store)->getId());
         }
+
         return $this->getFlag()->getIsBuilt();
     }
 
@@ -145,10 +134,10 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
     public function isBuiltAllStores()
     {
         $isBuildAll = true;
-        foreach(Mage::app()->getStores(false) as $store) {
-            /** @var $store Mage_Core_Model_Store */
+        foreach (Mage::app()->getStores(false) as $store) {
             $isBuildAll = $isBuildAll && $this->isBuilt($store->getId());
         }
+
         return $isBuildAll;
     }
 
@@ -159,7 +148,7 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
      */
     public function isAddFilterableAttributes()
     {
-        return intval(Mage::getConfig()->getNode(self::XML_NODE_ADD_FILTERABLE_ATTRIBUTES));
+        return (int) Mage::getConfig()->getNode(self::XML_NODE_ADD_FILTERABLE_ATTRIBUTES);
     }
 
     /**
@@ -169,13 +158,27 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
      */
     public function isAddChildData()
     {
-        return intval(Mage::getConfig()->getNode(self::XML_NODE_ADD_CHILD_DATA));
+        return (int) Mage::getConfig()->getNode(self::XML_NODE_ADD_CHILD_DATA);
+    }
+
+    /**
+     * Enable Catalog Product Flat
+     *
+     * @param bool $save
+     */
+    public function enableFlatCollection($save = false)
+    {
+        if ($save) {
+            $this->_forceFlatStatusOld = $this->_forceFlatStatus;
+        }
+
+        $this->_forceFlatStatus = false;
     }
 
     /**
      * Disable Catalog Product Flat
      *
-     * @param $save bool
+     * @param bool $save
      */
     public function disableFlatCollection($save = false)
     {
@@ -191,11 +194,7 @@ class Mage_Catalog_Helper_Product_Flat extends Mage_Catalog_Helper_Flat_Abstract
      */
     public function resetFlatCollection()
     {
-        if (isset($this->_forceFlatStatusOld)) {
-            $this->_forceFlatStatus = $this->_forceFlatStatusOld;
-        } else {
-            $this->_forceFlatStatus = false;
-        }
+        $this->_forceFlatStatus = $this->_forceFlatStatusOld ?? false;
     }
 
     /**

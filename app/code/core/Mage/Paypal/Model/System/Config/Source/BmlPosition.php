@@ -1,87 +1,68 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Source model for available bml positions
+ *
+ * @package    Mage_Paypal
  */
 class Mage_Paypal_Model_System_Config_Source_BmlPosition
 {
     /**
      * Bml positions source getter for Home Page
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getBmlPositionsHP()
     {
-        $bmlPositionsHP = array(
+        return [
             '0' => Mage::helper('paypal')->__('Header (center)'),
-            '1' => Mage::helper('paypal')->__('Sidebar (right)')
-        );
-        return $bmlPositionsHP;
+            '1' => Mage::helper('paypal')->__('Sidebar (right)'),
+        ];
     }
 
     /**
      * Bml positions source getter for Catalog Category Page
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getBmlPositionsCCP()
     {
-        $bmlPositionsCCP = array(
+        return [
             '0' => Mage::helper('paypal')->__('Header (center)'),
-            '1' => Mage::helper('paypal')->__('Sidebar (right)')
-        );
-        return $bmlPositionsCCP;
+            '1' => Mage::helper('paypal')->__('Sidebar (right)'),
+        ];
     }
 
     /**
      * Bml positions source getter for Catalog Product Page
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getBmlPositionsCPP()
     {
-        $bmlPositionsCPP = array(
+        return [
             '0' => Mage::helper('paypal')->__('Header (center)'),
-            '1' => Mage::helper('paypal')->__('Near Paypal Credit checkout button')
-        );
-        return $bmlPositionsCPP;
+            '1' => Mage::helper('paypal')->__('Near Paypal Credit checkout button'),
+        ];
     }
 
     /**
      * Bml positions source getter for Checkout Cart Page
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getBmlPositionsCheckout()
     {
-        $bmlPositionsCheckout = array(
+        return [
             '0' => Mage::helper('paypal')->__('Header (center)'),
-            '1' => Mage::helper('paypal')->__('Near Paypal Credit checkout button')
-        );
-        return $bmlPositionsCheckout;
+            '1' => Mage::helper('paypal')->__('Near Paypal Credit checkout button'),
+        ];
     }
 }

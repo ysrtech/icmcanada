@@ -1,38 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
- * description
- *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Catalog_Product_Attribute_Set_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_catalog_product_attribute_set_grid';
 
     public function __construct()
     {
@@ -43,6 +23,10 @@ class Mage_Adminhtml_Block_Catalog_Product_Attribute_Set_Grid extends Mage_Admin
         $this->setSaveParametersInSession(true);
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('eav/entity_attribute_set_collection')
@@ -52,27 +36,29 @@ class Mage_Adminhtml_Block_Catalog_Product_Attribute_Set_Grid extends Mage_Admin
         return parent::_prepareCollection();
     }
 
+    /**
+     * @return $this
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        /*$this->addColumn('set_id', array(
-            'header'    => Mage::helper('catalog')->__('ID'),
-            'align'     => 'right',
-            'sortable'  => true,
-            'width'     => '50px',
-            'index'     => 'attribute_set_id',
-        ));*/
-
-        $this->addColumn('set_name', array(
+        $this->addColumn('set_name', [
             'header'    => Mage::helper('catalog')->__('Set Name'),
             'align'     => 'left',
-            'sortable'  => true,
             'index'     => 'attribute_set_name',
-        ));
+        ]);
+
+        return parent::_prepareColumns();
     }
 
+    /**
+     * @inheritDoc
+     * @param Mage_Eav_Model_Entity_Attribute_Set $row
+     */
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/*/edit', array('id'=>$row->getAttributeSetId()));
+        return $this->getUrl('*/*/edit', ['id' => $row->getAttributeSetId()]);
     }
-
 }

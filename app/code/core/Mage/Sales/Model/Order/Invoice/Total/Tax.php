@@ -1,38 +1,25 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
-
+/**
+ * Class Mage_Sales_Model_Order_Invoice_Total_Tax
+ *
+ * @package    Mage_Sales
+ */
 class Mage_Sales_Model_Order_Invoice_Total_Tax extends Mage_Sales_Model_Order_Invoice_Total_Abstract
 {
     /**
      * Collect invoice tax amount
      *
-     * @param Mage_Sales_Model_Order_Invoice $invoice
-     * @return Mage_Sales_Model_Order_Invoice_Total_Tax
+     * @return $this
      */
+    #[Override]
     public function collect(Mage_Sales_Model_Order_Invoice $invoice)
     {
         $totalTax       = 0;
@@ -42,7 +29,6 @@ class Mage_Sales_Model_Order_Invoice_Total_Tax extends Mage_Sales_Model_Order_In
 
         $order = $invoice->getOrder();
 
-        /** @var $item Mage_Sales_Model_Order_Invoice_Item */
         foreach ($invoice->getAllItems() as $item) {
             $orderItem = $item->getOrderItem();
             $orderItemQty = $orderItem->getQtyOrdered();
@@ -89,8 +75,9 @@ class Mage_Sales_Model_Order_Invoice_Total_Tax extends Mage_Sales_Model_Order_In
             $invoice->setShippingHiddenTaxAmount($order->getShippingHiddenTaxAmount());
             $invoice->setBaseShippingHiddenTaxAmount($order->getBaseShippingHiddenTaxAmount());
         }
+
         $allowedTax     = $order->getTaxAmount() - $order->getTaxInvoiced();
-        $allowedBaseTax = $order->getBaseTaxAmount() - $order->getBaseTaxInvoiced();;
+        $allowedBaseTax = $order->getBaseTaxAmount() - $order->getBaseTaxInvoiced();
         $allowedHiddenTax     = $order->getHiddenTaxAmount() + $order->getShippingHiddenTaxAmount()
             - $order->getHiddenTaxInvoiced() - $order->getShippingHiddenTaxInvoiced();
         $allowedBaseHiddenTax = $order->getBaseHiddenTaxAmount() + $order->getBaseShippingHiddenTaxAmount()
@@ -121,8 +108,8 @@ class Mage_Sales_Model_Order_Invoice_Total_Tax extends Mage_Sales_Model_Order_In
 
     /**
      * Check if shipping tax calculation can be included to current invoice
-     * @param Mage_Sales_Model_Order_Invoice $invoice
-     * @return boolean
+     * @param  Mage_Sales_Model_Order_Invoice $invoice
+     * @return bool
      */
     protected function _canIncludeShipping($invoice)
     {
@@ -135,6 +122,7 @@ class Mage_Sales_Model_Order_Invoice_Total_Tax extends Mage_Sales_Model_Order_In
                 $includeShippingTax = false;
             }
         }
+
         return $includeShippingTax;
     }
 }

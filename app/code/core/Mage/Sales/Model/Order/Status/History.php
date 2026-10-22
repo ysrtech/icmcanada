@@ -1,53 +1,35 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Order status history comments
  *
- * @method Mage_Sales_Model_Resource_Order_Status_History _getResource()
- * @method Mage_Sales_Model_Resource_Order_Status_History getResource()
- * @method int getParentId()
- * @method Mage_Sales_Model_Order_Status_History setParentId(int $value)
- * @method int getIsCustomerNotified()
- * @method int getIsVisibleOnFront()
- * @method Mage_Sales_Model_Order_Status_History setIsVisibleOnFront(int $value)
- * @method string getComment()
- * @method Mage_Sales_Model_Order_Status_History setComment(string $value)
- * @method string getStatus()
- * @method Mage_Sales_Model_Order_Status_History setStatus(string $value)
- * @method string getCreatedAt()
- * @method Mage_Sales_Model_Order_Status_History setCreatedAt(string $value)
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Order_Status_History            _getResource()
+ * @method Mage_Sales_Model_Resource_Order_Status_History_Collection getCollection()
+ * @method string                                                    getComment()
+ * @method int                                                       getIsCustomerNotified()
+ * @method int                                                       getIsVisibleOnFront()
+ * @method int                                                       getParentId()
+ * @method Mage_Sales_Model_Resource_Order_Status_History            getResource()
+ * @method Mage_Sales_Model_Resource_Order_Status_History_Collection getResourceCollection()
+ * @method string                                                    getStatus()
+ * @method $this                                                     setComment(string $value)
+ * @method $this                                                     setEntityName(string $value)
+ * @method $this                                                     setIsVisibleOnFront(int $value)
+ * @method $this                                                     setParentId(int $value)
+ * @method $this                                                     setStatus(string $value)
  */
 class Mage_Sales_Model_Order_Status_History extends Mage_Sales_Model_Abstract
 {
-    const CUSTOMER_NOTIFICATION_NOT_APPLICABLE = 2;
+    public const CUSTOMER_NOTIFICATION_NOT_APPLICABLE = 2;
 
     /**
      * Order instance
@@ -56,18 +38,12 @@ class Mage_Sales_Model_Order_Status_History extends Mage_Sales_Model_Abstract
      */
     protected $_order;
 
-    /**
-     * Whether setting order again is required (for example when setting non-saved yet order)
-     * @deprecated after 1.4, wrong logic of setting order id
-     * @var bool
-     */
-    private $_shouldSetOrderBeforeSave = false;
-
     protected $_eventPrefix = 'sales_order_status_history';
+
     protected $_eventObject = 'status_history';
 
     /**
-     * Initialize resource model
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -75,23 +51,31 @@ class Mage_Sales_Model_Order_Status_History extends Mage_Sales_Model_Abstract
     }
 
     /**
-     * Set order object and grab some metadata from it
+     * Set order object
      *
-     * @param   Mage_Sales_Model_Order $order
-     * @return  Mage_Sales_Model_Order_Status_History
+     * @return $this
      */
     public function setOrder(Mage_Sales_Model_Order $order)
     {
         $this->_order = $order;
-        $this->setStoreId($order->getStoreId());
         return $this;
+    }
+
+    /**
+     * Get store id
+     *
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    public function getStoreId(): int
+    {
+        return $this->getStore()->getStoreId();
     }
 
     /**
      * Notification flag
      *
      * @param  mixed $flag OPTIONAL (notification is not applicable by default)
-     * @return Mage_Sales_Model_Order_Status_History
+     * @return $this
      */
     public function setIsCustomerNotified($flag = null)
     {
@@ -105,7 +89,7 @@ class Mage_Sales_Model_Order_Status_History extends Mage_Sales_Model_Abstract
     /**
      * Customer Notification Applicable check method
      *
-     * @return boolean
+     * @return bool
      */
     public function isCustomerNotificationNotApplicable()
     {
@@ -129,29 +113,34 @@ class Mage_Sales_Model_Order_Status_History extends Mage_Sales_Model_Abstract
      */
     public function getStatusLabel()
     {
-        if($this->getOrder()) {
+        if ($this->getOrder()) {
             return $this->getOrder()->getConfig()->getStatusLabel($this->getStatus());
         }
+
+        return '';
     }
 
     /**
      * Get store object
      *
-     * @return unknown
+     * @return Mage_Core_Model_Store
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getStore()
     {
         if ($this->getOrder()) {
             return $this->getOrder()->getStore();
         }
+
         return Mage::app()->getStore();
     }
 
     /**
      * Set order again if required
      *
-     * @return Mage_Sales_Model_Order_Status_History
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         parent::_beforeSave();

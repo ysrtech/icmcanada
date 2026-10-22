@@ -54,6 +54,12 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit_Tabs extends Mage_Adminhtml_Block
             'content'   => $this->getLayout()->createBlock('dc_catalog/admin_manufacturer_edit_tab_meta')->toHtml(),
         ));
 
+        $this->addTab('translation_section', array(
+            'label'   => Mage::helper('adminhtml')->__('Store View Translations'),
+            'title'   => Mage::helper('adminhtml')->__('Store View Translations'),
+            'content' => $this->getLayout()->createBlock('dc_catalog/admin_manufacturer_edit_tab_translation')->toHtml(),
+        ));
+
         return parent::_beforeToHtml();
     }
 

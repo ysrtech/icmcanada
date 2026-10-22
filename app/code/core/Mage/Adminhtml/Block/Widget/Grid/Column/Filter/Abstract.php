@@ -1,40 +1,19 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
 /**
- * Grid colum filter block
- *
- * @category   Mage
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract extends Mage_Adminhtml_Block_Abstract
-    implements Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Interface
-{
 
+/**
+ * Grid column filter block
+ *
+ * @package    Mage_Adminhtml
+ */
+class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract extends Mage_Adminhtml_Block_Abstract implements Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Interface
+{
     /**
      * Column related to filter
      *
@@ -45,8 +24,8 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract extends Mage_Admin
     /**
      * Set column related to filter
      *
-     * @param Mage_Adminhtml_Block_Widget_Grid_Column $column
-     * @return Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract
+     * @param  Mage_Adminhtml_Block_Widget_Grid_Column $column
+     * @return $this
      */
     public function setColumn($column)
     {
@@ -89,30 +68,41 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract extends Mage_Admin
     /**
      * Retrieve escaped value
      *
-     * @param mixed $index
+     * @param  mixed  $index
      * @return string
      */
     public function getEscapedValue($index = null)
     {
-        return htmlspecialchars($this->getValue($index));
+        return htmlspecialchars((string) $this->getValue($index));
     }
 
     /**
-     * Retrieve condition
+     * Retrieve filter condition for collection
      *
-     * @return array
+     * @return null|array<void>|array{
+     *     eq?: string,
+     *     neq?: string,
+     *     in?: array,
+     *     nin?: array,
+     *     from?: string,
+     *     to?: string,
+     *     is?: string|Zend_Db_Expr,
+     *     like?: string|Zend_Db_Expr,
+     *     null?: bool,
+     *     currency?: string
+     * }|int
      */
     public function getCondition()
     {
         $helper = Mage::getResourceHelper('core');
-        $likeExpression = $helper->addLikeEscape($this->getValue(), array('position' => 'any'));
-        return array('like' => $likeExpression);
+        $likeExpression = $helper->addLikeEscape($this->getValue(), ['position' => 'any']);
+        return ['like' => $likeExpression];
     }
 
     /**
+     * @param  array|string $value
+     * @return array|string
      * @deprecated after 1.5.0.0
-     * @param  $value
-     * @return mixed
      */
     protected function _escapeValue($value)
     {
@@ -128,5 +118,4 @@ class Mage_Adminhtml_Block_Widget_Grid_Column_Filter_Abstract extends Mage_Admin
     {
         return '';
     }
-
 }

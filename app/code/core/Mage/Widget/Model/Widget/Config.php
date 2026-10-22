@@ -1,55 +1,33 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Widget
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Widget
  */
 
 /**
  * Widgets Insertion Plugin Config for Editor HTML Element
  *
- * @category    Mage
- * @package     Mage_Widget
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Widget
  */
 class Mage_Widget_Model_Widget_Config extends Varien_Object
 {
-
     /**
      * Return config settings for widgets insertion plugin based on editor element config
      *
-     * @param Varien_Object $config
-     * @return array
+     * @param  Varien_Object                 $config
+     * @return array<string, mixed[]|string>
      */
     public function getPluginSettings($config)
     {
-        $settings = array(
-            'widget_plugin_src'   => Mage::getBaseUrl('js').'mage/adminhtml/wysiwyg/tiny_mce/plugins/magentowidget/editor_plugin.js',
+        return [
+            'widget_plugin_src'   => Mage::getBaseUrl('js') . 'mage/adminhtml/wysiwyg/tinymce/plugins/openmagewidget.js',
             'widget_images_url'   => $this->getPlaceholderImagesBaseUrl(),
             'widget_placeholders' => $this->getAvailablePlaceholderFilenames(),
-            'widget_window_url'   => $this->getWidgetWindowUrl($config)
-        );
-
-        return $settings;
+            'widget_window_url'   => $this->getWidgetWindowUrl($config),
+        ];
     }
 
     /**
@@ -79,7 +57,7 @@ class Mage_Widget_Model_Widget_Config extends Varien_Object
      */
     public function getAvailablePlaceholderFilenames()
     {
-        $result = array();
+        $result = [];
         $targetDir = $this->getPlaceholderImagesBaseDir();
         if (is_dir($targetDir) && is_readable($targetDir)) {
             $collection = new Varien_Data_Collection_Filesystem();
@@ -98,17 +76,17 @@ class Mage_Widget_Model_Widget_Config extends Varien_Object
     /**
      * Return Widgets Insertion Plugin Window URL
      *
-     * @param Varien_Object Editor element config
+     * @param  Varien_Object $config Editor element config
      * @return string
      */
     public function getWidgetWindowUrl($config)
     {
-        $params = array();
+        $params = [];
 
-        $skipped = is_array($config->getData('skip_widgets')) ? $config->getData('skip_widgets') : array();
+        $skipped = is_array($config->getDataByKey('skip_widgets')) ? $config->getDataByKey('skip_widgets') : [];
         if ($config->hasData('widget_filters')) {
             $all = Mage::getModel('widget/widget')->getWidgetsXml();
-            $filtered = Mage::getModel('widget/widget')->getWidgetsXml($config->getData('widget_filters'));
+            $filtered = Mage::getModel('widget/widget')->getWidgetsXml($config->getDataByKey('widget_filters'));
             $reflection = new ReflectionObject($filtered);
             foreach ($all as $code => $widget) {
                 if (!$reflection->hasProperty($code)) {
@@ -117,21 +95,22 @@ class Mage_Widget_Model_Widget_Config extends Varien_Object
             }
         }
 
-        if (count($skipped) > 0) {
+        if ($skipped !== []) {
             $params['skip_widgets'] = $this->encodeWidgetsToQuery($skipped);
         }
+
         return Mage::getSingleton('adminhtml/url')->getUrl('*/widget/index', $params);
     }
 
     /**
      * Encode list of widget types into query param
      *
-     * @param array $widgets List of widgets
+     * @param  array  $widgets List of widgets
      * @return string Query param value
      */
     public function encodeWidgetsToQuery($widgets)
     {
-        $widgets = is_array($widgets) ? $widgets : array($widgets);
+        $widgets = is_array($widgets) ? $widgets : [$widgets];
         $param = implode(',', $widgets);
         return Mage::helper('core')->urlEncode($param);
     }
@@ -139,13 +118,12 @@ class Mage_Widget_Model_Widget_Config extends Varien_Object
     /**
      * Decode URL query param and return list of widgets
      *
-     * @param string $queryParam Query param value to decode
-     * @return array Array of widget types
+     * @param  string $queryParam Query param value to decode
+     * @return array  Array of widget types
      */
     public function decodeWidgetsFromQuery($queryParam)
     {
         $param = Mage::helper('core')->urlDecode($queryParam);
         return preg_split('/\s*\,\s*/', $param, 0, PREG_SPLIT_NO_EMPTY);
     }
-
 }

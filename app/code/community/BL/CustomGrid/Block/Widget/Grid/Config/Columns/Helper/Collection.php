@@ -16,11 +16,11 @@
 class BL_CustomGrid_Block_Widget_Grid_Config_Columns_Helper_Collection extends Mage_Adminhtml_Block_Template
 {
     /**
-     * Return core helper
+     * Return the core helper
      * 
      * @return Mage_Core_Helper_Data
      */
-    protected function _getCoreHelper()
+    public function getCoreHelper()
     {
         return $this->helper('core');
     }
@@ -92,7 +92,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_Helper_Collection extends M
     public function getBaseHtmlId()
     {
         if (!$this->hasData('base_html_id')) {
-            $this->setData('base_html_id', $this->_getCoreHelper()->uniqHash('blcgCRS'));
+            $this->setData('base_html_id', $this->getCoreHelper()->uniqHash('blcgCRS'));
         }
         return $this->_getData('base_html_id');
     }
@@ -156,14 +156,14 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_Helper_Collection extends M
                 $values['windowConfig'] = array(
                     'width'  => $renderer->getData('config_window/width'),
                     'height' => $renderer->getData('config_window/height'),
-                    'title'  => $this->htmlEscape($renderer->getData('config_window/title')),
+                    'title'  => $this->escapeHtml($renderer->getData('config_window/title')),
                 );
             }
             
             $config[] = $values;
         }
         
-        return $this->_getCoreHelper()->jsonEncode($config);
+        return $this->getCoreHelper()->jsonEncode($config);
     }
     
     /**
@@ -173,7 +173,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_Helper_Collection extends M
      */
     public function getRendererConfigUrl()
     {
-        return $this->getUrl('customgrid/column_renderer_collection');
+        return $this->getUrl('adminhtml/blcg_column_renderer_collection');
     }
     
     /**
@@ -184,7 +184,7 @@ class BL_CustomGrid_Block_Widget_Grid_Config_Columns_Helper_Collection extends M
     public function getSelectsManagerJsObjectName()
     {
         if (!$this->hasData('selects_manager_js_object_name')) {
-            $this->setData('selects_manager_js_object_name', $this->_getCoreHelper()->uniqHash('blcgCRSM'));
+            $this->setData('selects_manager_js_object_name', $this->getCoreHelper()->uniqHash('blcgCRSM'));
         }
         return $this->_getData('selects_manager_js_object_name');
     }

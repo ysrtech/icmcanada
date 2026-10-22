@@ -1,28 +1,10 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE_AFL.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ProductAlert
- * @copyright   Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
+ * @package    Mage_ProductAlert
  */
 -->
 <config>
@@ -31,7 +13,6 @@
             <groups>
                 <productalert translate="label" module="productalert">
                     <label>Product Alerts</label>
-                    <frontend_type>text</frontend_type>
                     <sort_order>250</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
@@ -55,7 +36,6 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </allow_stock>
-
                         <email_price_template translate="label">
                             <label>Price Alert Email Template</label>
                             <frontend_type>select</frontend_type>
@@ -64,6 +44,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <depends><allow_price>1</allow_price></depends>
                         </email_price_template>
                         <email_stock_template translate="label">
                             <label>Stock Alert Email Template</label>
@@ -73,6 +54,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <depends><allow_stock>1</allow_stock></depends>
                         </email_stock_template>
                         <email_identity translate="label">
                             <label>Alert Email Sender</label>
@@ -87,7 +69,6 @@
                 </productalert>
                 <productalert_cron translate="label" module="productalert">
                     <label>Product Alerts Run Settings</label>
-                    <frontend_type>text</frontend_type>
                     <sort_order>260</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
@@ -113,7 +94,6 @@
                         </time>
                         <error_email translate="label">
                             <label>Error Email Recipient</label>
-                            <frontend_type>text</frontend_type>
                             <validate>validate-email</validate>
                             <sort_order>3</sort_order>
                             <show_in_default>1</show_in_default>

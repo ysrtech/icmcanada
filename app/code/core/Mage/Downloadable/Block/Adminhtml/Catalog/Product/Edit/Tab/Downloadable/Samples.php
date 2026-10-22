@@ -1,42 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Downloadable
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Downloadable
  */
 
 /**
  * Adminhtml catalog product downloadable items tab links section
  *
- * @category    Mage
- * @package     Mage_Downloadable
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Downloadable
  */
-class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples
-    extends Mage_Uploader_Block_Single
+class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Samples extends Mage_Uploader_Block_Single
 {
     /**
      * Class constructor
-     *
      */
     public function __construct()
     {
@@ -57,13 +36,12 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
     /**
      * Check block is readonly
      *
-     * @return boolean
+     * @return bool
      */
     public function isReadonly()
     {
-         return $this->getProduct()->getDownloadableReadonly();
+        return $this->getProduct()->getDownloadableReadonly();
     }
-
 
     /**
      * Retrieve Add Button HTML
@@ -73,49 +51,56 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
     public function getAddButtonHtml()
     {
         $addButton = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
+            ->setData([
                 'label' => Mage::helper('downloadable')->__('Add New Row'),
                 'id' => 'add_sample_item',
                 'class' => 'add',
-            ));
+            ]);
         return $addButton->toHtml();
     }
 
     /**
      * Retrieve samples array
      *
-     * @return array
+     * @return Varien_Object[]
      */
     public function getSampleData()
     {
-        $samplesArr = array();
-        $samples = $this->getProduct()->getTypeInstance(true)->getSamples($this->getProduct());
+        $samplesArr = [];
+        /** @var Mage_Downloadable_Model_Product_Type $productType */
+        $productType = $this->getProduct()->getTypeInstance(true);
+        /** @var Mage_Downloadable_Model_Sample[] $samples */
+        $samples = $productType->getSamples($this->getProduct());
         foreach ($samples as $item) {
-            $tmpSampleItem = array(
+            $tmpSampleItem = [
                 'sample_id' => $item->getId(),
                 'title' => $this->escapeHtml($item->getTitle()),
                 'sample_url' => $item->getSampleUrl(),
                 'sample_type' => $item->getSampleType(),
                 'sort_order' => $item->getSortOrder(),
-            );
+            ];
             $file = Mage::helper('downloadable/file')->getFilePath(
-                Mage_Downloadable_Model_Sample::getBasePath(), $item->getSampleFile()
+                Mage_Downloadable_Model_Sample::getBasePath(),
+                $item->getSampleFile(),
             );
             if ($item->getSampleFile() && !is_file($file)) {
                 Mage::helper('core/file_storage_database')->saveFileToFilesystem($file);
             }
+
             if ($item->getSampleFile() && is_file($file)) {
-                $tmpSampleItem['file_save'] = array(
-                    array(
+                $tmpSampleItem['file_save'] = [
+                    [
                         'file' => $item->getSampleFile(),
                         'name' => Mage::helper('downloadable/file')->getFileFromPathFile($item->getSampleFile()),
                         'size' => filesize($file),
-                        'status' => 'old'
-                    ));
+                        'status' => 'old',
+                    ]];
             }
+
             if ($this->getProduct() && $item->getStoreTitle()) {
                 $tmpSampleItem['store_title'] = $item->getStoreTitle();
             }
+
             $samplesArr[] = new Varien_Object($tmpSampleItem);
         }
 
@@ -144,26 +129,27 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
 
     /**
      * Prepare layout
-     *
      */
+    #[Override]
     protected function _prepareLayout()
     {
         parent::_prepareLayout();
         $this->setChild(
             'upload_button',
             $this->getLayout()->createBlock('adminhtml/widget_button')
-                ->addData(array(
+                ->addData([
                     'id'      => '',
                     'label'   => Mage::helper('adminhtml')->__('Upload Files'),
                     'type'    => 'button',
-                    'onclick' => 'Downloadable.massUploadByType(\'samples\')'
-                ))
+                    'onclick' => "Downloadable.massUploadByType('samples')",
+                ]),
         );
 
-        $this->_addElementIdsMapping(array(
+        $this->_addElementIdsMapping([
             'container' => $this->getHtmlId() . '-new',
-            'delete'    => $this->getHtmlId() . '-delete'
-        ));
+            'delete'    => $this->getHtmlId() . '-delete',
+        ]);
+        return $this;
     }
 
     /**
@@ -187,8 +173,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
             ->setFileParameterName('samples')
             ->setTarget(
                 Mage::getModel('adminhtml/url')
-                    ->addSessionParam()
-                    ->getUrl('*/downloadable_file/upload', array('type' => 'samples', '_secure' => true))
+                    ->getUrl('*/downloadable_file/upload', ['type' => 'samples', '_secure' => true]),
             );
         $this->getMiscConfig()
             ->setReplaceBrowseWithRemove(true)
@@ -199,6 +184,7 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
     /**
      * @return string
      */
+    #[Override]
     public function getBrowseButtonHtml()
     {
         return $this->getChild('browse_button')
@@ -209,10 +195,10 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
             ->toHtml();
     }
 
-
     /**
      * @return string
      */
+    #[Override]
     public function getDeleteButtonHtml()
     {
         return $this->getChild('delete_button')
@@ -225,8 +211,8 @@ class Mage_Downloadable_Block_Adminhtml_Catalog_Product_Edit_Tab_Downloadable_Sa
     /**
      * Retrieve config object
      *
-     * @deprecated
      * @return $this
+     * @deprecated
      */
     public function getConfig()
     {

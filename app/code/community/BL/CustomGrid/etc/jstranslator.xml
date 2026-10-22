@@ -62,4 +62,12 @@
     <blcg-grid-profile-title-right-click translate="message" module="customgrid">
         <message>Right-click to view all the available actions</message>
     </blcg-grid-profile-title-right-click>
+    
+    <blcg-searchable-select-placeholder translate="message" module="customgrid">
+        <message>Filter options</message>
+    </blcg-searchable-select-placeholder>
+    
+    <blcg-searchable-select-no-result translate="message" module="customgrid">
+        <message>No matching option</message>
+    </blcg-searchable-select-no-result>
 </jstranslator>

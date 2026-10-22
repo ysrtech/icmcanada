@@ -1,51 +1,32 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Page
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Page
+ */
 
 /**
  * Customer Redirect Page
  *
- * @category    Mage
- * @package     Mage_Page
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Page
+ *
+ * @method string getMethod()
  */
 class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
 {
-
     /**
      *  HTML form hidden fields
      */
-    protected $_formFields = array();
+    protected $_formFields = [];
 
     /**
      *  URL for redirect location
      *
-     *  @return	  string URL
+     * @return string URL
      */
-    public function getTargetURL ()
+    public function getTargetURL()
     {
         return '';
     }
@@ -53,9 +34,9 @@ class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
     /**
      *  Additional custom message
      *
-     *  @return	  string Output message
+     * @return string Output message
      */
-    public function getMessage ()
+    public function getMessage()
     {
         return '';
     }
@@ -63,36 +44,35 @@ class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
     /**
      *  Client-side redirect engine output
      *
-     *  @return	  string
+     * @return string
      */
-    public function getRedirectOutput ()
+    public function getRedirectOutput()
     {
         if ($this->isHtmlFormRedirect()) {
             return $this->getHtmlFormRedirect();
-        } else {
-            return $this->getJsRedirect();
         }
+
+        return $this->getJsRedirect();
     }
 
     /**
      *  Redirect via JS location
      *
-     *  @return	  string
+     * @return string
      */
-    public function getJsRedirect ()
+    public function getJsRedirect()
     {
-        $js  = '<script type="text/javascript">';
-        $js .= 'document.location.href="' . $this->getTargetURL() . '";';
-        $js .= '</script>';
-        return $js;
+        $str  = '<script type="text/javascript">';
+        $str .= 'document.location.href="' . $this->getTargetURL() . '";';
+        return $str . '</script>';
     }
 
     /**
      *  Redirect via HTML form submission
      *
-     *  @return	  string
+     * @return string
      */
-    public function getHtmlFormRedirect ()
+    public function getHtmlFormRedirect()
     {
         $form = new Varien_Data_Form();
         $form->setAction($this->getTargetURL())
@@ -101,27 +81,27 @@ class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
             ->setMethod($this->getMethod())
             ->setUseContainer(true);
         foreach ($this->_getFormFields() as $field => $value) {
-            $form->addField($field, 'hidden', array('name' => $field, 'value' => $value));
+            $form->addField($field, 'hidden', ['name' => $field, 'value' => $value]);
         }
+
         $html = $form->toHtml();
-        $html.= '<script type="text/javascript">document.getElementById("' . $this->getFormId() . '").submit();</script>';
-        return $html;
+        return $html . ('<script type="text/javascript">document.getElementById("' . $this->getFormId() . '").submit();</script>');
     }
 
     /**
-     *  HTML form or JS redirect
+     * HTML form or JS redirect
      *
-     *  @return	  boolean
+     * @return bool
      */
-    public function isHtmlFormRedirect ()
+    public function isHtmlFormRedirect()
     {
-        return is_array($this->_getFormFields()) && count($this->_getFormFields()) > 0;
+        return is_array($this->_getFormFields()) && $this->_getFormFields() !== [];
     }
 
     /**
      *  HTML form id/name attributes
      *
-     *  @return	  string Id/name
+     * @return string Id/name
      */
     public function getFormId()
     {
@@ -131,9 +111,9 @@ class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
     /**
      *  HTML form method attribute
      *
-     *  @return	  string Method
+     * @return string Method
      */
-    public function getFormMethod ()
+    public function getFormMethod()
     {
         return 'POST';
     }
@@ -141,24 +121,24 @@ class Mage_Page_Block_Redirect extends Mage_Core_Block_Template
     /**
      *  Array of hidden form fields (name => value)
      *
-     *  @return	  array
+     * @return array<string, string>|array<void>
      */
     public function getFormFields()
     {
-        return array();
+        return [];
     }
 
     /**
-     *  Optimized getFormFields() method
+     * Optimized getFormFields() method
      *
-     *  @return	  array
+     * @return array
      */
     protected function _getFormFields()
     {
         if (!is_array($this->_formFields) || count($this->_formFields) == 0) {
             $this->_formFields = $this->getFormFields();
         }
+
         return $this->_formFields;
     }
-
 }

@@ -1,36 +1,19 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Abstract model class
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
+ *
+ * @method Mage_Core_Model_Resource_File_Storage_File _getResource()
+ * @method Mage_Core_Model_Resource_File_Storage_File getResource()
  */
 class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abstract
 {
@@ -44,7 +27,7 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Data at storage
      *
-     * @var array
+     * @var null|array
      */
     protected $_data = null;
 
@@ -53,7 +36,7 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
      *
      * @var array
      */
-    protected $_errors = array();
+    protected $_errors = [];
 
     /**
      * Class construct
@@ -66,7 +49,7 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Initialization
      *
-     * @return Mage_Core_Model_File_Storage_File
+     * @return $this
      */
     public function init()
     {
@@ -100,13 +83,13 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
      */
     public function hasErrors()
     {
-        return !empty($this->_errors);
+        return $this->_errors !== [];
     }
 
     /**
      * Clear files and directories in storage
      *
-     * @return Mage_Core_Model_File_Storage_File
+     * @return $this
      */
     public function clear()
     {
@@ -117,26 +100,26 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Collect files and directories from storage
      *
-     * @param  int $offset
-     * @param  int $count
-     * @param  string $type
-     * @return array|bool
+     * @param  int         $offset
+     * @param  int         $count
+     * @param  string      $type
+     * @return array|false
      */
     public function collectData($offset = 0, $count = 100, $type = 'files')
     {
-        if (!in_array($type, array('files', 'directories'))) {
+        if (!in_array($type, ['files', 'directories'])) {
             return false;
         }
 
-        $offset = ((int) $offset >= 0) ? (int) $offset : 0;
-        $count  = ((int) $count >= 1) ? (int) $count : 1;
+        $offset = max((int) $offset, 0);
+        $count  = max((int) $count, 1);
 
         if (is_null($this->_data)) {
             $this->_data = $this->getStorageData();
         }
 
         $slice = array_slice($this->_data[$type], $offset, $count);
-        if (empty($slice)) {
+        if ($slice === []) {
             return false;
         }
 
@@ -146,9 +129,9 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Export directories list from storage
      *
-     * @param  int $offset
-     * @param  int $count
-     * @return array|bool
+     * @param  int         $offset
+     * @param  int         $count
+     * @return array|false
      */
     public function exportDirectories($offset = 0, $count = 100)
     {
@@ -158,8 +141,8 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Export files list in defined range
      *
-     * @param  int $offset
-     * @param  int $count
+     * @param  int        $offset
+     * @param  int        $count
      * @return array|bool
      */
     public function exportFiles($offset = 0, $count = 1)
@@ -170,12 +153,12 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
             return false;
         }
 
-        $result = array();
+        $result = [];
         foreach ($slice as $fileName) {
             try {
                 $fileInfo = $this->collectFileInfo($fileName);
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Exception $exception) {
+                Mage::logException($exception);
                 continue;
             }
 
@@ -188,9 +171,9 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
     /**
      * Import entities to storage
      *
-     * @param  array $data
+     * @param  array  $data
      * @param  string $callback
-     * @return Mage_Core_Model_File_Storage_File
+     * @return $this
      */
     public function import($data, $callback)
     {
@@ -201,9 +184,9 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
         foreach ($data as $part) {
             try {
                 $this->$callback($part);
-            } catch (Exception $e) {
-                $this->_errors[] = $e->getMessage();
-                Mage::logException($e);
+            } catch (Exception $exception) {
+                $this->_errors[] = $exception->getMessage();
+                Mage::logException($exception);
             }
         }
 
@@ -214,7 +197,7 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
      * Import directories to storage
      *
      * @param  array $dirs
-     * @return Mage_Core_Model_File_Storage_File
+     * @return $this
      */
     public function importDirectories($dirs)
     {
@@ -225,7 +208,7 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
      * Import files list
      *
      * @param  array $files
-     * @return Mage_Core_Model_File_Storage_File
+     * @return $this
      */
     public function importFiles($files)
     {
@@ -247,8 +230,8 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
      * Save file to storage
      *
      * @param  array|Mage_Core_Model_File_Storage_Database $file
-     * @param  bool $overwrite
-     * @return bool|int
+     * @param  bool                                        $overwrite
+     * @return bool
      */
     public function saveFile($file, $overwrite = true)
     {
@@ -262,14 +245,29 @@ class Mage_Core_Model_File_Storage_File extends Mage_Core_Model_File_Storage_Abs
 
                 return $this->_getResource()
                     ->saveFile($filename, $file['content'], $overwrite);
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Exception $exception) {
+                Mage::logException($exception);
                 Mage::throwException(Mage::helper('core')->__('Unable to save file "%s" at "%s"', $file['filename'], $file['directory']));
             }
         } else {
             Mage::throwException(Mage::helper('core')->__('Wrong file info format'));
         }
+    }
 
-        return false;
+    /**
+     * @param  string $filePath
+     * @return bool
+     */
+    public function lockCreateFile($filePath)
+    {
+        return $this->getResource()->lockCreateFile($filePath);
+    }
+
+    /**
+     * @param string $filePath
+     */
+    public function removeLockedFile($filePath)
+    {
+        $this->getResource()->removeLockedFile($filePath);
     }
 }

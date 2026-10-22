@@ -1,43 +1,33 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paygate
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paygate
  */
 
+/**
+ * @package    Mage_Paygate
+ */
 class Mage_Paygate_Model_Authorizenet_Cards
 {
-    const CARDS_NAMESPACE = 'authorize_cards';
-    const CARD_ID_KEY = 'id';
-    const CARD_PROCESSED_AMOUNT_KEY = 'processed_amount';
-    const CARD_CAPTURED_AMOUNT_KEY = 'captured_amount';
-    const CARD_REFUNDED_AMOUNT_KEY = 'refunded_amount';
+    public const CARDS_NAMESPACE = 'authorize_cards';
+
+    public const CARD_ID_KEY = 'id';
+
+    public const CARD_PROCESSED_AMOUNT_KEY = 'processed_amount';
+
+    public const CARD_CAPTURED_AMOUNT_KEY = 'captured_amount';
+
+    public const CARD_REFUNDED_AMOUNT_KEY = 'refunded_amount';
 
     /**
      * Cards information
      *
      * @var mixed
      */
-    protected $_cards = array();
+    protected $_cards = [];
 
     /**
      * Payment instance
@@ -49,8 +39,7 @@ class Mage_Paygate_Model_Authorizenet_Cards
     /**
      * Set payment instance for storing credit card information and partial authorizations
      *
-     * @param Mage_Payment_Model_Info $payment
-     * @return Mage_Paygate_Model_Authorizenet_Cards
+     * @return $this
      */
     public function setPayment(Mage_Payment_Model_Info $payment)
     {
@@ -66,13 +55,13 @@ class Mage_Paygate_Model_Authorizenet_Cards
     /**
      * Add based on $cardInfo card to payment and return Id of new item
      *
-     * @param mixed $cardInfo
-     * @return string
+     * @param  mixed         $cardInfo
+     * @return Varien_Object
      */
-    public function registerCard($cardInfo = array())
+    public function registerCard($cardInfo = [])
     {
         $this->_isPaymentValid();
-        $cardId = md5(microtime(1));
+        $cardId = md5((string) microtime(true));
         $cardInfo[self::CARD_ID_KEY] = $cardId;
         $this->_cards[$cardId] = $cardInfo;
         $this->_payment->setAdditionalInformation(self::CARDS_NAMESPACE, $this->_cards);
@@ -82,8 +71,8 @@ class Mage_Paygate_Model_Authorizenet_Cards
     /**
      * Save data from card object in cards storage
      *
-     * @param Varien_Object $card
-     * @return Mage_Paygate_Model_Authorizenet_Cards
+     * @param  Varien_Object $card
+     * @return $this
      */
     public function updateCard($card)
     {
@@ -92,21 +81,22 @@ class Mage_Paygate_Model_Authorizenet_Cards
             $this->_cards[$cardId] = $card->getData();
             $this->_payment->setAdditionalInformation(self::CARDS_NAMESPACE, $this->_cards);
         }
+
         return $this;
     }
 
     /**
      * Retrieve card by ID
      *
-     * @param string $cardId
-     * @return Varien_Object|bool
+     * @param  string              $cardId
+     * @return false|Varien_Object
      */
     public function getCard($cardId)
     {
         if (isset($this->_cards[$cardId])) {
-            $card = new Varien_Object($this->_cards[$cardId]);
-            return $card;
+            return new Varien_Object($this->_cards[$cardId]);
         }
+
         return false;
     }
 
@@ -118,10 +108,11 @@ class Mage_Paygate_Model_Authorizenet_Cards
     public function getCards()
     {
         $this->_isPaymentValid();
-        $_cards = array();
-        foreach(array_keys($this->_cards) as $key) {
+        $_cards = [];
+        foreach (array_keys($this->_cards) as $key) {
             $_cards[$key] = $this->getCard($key);
         }
+
         return $_cards;
     }
 
@@ -169,17 +160,17 @@ class Mage_Paygate_Model_Authorizenet_Cards
     /**
      * Remove all cards from payment instance
      *
-     * @return Mage_Paygate_Model_Authorizenet_Cart
+     * @return $this
      */
     public function flushCards()
     {
-        $this->_cards = array();
-        $this->_payment->setAdditionalInformation(self::CARDS_NAMESPACE, null);
+        $this->_cards = [];
+        $this->_payment->setAdditionalInformation(self::CARDS_NAMESPACE);
         return $this;
     }
 
     /**
-     * Check for payment instace present
+     * Check for payment instance present
      *
      * @throws Exception
      */
@@ -189,6 +180,7 @@ class Mage_Paygate_Model_Authorizenet_Cards
             throw new Exception('Payment instance is not set');
         }
     }
+
     /**
      * Return total for cards data fields
      *
@@ -203,6 +195,7 @@ class Mage_Paygate_Model_Authorizenet_Cards
                 $amount += $card[$key];
             }
         }
+
         return $amount;
     }
 }

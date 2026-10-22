@@ -1,34 +1,16 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE_AFL.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright   Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
+ * @package    Mage_Core
  */
 -->
 <config>
     <modules>
         <Mage_Core>
-            <version>1.6.0.10</version>
+            <version>1.6.0.12</version>
         </Mage_Core>
     </modules>
     <global>
@@ -122,7 +104,7 @@
             <types>
                 <config translate="label,description" module="core">
                     <label>Configuration</label>
-                    <description>System(config.xml, local.xml) and modules configuration files(config.xml).</description>
+                    <description>System (config.xml, local.xml) and modules configuration files (config.xml, system.xml).</description>
                     <tags>CONFIG</tags>
                 </config>
                 <layout translate="label,description" module="core">
@@ -160,7 +142,7 @@
         </request>
         <log>
             <core>
-                <writer_model>Zend_Log_Writer_Stream</writer_model>
+                <writer_model>Monolog\Handler\StreamHandler</writer_model>
             </core>
         </log>
         <url_rewrite>
@@ -314,17 +296,28 @@
             </translate_inline>
             <log>
                 <active>0</active>
+                <max_level>600</max_level>
                 <file>system.log</file>
                 <exception_file>exception.log</exception_file>
             </log>
             <js>
                 <merge_files>0</merge_files>
             </js>
+            <jquery>
+                <migrate>0</migrate>
+            </jquery>
         </dev>
         <system>
             <csrf>
                 <use_form_key>1</use_form_key>
             </csrf>
+            <rate_limit>
+                <active>1</active>
+                <timeframe>30</timeframe>
+            </rate_limit>
+            <cache>
+                <flush_cron_expr>30 2 * * *</flush_cron_expr>
+            </cache>
             <smtp>
                 <disable>0</disable>
                 <host>localhost</host>
@@ -340,6 +333,9 @@
                     <compiled_js_folder>js</compiled_js_folder>
                 </allowed_resources>
                 <ignored_resources>.svn,.htaccess</ignored_resources>
+                <loaded_modules>
+                    <Mage_Core />
+                </loaded_modules>
             </media_storage_configuration>
         </system>
         <trans_email>
@@ -404,6 +400,7 @@
             <cookie>
                 <cookie_lifetime>3600</cookie_lifetime>
                 <cookie_httponly>1</cookie_httponly>
+                <cookie_samesite>None</cookie_samesite>
                 <cookie_restriction>0</cookie_restriction>
                 <cookie_restriction_lifetime>31536000</cookie_restriction_lifetime>
             </cookie>
@@ -421,6 +418,9 @@
             </browser_capabilities>
         </web>
         <admin>
+            <design>
+                <loading_timeout>200</loading_timeout>
+            </design>
             <startup>
                 <page>dashboard</page>
             </startup>
@@ -433,12 +433,13 @@
                 <domain_policy_backend>2</domain_policy_backend>
                 <domain_policy_frontend>2</domain_policy_frontend>
                 <extensions_compatibility_mode>1</extensions_compatibility_mode>
+                <session_cookie_lifetime>10800</session_cookie_lifetime>
                 <secure_system_configuration_save_disabled>0</secure_system_configuration_save_disabled>
             </security>
         </admin>
         <general>
             <country>
-                <eu_countries>AT,BE,BG,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE,GB</eu_countries>
+                <eu_countries>AT,BE,BG,CY,CZ,DK,EE,FI,FR,DE,GR,HU,IE,IT,LV,LT,LU,MT,NL,PL,PT,RO,SK,SI,ES,SE,HR</eu_countries>
             </country>
             <locale>
                 <firstday>0</firstday>
@@ -481,9 +482,7 @@
                     <protected>
                         <app>/app/*/*</app>
                         <dev>/dev/*/*</dev>
-                        <downloader>/downloader/*/*</downloader>
                         <errors>/errors/*/*</errors>
-                        <includes>/includes/*/*</includes>
                         <js>/js/*/*</js>
                         <lib>/lib/*/*</lib>
                         <shell>/shell/*/*</shell>
@@ -491,10 +490,6 @@
                     </protected>
                 </public_files_valid_paths>
             </file>
-            <!-- NOTE: If you turn off images reprocessing, then your upload images process may cause security risks. -->
-            <reprocess_images>
-                <active>1</active>
-            </reprocess_images>
             <!-- Additional email for notifications -->
             <additional_notification_emails>
                 <!-- On creating a new admin user. You can specify several emails separated by commas. -->
@@ -508,6 +503,60 @@
                 </disallowed_block>
             </custom_layout>
         </validators>
+        <url>
+            <convert>
+                <de_DE>
+                    <replach_percent>
+                        <from><![CDATA[%]]></from>
+                        <to>prozent</to>
+                    </replach_percent>
+                    <replace_and>
+                        <from><![CDATA[&]]></from>
+                        <to>und</to>
+                    </replace_and>
+                </de_DE>
+                <en_US>
+                    <replach_percent>
+                        <from><![CDATA[%]]></from>
+                        <to>percent</to>
+                    </replach_percent>
+                    <replace_and>
+                        <from><![CDATA[&]]></from>
+                        <to>and</to>
+                    </replace_and>
+                </en_US>
+                <fr_FR>
+                    <replach_percent>
+                        <from><![CDATA[%]]></from>
+                        <to>pour cent</to>
+                    </replach_percent>
+                    <replace_and>
+                        <from><![CDATA[&]]></from>
+                        <to>et</to>
+                    </replace_and>
+                </fr_FR>
+                <it_IT>
+                    <replach_percent>
+                        <from><![CDATA[%]]></from>
+                        <to>per cento</to>
+                    </replach_percent>
+                    <replace_and>
+                        <from><![CDATA[&]]></from>
+                        <to>e</to>
+                    </replace_and>
+                </it_IT>
+                <es_ES>
+                    <replach_percent>
+                        <from><![CDATA[%]]></from>
+                        <to>por ciento</to>
+                    </replach_percent>
+                    <replace_and>
+                        <from><![CDATA[&]]></from>
+                        <to>et</to>
+                    </replace_and>
+                </es_ES>
+            </convert>
+        </url>
     </default>
     <stores>
         <default>
@@ -529,7 +578,7 @@
         <jobs>
             <core_clean_cache>
                 <schedule>
-                    <cron_expr>30 2 * * *</cron_expr>
+                    <config_path>system/cache/flush_cron_expr</config_path>
                 </schedule>
                 <run>
                     <model>core/observer::cleanCache</model>

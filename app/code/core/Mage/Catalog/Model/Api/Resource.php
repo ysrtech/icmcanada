@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog api resource
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
 {
@@ -38,14 +19,14 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
      *
      * @var array
      */
-    protected $_ignoredAttributeCodes = array('entity_id', 'attribute_set_id', 'entity_type_id');
+    protected $_ignoredAttributeCodes = ['entity_id', 'attribute_set_id', 'entity_type_id'];
 
     /**
      * Default ignored attribute types
      *
      * @var array
      */
-    protected $_ignoredAttributeTypes = array();
+    protected $_ignoredAttributeTypes = [];
 
     /**
      * Field name in session for saving store id
@@ -62,22 +43,19 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
     /**
      * Check is attribute allowed
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract $attribute
-     * @param array $attributes
-     * @return boolean
+     * @param  Mage_Eav_Model_Entity_Attribute_Abstract $attribute
+     * @param  array                                    $attributes
+     * @return bool
      */
     protected function _isAllowedAttribute($attribute, $attributes = null)
     {
-
-        if (Mage::getSingleton('api/server')->getApiName() == 'rest') {
-            if (!$this->_checkAttributeAcl($attribute)) {
-                return false;
-            }
+        if (Mage::getSingleton('api/server')->getApiName() == 'rest' && !$this->_checkAttributeAcl($attribute)) {
+            return false;
         }
 
         if (is_array($attributes)
-            && !( in_array($attribute->getAttributeCode(), $attributes)
-                  || in_array($attribute->getAttributeId(), $attributes))) {
+            && (!in_array($attribute->getAttributeCode(), $attributes) && !in_array($attribute->getAttributeId(), $attributes))
+        ) {
             return false;
         }
 
@@ -86,10 +64,10 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
     }
 
     /**
-     * Retrives store id from store code, if no store id specified,
-     * it use seted session or admin store
+     * Retrieves store id from store code, if no store id specified,
+     * it uses set session or admin store
      *
-     * @param string|int $store
+     * @param  int|string $store
      * @return int
      */
     protected function _getStoreId($store = null)
@@ -101,7 +79,7 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
 
         try {
             $storeId = Mage::app()->getStore($store)->getId();
-        } catch (Mage_Core_Model_Store_Exception $e) {
+        } catch (Mage_Core_Model_Store_Exception) {
             $this->_fault('store_not_exists');
         }
 
@@ -111,9 +89,9 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
     /**
      * Return loaded product instance
      *
-     * @param  int|string $productId (SKU or ID)
-     * @param  int|string $store
-     * @param  string $identifierType
+     * @param  int|string                 $productId      (SKU or ID)
+     * @param  int|string                 $store
+     * @param  string                     $identifierType
      * @return Mage_Catalog_Model_Product
      */
     protected function _getProduct($productId, $store = null, $identifierType = null)
@@ -122,21 +100,22 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
         if (is_null($product->getId())) {
             $this->_fault('product_not_exists');
         }
+
         return $product;
     }
 
     /**
      * Set current store for catalog.
      *
-     * @param string|int $store
+     * @param  int|string $store
      * @return int
      */
-    public function currentStore($store=null)
+    public function currentStore($store = null)
     {
         if (!is_null($store)) {
             try {
                 $storeId = Mage::app()->getStore($store)->getId();
-            } catch (Mage_Core_Model_Store_Exception $e) {
+            } catch (Mage_Core_Model_Store_Exception) {
                 $this->_fault('store_not_exists');
             }
 
@@ -145,4 +124,4 @@ class Mage_Catalog_Model_Api_Resource extends Mage_Api_Model_Resource_Abstract
 
         return $this->_getStoreId();
     }
-} // Class Mage_Catalog_Model_Api_Resource End
+}

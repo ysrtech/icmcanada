@@ -1,36 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rss
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rss
  */
 
 /**
  * Default rss helper
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Rss
  */
 class Mage_Rss_Helper_Order extends Mage_Core_Helper_Abstract
 {
+    protected $_moduleName = 'Mage_Rss';
+
     /**
      * Check whether status notification is allowed
      *
@@ -38,47 +23,44 @@ class Mage_Rss_Helper_Order extends Mage_Core_Helper_Abstract
      */
     public function isStatusNotificationAllow()
     {
-        if (Mage::getStoreConfig('rss/order/status_notified')) {
-            return true;
-        }
-        return false;
+        return Mage::getStoreConfigFlag('rss/order/status_notified');
     }
 
     /**
      * Retrieve order status history url
      *
-     * @param Mage_Sales_Model_Order $order
+     * @param  Mage_Sales_Model_Order $order
      * @return string
      */
     public function getStatusHistoryRssUrl($order)
     {
-        return $this->_getUrl('rss/order/status',
-            array('_secure' => true, '_query' => array('data' => $this->getStatusUrlKey($order)))
+        return $this->_getUrl(
+            'rss/order/status',
+            ['_secure' => true, '_query' => ['data' => $this->getStatusUrlKey($order)]],
         );
     }
 
     /**
      * Retrieve order status url key
      *
-     * @param Mage_Sales_Model_Order $order
+     * @param  Mage_Sales_Model_Order $order
      * @return string
      */
     public function getStatusUrlKey($order)
     {
-        $data = array(
+        $data = [
             'order_id' => $order->getId(),
             'increment_id' => $order->getIncrementId(),
-            'customer_id' => $order->getCustomerId()
-        );
+            'customer_id' => $order->getCustomerId(),
+        ];
         return base64_encode(json_encode($data));
-
     }
 
     /**
      * Retrieve order instance by specified status url key
      *
-     * @param string $key
-     * @return Mage_Sales_Model_Order|null
+     * @param  string                      $key
+     * @return null|Mage_Sales_Model_Order
      */
     public function getOrderByStatusUrlKey($key)
     {
@@ -89,16 +71,16 @@ class Mage_Rss_Helper_Order extends Mage_Core_Helper_Abstract
             return null;
         }
 
-        $orderId = intval($data['order_id']);
-        $incrementId = intval($data['increment_id']);
-        $customerId = intval($data['customer_id']);
+        $orderId = (int) $data['order_id'];
+        $incrementId = (int) $data['increment_id'];
+        $customerId = (int) $data['customer_id'];
 
-        /** @var $order Mage_Sales_Model_Order */
+        /** @var Mage_Sales_Model_Order $order */
         $order = Mage::getModel('sales/order')->load($orderId);
 
         if (!is_null($order->getId())
-            && intval($order->getIncrementId()) === $incrementId
-            && intval($order->getCustomerId()) === $customerId
+            && (int) $order->getIncrementId() === $incrementId
+            && (int) $order->getCustomerId() === $customerId
         ) {
             return $order;
         }

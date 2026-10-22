@@ -65,7 +65,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Image extends Mage
             $image = ($columnBlock->getDisplayImagesUrls() ? $images[1] : $images[0]);
             
             if ($columnBlock->getDisplayImages()) {
-                $title  = $this->htmlEscape($image);
+                $title  = $this->escapeHtml($image);
                 $source = $images[1];
                 $dimensions  = ' ';
                 

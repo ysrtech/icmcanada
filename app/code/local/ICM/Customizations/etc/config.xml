@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * ICM customizations of core behaviour.
+ *
+ * These used to be full copies of core files in app/code/local/Mage (and edits in app/code/core).
+ * They are now thin rewrites that only override the changed methods, so OpenMage fixes to the
+ * rest of those classes are not lost.
+ */
+-->
+<config>
+    <modules>
+        <ICM_Customizations>
+            <version>1.0.0</version>
+        </ICM_Customizations>
+    </modules>
+    <global>
+        <models>
+            <sales>
+                <rewrite>
+                    <order>ICM_Customizations_Model_Sales_Order</order>
+                </rewrite>
+            </sales>
+            <tax>
+                <rewrite>
+                    <sales_pdf_tax>ICM_Customizations_Model_Tax_Sales_Pdf_Tax</sales_pdf_tax>
+                </rewrite>
+            </tax>
+            <tax_resource>
+                <rewrite>
+                    <calculation>ICM_Customizations_Model_Tax_Resource_Calculation</calculation>
+                </rewrite>
+            </tax_resource>
+            <catalog>
+                <rewrite>
+                    <product_attribute_backend_media>ICM_Customizations_Model_Catalog_Product_Attribute_Backend_Media</product_attribute_backend_media>
+                    <convert_adapter_product>ICM_Customizations_Model_Catalog_Convert_Adapter_Product</convert_adapter_product>
+                </rewrite>
+            </catalog>
+        </models>
+        <helpers>
+            <tax>
+                <rewrite>
+                    <data>ICM_Customizations_Helper_Tax_Data</data>
+                </rewrite>
+            </tax>
+        </helpers>
+        <blocks>
+            <checkout>
+                <rewrite>
+                    <links>ICM_Customizations_Block_Checkout_Links</links>
+                </rewrite>
+            </checkout>
+        </blocks>
+    </global>
+    <frontend>
+        <routers>
+            <catalogsearch>
+                <args>
+                    <modules>
+                        <ICM_Customizations before="Mage_CatalogSearch">ICM_Customizations_CatalogSearch</ICM_Customizations>
+                    </modules>
+                </args>
+            </catalogsearch>
+        </routers>
+    </frontend>
+    <stores>
+        <!--
+         | Pin the admin area to its own theme (app/design/adminhtml/openmage/icm, which
+         | inherits openmage/default and only adds the ICM logo, בס"ד and the YSR Tech footer).
+         | The admin store inherits the default-scope design/theme/* config, which is the
+         | frontend "icm" theme; this node wins over those core_config_data rows, so the admin
+         | stays on this theme whatever the frontend design settings say.
+        -->
+        <admin>
+            <design>
+                <theme>
+                    <default>icm</default>
+                    <layout>icm</layout>
+                    <template>icm</template>
+                    <skin>icm</skin>
+                    <locale>icm</locale>
+                </theme>
+            </design>
+        </admin>
+    </stores>
+</config>

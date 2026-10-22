@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rss
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rss
+ */
 
 /**
  * Rss Observer Model
  *
- * @category   Mage
  * @package    Mage_Rss
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Rss_Model_Observer
 {
@@ -48,20 +28,14 @@ class Mage_Rss_Model_Observer
      */
     protected $_app;
 
-    /**
-     * @param array $args
-     */
-    public function __construct(array $args = array())
+    public function __construct(array $args = [])
     {
-        $this->_factory = !empty($args['factory']) ? $args['factory'] : Mage::getSingleton('core/factory');
-        $this->_app = !empty($args['app']) ? $args['app'] : Mage::app();
+        $this->_factory = empty($args['factory']) ? Mage::getSingleton('core/factory') : $args['factory'];
+        $this->_app = empty($args['app']) ? Mage::app() : $args['app'];
     }
 
     /**
      * Clean cache for catalog review rss
-     *
-     * @param Varien_Event_Observer $observer
-     * @return void
      */
     public function reviewSaveAfter(Varien_Event_Observer $observer)
     {
@@ -70,9 +44,6 @@ class Mage_Rss_Model_Observer
 
     /**
      * Clean cache for notify stock rss
-     *
-     * @param Varien_Event_Observer $observer
-     * @return void
      */
     public function salesOrderItemSaveAfterNotifyStock(Varien_Event_Observer $observer)
     {
@@ -81,9 +52,6 @@ class Mage_Rss_Model_Observer
 
     /**
      * Clean cache for catalog new orders rss
-     *
-     * @param Varien_Event_Observer $observer
-     * @return void
      */
     public function salesOrderItemSaveAfterOrderNew(Varien_Event_Observer $observer)
     {
@@ -98,7 +66,7 @@ class Mage_Rss_Model_Observer
     protected function _cleanCache($tag)
     {
         if ($this->_factory->getHelper('rss')->isRssEnabled()) {
-            $this->_app->cleanCache(array($tag));
+            $this->_app->cleanCache([$tag]);
         }
     }
 }

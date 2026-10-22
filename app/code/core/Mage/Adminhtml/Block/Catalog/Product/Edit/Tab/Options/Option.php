@@ -1,37 +1,22 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * customers defined options
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method bool  getCanEditPrice()
+ * @method bool  getCanReadPrice()
+ * @method $this setCanEditPrice(bool $value)
+ * @method $this setCanReadPrice(bool $value)
  */
-
 class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_Adminhtml_Block_Widget
 {
     protected $_product;
@@ -72,11 +57,7 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
     public function getProduct()
     {
         if (!$this->_productInstance) {
-            if ($product = Mage::registry('product')) {
-                $this->_productInstance = $product;
-            } else {
-                $this->_productInstance = Mage::getSingleton('catalog/product');
-            }
+            $this->_productInstance = ($product = Mage::registry('product')) ? $product : Mage::getSingleton('catalog/product');
         }
 
         return $this->_productInstance;
@@ -111,30 +92,33 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
     /**
      * Check block is readonly
      *
-     * @return boolean
+     * @return bool
      */
     public function isReadonly()
     {
-         return $this->getProduct()->getOptionsReadonly();
+        return $this->getProduct()->getOptionsReadonly();
     }
 
+    #[Override]
     protected function _prepareLayout()
     {
-        $this->setChild('delete_button',
+        $this->setChild(
+            'delete_button',
             $this->getLayout()->createBlock('adminhtml/widget_button')
-                ->setData(array(
+                ->setData([
                     'label' => Mage::helper('catalog')->__('Delete Option'),
-                    'class' => 'delete delete-product-option '
-                ))
+                    'class' => 'delete delete-product-option ',
+                ]),
         );
 
         $path = 'global/catalog/product/options/custom/groups';
 
         foreach (Mage::getConfig()->getNode($path)->children() as $group) {
-            $this->setChild($group->getName() . '_option_type',
+            $this->setChild(
+                $group->getName() . '_option_type',
                 $this->getLayout()->createBlock(
-                    (string) Mage::getConfig()->getNode($path . '/' . $group->getName() . '/render')
-                )
+                    (string) Mage::getConfig()->getNode($path . '/' . $group->getName() . '/render'),
+                ),
             );
         }
 
@@ -143,10 +127,9 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
 
     public function getAddButtonId()
     {
-        $buttonId = $this->getLayout()
+        return $this->getLayout()
                 ->getBlock('admin.product.options')
                 ->getChild('add_button')->getId();
-        return $buttonId;
     }
 
     public function getDeleteButtonHtml()
@@ -157,11 +140,11 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
     public function getTypeSelectHtml()
     {
         $select = $this->getLayout()->createBlock('adminhtml/html_select')
-            ->setData(array(
-                'id' => $this->getFieldId().'_{{id}}_type',
-                'class' => 'select select-product-option-type required-option-select'
-            ))
-            ->setName($this->getFieldName().'[{{id}}][type]')
+            ->setData([
+                'id' => $this->getFieldId() . '_{{id}}_type',
+                'class' => 'select select-product-option-type required-option-select',
+            ])
+            ->setName($this->getFieldName() . '[{{id}}][type]')
             ->setOptions(Mage::getSingleton('adminhtml/system_config_source_product_options_type')->toOptionArray());
 
         return $select->getHtml();
@@ -170,11 +153,11 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
     public function getRequireSelectHtml()
     {
         $select = $this->getLayout()->createBlock('adminhtml/html_select')
-            ->setData(array(
-                'id' => $this->getFieldId().'_{{id}}_is_require',
-                'class' => 'select'
-            ))
-            ->setName($this->getFieldName().'[{{id}}][is_require]')
+            ->setData([
+                'id' => $this->getFieldId() . '_{{id}}_is_require',
+                'class' => 'select',
+            ])
+            ->setName($this->getFieldName() . '[{{id}}][is_require]')
             ->setOptions(Mage::getSingleton('adminhtml/system_config_source_yesno')->toOptionArray());
 
         return $select->getHtml();
@@ -205,29 +188,26 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
             ->setCanReadPrice($canReadPrice)
             ->setCanEditPrice($canEditPrice);
 
-        $templates = $this->getChildHtml('text_option_type') . "\n" .
-            $this->getChildHtml('file_option_type') . "\n" .
-            $this->getChildHtml('select_option_type') . "\n" .
-            $this->getChildHtml('date_option_type');
-
-        return $templates;
+        return $this->getChildHtml('text_option_type') . "\n"
+            . $this->getChildHtml('file_option_type') . "\n"
+            . $this->getChildHtml('select_option_type') . "\n"
+            . $this->getChildHtml('date_option_type');
     }
 
     public function getOptionValues()
     {
         $optionsArr = array_reverse($this->getProduct()->getOptions(), true);
-//        $optionsArr = $this->getProduct()->getOptions();
 
         if (!$this->_values) {
             $showPrice = $this->getCanReadPrice();
-            $values = array();
+            $values = [];
             $scope = (int) Mage::app()->getStore()->getConfig(Mage_Core_Model_Store::XML_PATH_PRICE_SCOPE);
             foreach ($optionsArr as $option) {
-                /* @var $option Mage_Catalog_Model_Product_Option */
+                /** @var Mage_Catalog_Model_Product_Option $option */
 
                 $this->setItemCount($option->getOptionId());
 
-                $value = array();
+                $value = [];
 
                 $value['id'] = $option->getOptionId();
                 $value['item_count'] = $this->getItemCount();
@@ -239,45 +219,52 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
                 $value['can_edit_price'] = $this->getCanEditPrice();
 
                 if ($this->getProduct()->getStoreId() != '0') {
-                    $value['checkboxScopeTitle'] = $this->getCheckboxScopeHtml($option->getOptionId(), 'title',
-                        is_null($option->getStoreTitle()));
-                    $value['scopeTitleDisabled'] = is_null($option->getStoreTitle())?'disabled':null;
+                    $value['checkboxScopeTitle'] = $this->getCheckboxScopeHtml(
+                        $option->getOptionId(),
+                        'title',
+                        is_null($option->getStoreTitle()),
+                    );
+                    $value['scopeTitleDisabled'] = is_null($option->getStoreTitle()) ? 'disabled' : null;
                 }
 
                 if ($option->getGroupByType() == Mage_Catalog_Model_Product_Option::OPTION_GROUP_SELECT) {
-
-//                    $valuesArr = array_reverse($option->getValues(), true);
-
                     $i = 0;
                     $itemCount = 0;
-                    foreach ($option->getValues() as $_value) {
-                        /* @var $_value Mage_Catalog_Model_Product_Option_Value */
-                        $value['optionValues'][$i] = array(
-                            'item_count' => max($itemCount, $_value->getOptionTypeId()),
-                            'option_id' => $_value->getOptionId(),
-                            'option_type_id' => $_value->getOptionTypeId(),
-                            'title' => $this->escapeHtml($_value->getTitle()),
+                    foreach ($option->getValues() as $optionValue) {
+                        /** @var Mage_Catalog_Model_Product_Option_Value $optionValue */
+                        $value['optionValues'][$i] = [
+                            'item_count' => max($itemCount, $optionValue->getOptionTypeId()),
+                            'option_id' => $optionValue->getOptionId(),
+                            'option_type_id' => $optionValue->getOptionTypeId(),
+                            'title' => $this->escapeHtml($optionValue->getTitle()),
                             'price' => ($showPrice)
-                                ? $this->getPriceValue($_value->getPrice(), $_value->getPriceType()) : '',
-                            'price_type' => ($showPrice) ? $_value->getPriceType() : 0,
-                            'sku' => $this->escapeHtml($_value->getSku()),
-                            'sort_order' => $_value->getSortOrder(),
-                        );
+                                ? $this->getPriceValue($optionValue->getPrice(), $optionValue->getPriceType()) : '',
+                            'price_type' => ($showPrice) ? $optionValue->getPriceType() : 0,
+                            'sku' => $this->escapeHtml($optionValue->getSku()),
+                            'sort_order' => $optionValue->getSortOrder(),
+                        ];
 
                         if ($this->getProduct()->getStoreId() != '0') {
                             $value['optionValues'][$i]['checkboxScopeTitle'] = $this->getCheckboxScopeHtml(
-                                $_value->getOptionId(), 'title', is_null($_value->getStoreTitle()),
-                                $_value->getOptionTypeId());
-                            $value['optionValues'][$i]['scopeTitleDisabled'] = is_null($_value->getStoreTitle())
+                                $optionValue->getOptionId(),
+                                'title',
+                                is_null($optionValue->getStoreTitle()),
+                                $optionValue->getOptionTypeId(),
+                            );
+                            $value['optionValues'][$i]['scopeTitleDisabled'] = is_null($optionValue->getStoreTitle())
                                 ? 'disabled' : null;
                             if ($scope == Mage_Core_Model_Store::PRICE_SCOPE_WEBSITE) {
                                 $value['optionValues'][$i]['checkboxScopePrice'] = $this->getCheckboxScopeHtml(
-                                    $_value->getOptionId(), 'price', is_null($_value->getstorePrice()),
-                                    $_value->getOptionTypeId());
-                                $value['optionValues'][$i]['scopePriceDisabled'] = is_null($_value->getStorePrice())
+                                    $optionValue->getOptionId(),
+                                    'price',
+                                    is_null($optionValue->getstorePrice()),
+                                    $optionValue->getOptionTypeId(),
+                                );
+                                $value['optionValues'][$i]['scopePriceDisabled'] = is_null($optionValue->getStorePrice())
                                     ? 'disabled' : null;
                             }
                         }
+
                         $i++;
                     }
                 } else {
@@ -289,15 +276,21 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
                     $value['file_extension'] = $this->escapeHtml($option->getFileExtension());
                     $value['image_size_x'] = $option->getImageSizeX();
                     $value['image_size_y'] = $option->getImageSizeY();
-                    if ($this->getProduct()->getStoreId() != '0' &&
-                        $scope == Mage_Core_Model_Store::PRICE_SCOPE_WEBSITE) {
-                        $value['checkboxScopePrice'] = $this->getCheckboxScopeHtml($option->getOptionId(),
-                            'price', is_null($option->getStorePrice()));
-                        $value['scopePriceDisabled'] = is_null($option->getStorePrice())?'disabled':null;
+                    if ($this->getProduct()->getStoreId() != '0'
+                        && $scope == Mage_Core_Model_Store::PRICE_SCOPE_WEBSITE
+                    ) {
+                        $value['checkboxScopePrice'] = $this->getCheckboxScopeHtml(
+                            $option->getOptionId(),
+                            'price',
+                            is_null($option->getStorePrice()),
+                        );
+                        $value['scopePriceDisabled'] = is_null($option->getStorePrice()) ? 'disabled' : null;
                     }
                 }
+
                 $values[] = new Varien_Object($value);
             }
+
             $this->_values = $values;
         }
 
@@ -307,39 +300,44 @@ class Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Options_Option extends Mage_
     /**
      * Retrieve html of scope checkbox
      *
-     * @param string $id
-     * @param string $name
-     * @param boolean $checked
-     * @param string $select_id
+     * @param  string $id
+     * @param  string $name
+     * @param  bool   $checked
+     * @param  string $selectId
      * @return string
      */
-    public function getCheckboxScopeHtml($id, $name, $checked=true, $select_id='-1')
+    public function getCheckboxScopeHtml($id, $name, $checked = true, $selectId = '-1')
     {
         $checkedHtml = '';
         if ($checked) {
             $checkedHtml = ' checked="checked"';
         }
+
         $selectNameHtml = '';
         $selectIdHtml = '';
-        if ($select_id != '-1') {
-            $selectNameHtml = '[values][' . $select_id . ']';
-            $selectIdHtml = 'select_' . $select_id . '_';
+        if ($selectId != '-1') {
+            $selectNameHtml = '[values][' . $selectId . ']';
+            $selectIdHtml = 'select_' . $selectId . '_';
         }
-        $checkbox = '<input type="checkbox" id="' . $this->getFieldId() . '_' . $id . '_' .
-            $selectIdHtml . $name . '_use_default" class="product-option-scope-checkbox" name="' .
-            $this->getFieldName() . '['.$id.']' . $selectNameHtml . '[scope][' . $name . ']" value="1" ' .
-            $checkedHtml . '/>';
-        $checkbox .= '<label class="normal" for="' . $this->getFieldId() . '_' . $id . '_' .
-            $selectIdHtml . $name . '_use_default">' . $this->__('Use Default Value') . '</label>';
-        return $checkbox;
+
+        $checkbox = '<input type="checkbox" id="' . $this->getFieldId() . '_' . $id . '_'
+            . $selectIdHtml . $name . '_use_default" class="product-option-scope-checkbox" name="'
+            . $this->getFieldName() . '[' . $id . ']' . $selectNameHtml . '[scope][' . $name . ']" value="1" '
+            . $checkedHtml . '/>';
+        return $checkbox . ('<label class="normal" for="' . $this->getFieldId() . '_' . $id . '_'
+            . $selectIdHtml . $name . '_use_default">' . $this->__('Use Default Value') . '</label>');
     }
 
     public function getPriceValue($value, $type)
     {
         if ($type == 'percent') {
             return number_format($value, 2, null, '');
-        } elseif ($type == 'fixed') {
+        }
+
+        if ($type == 'fixed') {
             return number_format($value, 2, null, '');
         }
+
+        return null;
     }
 }

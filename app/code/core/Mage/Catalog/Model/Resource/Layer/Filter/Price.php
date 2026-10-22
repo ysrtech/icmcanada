@@ -1,47 +1,26 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Layer Price Filter resource model
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
      * Minimal possible price
      */
-    const MIN_POSSIBLE_PRICE = .01;
+    public const MIN_POSSIBLE_PRICE = .01;
 
     /**
-     * Initialize connection and define main table name
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -61,31 +40,33 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Replace table alias in condition string
      *
-     * @param string|null $conditionString
-     * @return string|null
+     * @param  null|string $conditionString
+     * @return null|string
      */
     protected function _replaceTableAlias($conditionString)
     {
         if (is_null($conditionString)) {
             return null;
         }
+
         $adapter = $this->_getReadAdapter();
-        $oldAlias = array(
+        $oldAlias = [
             Mage_Catalog_Model_Resource_Product_Collection::INDEX_TABLE_ALIAS . '.',
             $adapter->quoteIdentifier(Mage_Catalog_Model_Resource_Product_Collection::INDEX_TABLE_ALIAS) . '.',
-        );
-        $newAlias = array(
+        ];
+        $newAlias = [
             Mage_Catalog_Model_Resource_Product_Collection::MAIN_TABLE_ALIAS . '.',
             $adapter->quoteIdentifier(Mage_Catalog_Model_Resource_Product_Collection::MAIN_TABLE_ALIAS) . '.',
-        );
+        ];
         return str_replace($oldAlias, $newAlias, $conditionString);
     }
 
     /**
      * Retrieve clean select with joined price index table
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
      * @return Varien_Db_Select
+     * @throws Zend_Db_Select_Exception
      */
     protected function _getSelect($filter)
     {
@@ -123,26 +104,31 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
         foreach ($fromPart as $key => $fromJoinItem) {
             $fromPart[$key]['joinCondition'] = $this->_replaceTableAlias($fromJoinItem['joinCondition']);
         }
+
         $select->setPart(Zend_Db_Select::FROM, $fromPart);
 
         // processing WHERE part
         $wherePart = $select->getPart(Zend_Db_Select::WHERE);
         $excludedWherePart = Mage_Catalog_Model_Resource_Product_Collection::MAIN_TABLE_ALIAS . '.status';
         foreach ($wherePart as $key => $wherePartItem) {
-            if (strpos($wherePartItem, $excludedWherePart) !== false) {
+            if (str_contains($wherePartItem, $excludedWherePart)) {
                 $wherePart[$key] = new Zend_Db_Expr('1=1');
                 continue;
             }
+
             $wherePart[$key] = $this->_replaceTableAlias($wherePartItem);
         }
+
         $select->setPart(Zend_Db_Select::WHERE, $wherePart);
         $excludeJoinPart = Mage_Catalog_Model_Resource_Product_Collection::MAIN_TABLE_ALIAS . '.entity_id';
         foreach ($priceIndexJoinConditions as $condition) {
-            if (strpos($condition, $excludeJoinPart) !== false) {
+            if (str_contains($condition, $excludeJoinPart)) {
                 continue;
             }
+
             $select->where($this->_replaceTableAlias($condition));
         }
+
         $select->where($this->_getPriceExpression($filter, $select) . ' IS NOT NULL');
 
         return $select;
@@ -152,24 +138,24 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
      * Prepare response object and dispatch prepare price event
      * Return response object
      *
-     * @deprecated since 1.7.0.0
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param Varien_Db_Select $select
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  Varien_Db_Select                      $select
      * @return Varien_Object
+     * @deprecated since 1.7.0.0
      */
     protected function _dispatchPreparePriceEvent($filter, $select)
     {
         // prepare response object for event
         $response = new Varien_Object();
-        $response->setAdditionalCalculations(array());
+        $response->setAdditionalCalculations([]);
 
         // prepare event arguments
-        $eventArgs = array(
+        $eventArgs = [
             'select'          => $select,
             'table'           => $this->_getIndexTableAlias(),
             'store_id'        => $filter->getStoreId(),
-            'response_object' => $response
-        );
+            'response_object' => $response,
+        ];
 
         /**
          * @deprecated since 1.3.2.2
@@ -187,9 +173,10 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Retrieve maximal price for attribute
      *
-     * @deprecated since 1.7.0.0
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
      * @return float
+     * @throws Zend_Db_Select_Exception
+     * @deprecated since 1.7.0.0
      */
     public function getMaxPrice($filter)
     {
@@ -199,10 +186,11 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Price expression generated by products collection
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param Varien_Db_Select $select
-     * @param bool $replaceAlias
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  Varien_Db_Select                      $select
+     * @param  bool                                  $replaceAlias
      * @return string
+     * @throws Zend_Db_Select_Exception
      */
     protected function _getPriceExpression($filter, $select, $replaceAlias = true)
     {
@@ -212,7 +200,7 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
             ? $priceExpression
             : "({$priceExpression} {$additionalPriceExpression})";
         if ($replaceAlias) {
-            $result = $this->_replaceTableAlias($result);
+            return $this->_replaceTableAlias($result);
         }
 
         return $result;
@@ -221,10 +209,10 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Get comparing value sql part
      *
-     * @param float $price
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param bool $decrease
-     * @return float
+     * @param  float                                 $price
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  bool                                  $decrease
+     * @return string
      */
     protected function _getComparingValue($price, $filter, $decrease = true)
     {
@@ -234,15 +222,17 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
         } else {
             $result = ($price + (self::MIN_POSSIBLE_PRICE / 2)) / $currencyRate;
         }
+
         return sprintf('%F', $result);
     }
 
     /**
      * Get full price expression generated by products collection
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param Varien_Db_Select $select
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  Varien_Db_Select                      $select
      * @return Zend_Db_Expr
+     * @throws Zend_Db_Select_Exception
      */
     protected function _getFullPriceExpression($filter, $select)
     {
@@ -253,9 +243,10 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Retrieve array with products counts per price range
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param int $range
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  int                                   $range
      * @return array
+     * @throws Zend_Db_Select_Exception
      */
     public function getCount($filter, $range)
     {
@@ -265,18 +256,19 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
         /**
          * Check and set correct variable values to prevent SQL-injections
          */
-        $range = floatval($range);
+        $range = (float) $range;
         if ($range == 0) {
             $range = 1;
         }
+
         $countExpr = new Zend_Db_Expr('COUNT(*)');
         $rangeExpr = new Zend_Db_Expr("FLOOR(({$priceExpression}) / {$range}) + 1");
         $rangeOrderExpr = new Zend_Db_Expr("FLOOR(({$priceExpression}) / {$range}) + 1 ASC");
 
-        $select->columns(array(
+        $select->columns([
             'range' => $rangeExpr,
-            'count' => $countExpr
-        ));
+            'count' => $countExpr,
+        ]);
         $select->group($rangeExpr)->order($rangeOrderExpr);
 
         return $this->_getReadAdapter()->fetchPairs($select);
@@ -285,11 +277,12 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Apply attribute filter to product collection
      *
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  int                                   $range
+     * @param  int                                   $index  the range factor
+     * @return $this
+     * @throws Zend_Db_Select_Exception
      * @deprecated since 1.7.0.0
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param int $range
-     * @param int $index    the range factor
-     * @return Mage_Catalog_Model_Resource_Layer_Filter_Price
      */
     public function applyFilterToCollection($filter, $range, $index)
     {
@@ -306,27 +299,30 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Load range of product prices
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param int $limit
-     * @param null|int $offset
-     * @param null|int $lowerPrice
-     * @param null|int $upperPrice
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  int                                   $limit
+     * @param  null|int                              $offset
+     * @param  null|float                            $lowerPrice
+     * @param  null|float                            $upperPrice
      * @return array
+     * @throws Zend_Db_Select_Exception
      */
     public function loadPrices($filter, $limit, $offset = null, $lowerPrice = null, $upperPrice = null)
     {
         $select = $this->_getSelect($filter);
         $priceExpression = $this->_getPriceExpression($filter, $select);
-        $select->columns(array(
-            'min_price_expr' => $this->_getFullPriceExpression($filter, $select)
-        ));
+        $select->columns([
+            'min_price_expr' => $this->_getFullPriceExpression($filter, $select),
+        ]);
         if (!is_null($lowerPrice)) {
-            $select->where("$priceExpression >= " . $this->_getComparingValue($lowerPrice, $filter));
+            $select->where("{$priceExpression} >= " . $this->_getComparingValue($lowerPrice, $filter));
         }
+
         if (!is_null($upperPrice)) {
-            $select->where("$priceExpression < " . $this->_getComparingValue($upperPrice, $filter));
+            $select->where("{$priceExpression} < " . $this->_getComparingValue($upperPrice, $filter));
         }
-        $select->order("$priceExpression ASC")->limit($limit, $offset);
+
+        $select->order(new Zend_Db_Expr("{$priceExpression} ASC"))->limit($limit, $offset);
 
         return $this->_getReadAdapter()->fetchCol($select);
     }
@@ -334,35 +330,39 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Load range of product prices, preceding the price
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param float $price
-     * @param int $index
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  float                                 $price
+     * @param  int                                   $index
+     * @param  null|float                            $lowerPrice
      * @return array|false
+     * @throws Zend_Db_Select_Exception
      */
     public function loadPreviousPrices($filter, $price, $index, $lowerPrice = null)
     {
         $select = $this->_getSelect($filter);
         $priceExpression = $this->_getPriceExpression($filter, $select);
-        $select->columns('COUNT(*)')->where("$priceExpression < " . $this->_getComparingValue($price, $filter));
+        $select->columns('COUNT(*)')->where("{$priceExpression} < " . $this->_getComparingValue($price, $filter));
         if (!is_null($lowerPrice)) {
-            $select->where("$priceExpression >= " . $this->_getComparingValue($lowerPrice, $filter));
+            $select->where("{$priceExpression} >= " . $this->_getComparingValue($lowerPrice, $filter));
         }
+
         $offset = $this->_getReadAdapter()->fetchOne($select);
         if (!$offset) {
             return false;
         }
 
-        return $this->loadPrices($filter, $index - $offset + 1, $offset - 1, $lowerPrice);
+        return $this->loadPrices($filter, $index - (int) $offset + 1, (int) $offset - 1, $lowerPrice);
     }
 
     /**
      * Load range of product prices, next to the price
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @param float $price
-     * @param int $rightIndex
-     * @param null|int $upperPrice
-     * @return array
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @param  float                                 $price
+     * @param  int                                   $rightIndex
+     * @param  null|float                            $upperPrice
+     * @return array|false
+     * @throws Zend_Db_Select_Exception
      */
     public function loadNextPrices($filter, $price, $rightIndex, $upperPrice = null)
     {
@@ -371,24 +371,26 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
         $pricesSelect = clone $select;
         $priceExpression = $this->_getPriceExpression($filter, $pricesSelect);
 
-        $select->columns('COUNT(*)')->where("$priceExpression > " . $this->_getComparingValue($price, $filter, false));
+        $select->columns('COUNT(*)')->where("{$priceExpression} > " . $this->_getComparingValue($price, $filter, false));
         if (!is_null($upperPrice)) {
-            $select->where("$priceExpression < " . $this->_getComparingValue($upperPrice, $filter));
+            $select->where("{$priceExpression} < " . $this->_getComparingValue($upperPrice, $filter));
         }
+
         $offset = $this->_getReadAdapter()->fetchOne($select);
         if (!$offset) {
             return false;
         }
 
         $pricesSelect
-            ->columns(array(
-                'min_price_expr' => $this->_getFullPriceExpression($filter, $pricesSelect)
-            ))
-            ->where("$priceExpression >= " . $this->_getComparingValue($price, $filter));
+            ->columns([
+                'min_price_expr' => $this->_getFullPriceExpression($filter, $pricesSelect),
+            ])
+            ->where("{$priceExpression} >= " . $this->_getComparingValue($price, $filter));
         if (!is_null($upperPrice)) {
-            $pricesSelect->where("$priceExpression < " . $this->_getComparingValue($upperPrice, $filter));
+            $pricesSelect->where("{$priceExpression} < " . $this->_getComparingValue($upperPrice, $filter));
         }
-        $pricesSelect->order("$priceExpression DESC")->limit($rightIndex - $offset + 1, $offset - 1);
+
+        $pricesSelect->order(new Zend_Db_Expr("{$priceExpression} DESC"))->limit($rightIndex - (int) $offset + 1, (int) $offset - 1);
 
         return array_reverse($this->_getReadAdapter()->fetchCol($pricesSelect));
     }
@@ -396,8 +398,9 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
     /**
      * Apply price range filter to product collection
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Price $filter
-     * @return Mage_Catalog_Model_Resource_Layer_Filter_Price
+     * @param  Mage_Catalog_Model_Layer_Filter_Price $filter
+     * @return $this
+     * @throws Zend_Db_Select_Exception
      */
     public function applyPriceRange($filter)
     {
@@ -406,29 +409,29 @@ class Mage_Catalog_Model_Resource_Layer_Filter_Price extends Mage_Core_Model_Res
             return $this;
         }
 
-        list($from, $to) = $interval;
-        if ($from === '' && $to === '') {
+        [$min, $max] = $interval;
+        if ($min === '' && $max === '') {
             return $this;
         }
 
         $select = $filter->getLayer()->getProductCollection()->getSelect();
         $priceExpr = $this->_getPriceExpression($filter, $select, false);
 
-        if ($to !== '') {
-            $to = (float)$to;
-            if ($from == $to) {
-                $to += self::MIN_POSSIBLE_PRICE;
+        if ($max !== '') {
+            $max = (float) $max;
+            if ($min == $max) {
+                $max += self::MIN_POSSIBLE_PRICE;
             }
         }
 
-        if ($from !== '') {
-            $select->where($priceExpr . ' >= ' . $this->_getComparingValue($from, $filter));
+        if ($min !== '') {
+            $select->where($priceExpr . ' >= ' . $this->_getComparingValue($min, $filter));
         }
-        if ($to !== '') {
-            $select->where($priceExpr . ' < ' . $this->_getComparingValue($to, $filter));
+
+        if ($max !== '') {
+            $select->where($priceExpr . ' < ' . $this->_getComparingValue($max, $filter));
         }
 
         return $this;
-
     }
 }

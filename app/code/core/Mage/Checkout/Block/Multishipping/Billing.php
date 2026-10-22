@@ -1,46 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Multishipping billing information
  *
- * @category   Mage
  * @package    Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Checkout_Block_Multishipping_Billing extends Mage_Payment_Block_Form_Container
 {
     /**
      * Prepare children blocks
      */
+    #[Override]
     protected function _prepareLayout()
     {
         if ($headBlock = $this->getLayout()->getBlock('head')) {
             $headBlock->setTitle(
-                Mage::helper('checkout')->__('Billing Information - %s', $headBlock->getDefaultTitle())
+                Mage::helper('checkout')->__('Billing Information - %s', $headBlock->getDefaultTitle()),
             );
         }
 
@@ -50,9 +32,10 @@ class Mage_Checkout_Block_Multishipping_Billing extends Mage_Payment_Block_Form_
     /**
      * Check payment method model
      *
-     * @param Mage_Payment_Model_Method_Abstract|null $method
+     * @param  null|Mage_Payment_Model_Method_Abstract $method
      * @return bool
      */
+    #[Override]
     protected function _canUseMethod($method)
     {
         return $method && $method->canUseForMultishipping() && parent::_canUseMethod($method);
@@ -61,13 +44,15 @@ class Mage_Checkout_Block_Multishipping_Billing extends Mage_Payment_Block_Form_
     /**
      * Retrieve code of current payment method
      *
-     * @return mixed
+     * @return false|string
      */
+    #[Override]
     public function getSelectedMethodCode()
     {
         if ($method = $this->getQuote()->getPayment()->getMethod()) {
             return $method;
         }
+
         return false;
     }
 
@@ -78,11 +63,12 @@ class Mage_Checkout_Block_Multishipping_Billing extends Mage_Payment_Block_Form_
      */
     public function getAddress()
     {
-        $address = $this->getData('address');
+        $address = $this->getDataByKey('address');
         if (is_null($address)) {
             $address = Mage::getSingleton('checkout/type_multishipping')->getQuote()->getBillingAddress();
             $this->setData('address', $address);
         }
+
         return $address;
     }
 
@@ -103,7 +89,7 @@ class Mage_Checkout_Block_Multishipping_Billing extends Mage_Payment_Block_Form_
      */
     public function getQuoteBaseGrandTotal()
     {
-        return (float)$this->getQuote()->getBaseGrandTotal();
+        return (float) $this->getQuote()->getBaseGrandTotal();
     }
 
     /**

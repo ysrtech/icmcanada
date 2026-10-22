@@ -78,7 +78,7 @@
 	                             <img src="<?php echo $this->getSkinUrl();?>images/catalog/cat_placeholder.jpg">
                             	<?php endif; ?>
                             </div>
-                            <p class="cat-name"><?php echo $this->htmlEscape($_category->getName()) ?></p>
+                            <p class="cat-name"><?php echo $this->escapeHtml($_category->getName()) ?></p>
                             </a>
                             <?php
                                 $grandchildren_ids = Mage::getResourceSingleton('catalog/category_tree')->load()->getChildren($_category->getId(), false);

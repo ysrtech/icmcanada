@@ -1,42 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Payment
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Payment
  */
 
 /**
  * Base payment iformation block
  *
+ * @package    Mage_Payment
+ *
+ * @method bool hasIsSecureMode()
  */
 class Mage_Payment_Block_Info extends Mage_Core_Block_Template
 {
     /**
      * Payment rendered specific information
      *
-     * @var Varien_Object
+     * @var null|Varien_Object
      */
     protected $_paymentSpecificInformation = null;
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -50,10 +40,11 @@ class Mage_Payment_Block_Info extends Mage_Core_Block_Template
      */
     public function getInfo()
     {
-        $info = $this->getData('info');
+        $info = $this->getDataByKey('info');
         if (!($info instanceof Mage_Payment_Model_Info)) {
             Mage::throwException($this->__('Cannot retrieve the payment info model object.'));
         }
+
         return $info;
     }
 
@@ -86,12 +77,13 @@ class Mage_Payment_Block_Info extends Mage_Core_Block_Template
      */
     public function getChildPdfAsArray()
     {
-        $result = array();
+        $result = [];
         foreach ($this->getChild() as $child) {
             if (method_exists($child, 'toPdf')) {
                 $result[] = $child->toPdf();
             }
         }
+
         return $result;
     }
 
@@ -108,23 +100,26 @@ class Mage_Payment_Block_Info extends Mage_Core_Block_Template
     /**
      * Render the value as an array
      *
-     * @param mixed $value
-     * @param bool $escapeHtml
-     * @return $array
+     * @param  mixed $value
+     * @param  bool  $escapeHtml
+     * @return array $array
      */
     public function getValueAsArray($value, $escapeHtml = false)
     {
         if (empty($value)) {
-            return array();
+            return [];
         }
+
         if (!is_array($value)) {
-            $value = array($value);
+            $value = [$value];
         }
+
         if ($escapeHtml) {
-            foreach ($value as $_key => $_val) {
-                $value[$_key] = $this->escapeHtml($_val);
+            foreach ($value as $key => $val) {
+                $value[$key] = $this->escapeHtml($val);
             }
         }
+
         return $value;
     }
 
@@ -138,38 +133,43 @@ class Mage_Payment_Block_Info extends Mage_Core_Block_Template
     public function getIsSecureMode()
     {
         if ($this->hasIsSecureMode()) {
-            return (bool)(int)$this->_getData('is_secure_mode');
+            return (bool) (int) $this->_getData('is_secure_mode');
         }
+
         if (!$payment = $this->getInfo()) {
             return true;
         }
+
         if (!$method = $payment->getMethodInstance()) {
             return true;
         }
+
         return !Mage::app()->getStore($method->getStore())->isAdmin();
     }
 
     /**
      * Prepare information specific to current payment method
      *
-     * @param Varien_Object|array $transport
+     * @param  array|Varien_Object $transport
      * @return Varien_Object
      */
     protected function _prepareSpecificInformation($transport = null)
     {
-        if (null === $this->_paymentSpecificInformation) {
-            if (null === $transport) {
-                $transport = new Varien_Object;
+        if ($this->_paymentSpecificInformation === null) {
+            if ($transport === null) {
+                $transport = new Varien_Object();
             } elseif (is_array($transport)) {
                 $transport = new Varien_Object($transport);
             }
-            Mage::dispatchEvent('payment_info_block_prepare_specific_information', array(
+
+            Mage::dispatchEvent('payment_info_block_prepare_specific_information', [
                 'transport' => $transport,
                 'payment'   => $this->getInfo(),
                 'block'     => $this,
-            ));
+            ]);
             $this->_paymentSpecificInformation = $transport;
         }
+
         return $this->_paymentSpecificInformation;
     }
 }

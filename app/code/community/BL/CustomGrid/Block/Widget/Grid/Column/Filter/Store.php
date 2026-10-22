@@ -67,11 +67,11 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Filter_Store extends Mage_Adminhtml
             }
             if (!$shownWebsite) {
                 $shownWebsite = true;
-                $html .= '<optgroup label="' . $this->htmlEscape($website->getName()) . '"></optgroup>';
+                $html .= '<optgroup label="' . $this->escapeHtml($website->getName()) . '"></optgroup>';
             }
             if (!$shownStoreGroup) {
                 $shownStoreGroup = true;
-                $html .= '<optgroup label="' . $this->htmlEscape($storeGroup->getName()) . '">';
+                $html .= '<optgroup label="' . $this->escapeHtml($storeGroup->getName()) . '">';
             }
             
             $html .= '<option value="' . $store->getId() . '"'

@@ -1,47 +1,26 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ImportExport
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ImportExport
  */
 
 /**
  * ImportExport import data resource model
  *
- * @category    Mage
- * @package     Mage_ImportExport
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_ImportExport
  */
-class Mage_ImportExport_Model_Resource_Import_Data
-    extends Mage_Core_Model_Resource_Db_Abstract
-    implements IteratorAggregate
+class Mage_ImportExport_Model_Resource_Import_Data extends Mage_Core_Model_Resource_Db_Abstract implements IteratorAggregate
 {
     /**
-     * @var IteratorIterator
+     * @var null|ArrayIterator<int|string, mixed>
      */
     protected $_iterator = null;
 
     /**
-     * Resource initialization
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -51,32 +30,32 @@ class Mage_ImportExport_Model_Resource_Import_Data
     /**
      * Retrieve an external iterator
      *
-     * @return IteratorIterator
+     * @return ArrayIterator<(int|string), mixed>
      */
+    #[ReturnTypeWillChange]
     public function getIterator()
     {
         $adapter = $this->_getWriteAdapter();
         $select = $adapter->select()
-            ->from($this->getMainTable(), array('data'))
+            ->from($this->getMainTable(), ['data'])
             ->order('id ASC');
         $stmt = $adapter->query($select);
 
         $stmt->setFetchMode(Zend_Db::FETCH_NUM);
         if ($stmt instanceof IteratorAggregate) {
-            $iterator = $stmt->getIterator();
-        } else {
-            // Statement doesn't support iterating, so fetch all records and create iterator ourself
-            $rows = $stmt->fetchAll();
-            $iterator = new ArrayIterator($rows);
+            return $stmt->getIterator();
         }
 
-        return $iterator;
+        // Statement doesn't support iterating, so fetch all records and create iterator ourself
+        $rows = $stmt->fetchAll();
+
+        return new ArrayIterator($rows);
     }
 
     /**
      * Clean all bunches from table.
      *
-     * @return Varien_Db_Adapter_Interface
+     * @return int
      */
     public function cleanBunches()
     {
@@ -86,52 +65,55 @@ class Mage_ImportExport_Model_Resource_Import_Data
     /**
      * Return behavior from import data table.
      *
-     * @throws Exception
      * @return string
+     * @throws Exception
      */
     public function getBehavior()
     {
         $adapter = $this->_getReadAdapter();
         $behaviors = array_unique($adapter->fetchCol(
             $adapter->select()
-                ->from($this->getMainTable(), array('behavior'))
+                ->from($this->getMainTable(), ['behavior']),
         ));
         if (count($behaviors) != 1) {
             Mage::throwException(Mage::helper('importexport')->__('Error in data structure: behaviors are mixed'));
         }
+
         return $behaviors[0];
     }
 
     /**
      * Return entity type code from import data table.
      *
-     * @throws Exception
      * @return string
+     * @throws Exception
      */
     public function getEntityTypeCode()
     {
         $adapter = $this->_getReadAdapter();
         $entityCodes = array_unique($adapter->fetchCol(
             $adapter->select()
-                ->from($this->getMainTable(), array('entity'))
+                ->from($this->getMainTable(), ['entity']),
         ));
         if (count($entityCodes) != 1) {
             Mage::throwException(Mage::helper('importexport')->__('Error in data structure: entity codes are mixed'));
         }
+
         return $entityCodes[0];
     }
 
     /**
      * Get next bunch of validated rows.
      *
-     * @return array|null
+     * @return null|array
      */
     public function getNextBunch()
     {
-        if (null === $this->_iterator) {
+        if ($this->_iterator === null) {
             $this->_iterator = $this->getIterator();
             $this->_iterator->rewind();
         }
+
         if ($this->_iterator->valid()) {
             $dataRow = $this->_iterator->current();
             $dataRow = Mage::helper('core')->jsonDecode($dataRow[0]);
@@ -140,22 +122,22 @@ class Mage_ImportExport_Model_Resource_Import_Data
             $this->_iterator = null;
             $dataRow = null;
         }
+
         return $dataRow;
     }
 
     /**
      * Save import rows bunch.
      *
-     * @param string $entity
-     * @param string $behavior
-     * @param array $data
+     * @param  string $entity
+     * @param  string $behavior
      * @return int
      */
     public function saveBunch($entity, $behavior, array $data)
     {
         return $this->_getWriteAdapter()->insert(
             $this->getMainTable(),
-            array('behavior' => $behavior, 'entity' => $entity, 'data' => Mage::helper('core')->jsonEncode($data))
+            ['behavior' => $behavior, 'entity' => $entity, 'data' => Mage::helper('core')->jsonEncode($data)],
         );
     }
 }

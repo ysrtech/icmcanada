@@ -30,7 +30,7 @@
         <ul class="blcg-messages-tabs">
         <?php $_counts = array() ?>
         <?php foreach ($this->getMessagesTypes() as $_type => $_label): ?>
-            <li id="blcg-messages-tab-<?php echo $_type ?>" class="blcg-messages-tab blcg-messages-tab-<?php echo $_type ?><?php if (!$_count = $this->getMessagesCount($_type)): ?> blcg-no-display<?php endif ?>"><?php echo $this->htmlEscape($_label) ?> (<span id="blcg-messages-tab-count-<?php echo $_type ?>"><?php echo $_count ?></span>)</li>
+            <li id="blcg-messages-tab-<?php echo $_type ?>" class="blcg-messages-tab blcg-messages-tab-<?php echo $_type ?><?php if (!$_count = $this->getMessagesCount($_type)): ?> blcg-no-display<?php endif ?>"><?php echo $this->escapeHtml($_label) ?> (<span id="blcg-messages-tab-count-<?php echo $_type ?>"><?php echo $_count ?></span>)</li>
         <?php endforeach ?>
         </ul>
         <ul class="blcg-messages-lists">

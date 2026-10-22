@@ -1,31 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Payment
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Payment
  */
 
 /**
  * Credit card generic payment info
+ *
+ * @package    Mage_Payment
  */
 class Mage_Payment_Block_Info_Cc extends Mage_Payment_Block_Info
 {
@@ -38,10 +23,7 @@ class Mage_Payment_Block_Info_Cc extends Mage_Payment_Block_Info
     {
         $types = Mage::getSingleton('payment/config')->getCcTypes();
         $ccType = $this->getInfo()->getCcType();
-        if (isset($types[$ccType])) {
-            return $types[$ccType];
-        }
-        return (empty($ccType)) ? Mage::helper('payment')->__('N/A') : $ccType;
+        return $types[$ccType] ?? (empty($ccType) ? Mage::helper('payment')->__('N/A') : $ccType);
     }
 
     /**
@@ -51,7 +33,7 @@ class Mage_Payment_Block_Info_Cc extends Mage_Payment_Block_Info
      */
     public function hasCcExpDate()
     {
-        return (int)$this->getInfo()->getCcExpMonth() || (int)$this->getInfo()->getCcExpYear();
+        return (int) $this->getInfo()->getCcExpMonth() || (int) $this->getInfo()->getCcExpYear();
     }
 
     /**
@@ -62,9 +44,10 @@ class Mage_Payment_Block_Info_Cc extends Mage_Payment_Block_Info
     public function getCcExpMonth()
     {
         $month = $this->getInfo()->getCcExpMonth();
-        if ($month<10) {
-            $month = '0'.$month;
+        if ($month < 10) {
+            return '0' . $month;
         }
+
         return $month;
     }
 
@@ -84,40 +67,46 @@ class Mage_Payment_Block_Info_Cc extends Mage_Payment_Block_Info
     /**
      * Prepare credit card related payment info
      *
-     * @param Varien_Object|array $transport
+     * @param  array|Varien_Object $transport
      * @return Varien_Object
      */
+    #[Override]
     protected function _prepareSpecificInformation($transport = null)
     {
-        if (null !== $this->_paymentSpecificInformation) {
+        if ($this->_paymentSpecificInformation !== null) {
             return $this->_paymentSpecificInformation;
         }
+
         $transport = parent::_prepareSpecificInformation($transport);
-        $data = array();
+        $data = [];
         if ($ccType = $this->getCcTypeName()) {
             $data[Mage::helper('payment')->__('Credit Card Type')] = $ccType;
         }
+
         if ($this->getInfo()->getCcLast4()) {
             $data[Mage::helper('payment')->__('Credit Card Number')] = sprintf('xxxx-%s', $this->getInfo()->getCcLast4());
         }
+
         if (!$this->getIsSecureMode()) {
             if ($ccSsIssue = $this->getInfo()->getCcSsIssue()) {
                 $data[Mage::helper('payment')->__('Switch/Solo/Maestro Issue Number')] = $ccSsIssue;
             }
+
             $year = $this->getInfo()->getCcSsStartYear();
             $month = $this->getInfo()->getCcSsStartMonth();
             if ($year && $month) {
                 $data[Mage::helper('payment')->__('Switch/Solo/Maestro Start Date')] =  $this->_formatCardDate($year, $month);
             }
         }
+
         return $transport->setData(array_merge($data, $transport->getData()));
     }
 
     /**
      * Format year/month on the credit card
      *
-     * @param string $year
-     * @param string $month
+     * @param  string $year
+     * @param  string $month
      * @return string
      */
     protected function _formatCardDate($year, $month)

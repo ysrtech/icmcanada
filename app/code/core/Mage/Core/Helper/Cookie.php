@@ -1,57 +1,40 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Core Cookie helper
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
  */
 class Mage_Core_Helper_Cookie extends Mage_Core_Helper_Abstract
 {
     /**
      * Cookie name for users who allowed cookie save
      */
-    const IS_USER_ALLOWED_SAVE_COOKIE  = 'user_allowed_save_cookie';
+    public const IS_USER_ALLOWED_SAVE_COOKIE  = 'user_allowed_save_cookie';
 
     /**
      * Path to configuration, check is enable cookie restriction mode
      */
-    const XML_PATH_COOKIE_RESTRICTION  = 'web/cookie/cookie_restriction';
+    public const XML_PATH_COOKIE_RESTRICTION  = 'web/cookie/cookie_restriction';
 
     /**
      * Cookie restriction lifetime configuration path
      */
-    const XML_PATH_COOKIE_RESTRICTION_LIFETIME = 'web/cookie/cookie_restriction_lifetime';
+    public const XML_PATH_COOKIE_RESTRICTION_LIFETIME = 'web/cookie/cookie_restriction_lifetime';
 
     /**
      * Cookie restriction notice cms block identifier
      */
-    const COOKIE_RESTRICTION_NOTICE_CMS_BLOCK_IDENTIFIER = 'cookie_restriction_notice_block';
+    public const COOKIE_RESTRICTION_NOTICE_CMS_BLOCK_IDENTIFIER = 'cookie_restriction_notice_block';
+
+    protected $_moduleName = 'Mage_Core';
 
     /**
      * Store instance
@@ -77,25 +60,23 @@ class Mage_Core_Helper_Cookie extends Mage_Core_Helper_Abstract
     /**
      * Initializes store, cookie and website objects.
      *
-     * @param array $data
      * @throws InvalidArgumentException
      */
-    public function __construct(array $data = array())
+    public function __construct(array $data = [])
     {
-        $this->_currentStore = isset($data['current_store']) ? $data['current_store'] : Mage::app()->getStore();
+        $this->_currentStore = $data['current_store'] ?? Mage::app()->getStore();
 
         if (!$this->_currentStore instanceof Mage_Core_Model_Store) {
             throw new InvalidArgumentException('Required store object is invalid');
         }
 
-        $this->_cookieModel = isset($data['cookie_model'])
-            ? $data['cookie_model'] : Mage::getSingleton('core/cookie');
+        $this->_cookieModel = $data['cookie_model'] ?? Mage::getSingleton('core/cookie');
 
         if (!$this->_cookieModel instanceof Mage_Core_Model_Cookie) {
             throw new InvalidArgumentException('Required cookie object is invalid');
         }
 
-        $this->_website = isset($data['website']) ? $data['website'] : Mage::app()->getWebsite();
+        $this->_website = $data['website'] ?? Mage::app()->getWebsite();
 
         if (!$this->_website instanceof Mage_Core_Model_Website) {
             throw new InvalidArgumentException('Required website object is invalid');
@@ -110,8 +91,8 @@ class Mage_Core_Helper_Cookie extends Mage_Core_Helper_Abstract
     public function isUserNotAllowSaveCookie()
     {
         $acceptedSaveCookiesWebsites = $this->_getAcceptedSaveCookiesWebsites();
-        return $this->_currentStore->getConfig(self::XML_PATH_COOKIE_RESTRICTION) &&
-            empty($acceptedSaveCookiesWebsites[$this->_website->getId()]);
+        return $this->_currentStore->getConfig(self::XML_PATH_COOKIE_RESTRICTION)
+            && empty($acceptedSaveCookiesWebsites[$this->_website->getId()]);
     }
 
     /**
@@ -134,8 +115,8 @@ class Mage_Core_Helper_Cookie extends Mage_Core_Helper_Abstract
     protected function _getAcceptedSaveCookiesWebsites()
     {
         $serializedList = $this->_cookieModel->get(self::IS_USER_ALLOWED_SAVE_COOKIE);
-        $unSerializedList = json_decode($serializedList, true);
-        return is_array($unSerializedList) ? $unSerializedList : array();
+        $unSerializedList = $serializedList ? json_decode($serializedList, true) : null;
+        return is_array($unSerializedList) ? $unSerializedList : [];
     }
 
     /**
@@ -145,7 +126,7 @@ class Mage_Core_Helper_Cookie extends Mage_Core_Helper_Abstract
      */
     public function getCookieRestrictionLifetime()
     {
-        return (int)$this->_currentStore->getConfig(self::XML_PATH_COOKIE_RESTRICTION_LIFETIME);
+        return (int) $this->_currentStore->getConfig(self::XML_PATH_COOKIE_RESTRICTION_LIFETIME);
     }
 
     /**

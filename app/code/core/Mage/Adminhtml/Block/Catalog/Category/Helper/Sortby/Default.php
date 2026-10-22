@@ -1,39 +1,18 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
+ */
 
 /**
  * Adminhtml additional helper block for sort by
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Catalog_Category_Helper_Sortby_Default
-    extends Varien_Data_Form_Element_Select
+class Mage_Adminhtml_Block_Catalog_Category_Helper_Sortby_Default extends Varien_Data_Form_Element_Select
 {
     /**
      * Returns js code that is used instead of default toggle code for "Use default config" checkbox
@@ -43,8 +22,8 @@ class Mage_Adminhtml_Block_Catalog_Category_Helper_Sortby_Default
     public function getToggleCode()
     {
         $htmlId = 'use_config_' . $this->getHtmlId();
-        return "toggleValueElements(this, this.parentNode.parentNode);"
-            . "if (!this.checked) toggleValueElements($('$htmlId'), $('$htmlId').parentNode);";
+        return 'toggleValueElements(this, this.parentNode.parentNode);'
+            . "if (!this.checked) toggleValueElements($('{$htmlId}'), $('{$htmlId}').parentNode);";
     }
 
     /**
@@ -52,12 +31,14 @@ class Mage_Adminhtml_Block_Catalog_Category_Helper_Sortby_Default
      *
      * @return string
      */
+    #[Override]
     public function getElementHtml()
     {
         $elementDisabled = $this->getDisabled() == 'disabled';
         $disabled = false;
 
         if (!$this->getValue() || $elementDisabled) {
+            $this->setValue(Mage::getStoreConfig(Mage_Catalog_Model_Config::XML_PATH_LIST_DEFAULT_SORT_BY));
             $this->setData('disabled', 'disabled');
             $disabled = true;
         }
@@ -74,9 +55,8 @@ class Mage_Adminhtml_Block_Catalog_Category_Helper_Sortby_Default
         $html .= ' onclick="toggleValueElements(this, this.parentNode);" class="checkbox" type="checkbox" />';
         $html .= ' <label for="' . $htmlId . '" class="normal">'
             . Mage::helper('adminhtml')->__('Use Config Settings') . '</label>';
-        $html .= '<script type="text/javascript">toggleValueElements($(\'' . $htmlId . '\'), $(\'' . $htmlId
-            . '\').parentNode);</script>';
 
-        return $html;
+        return $html . ('<script type="text/javascript">toggleValueElements($(\'' . $htmlId . '\'), $(\'' . $htmlId
+            . "').parentNode);</script>");
     }
 }

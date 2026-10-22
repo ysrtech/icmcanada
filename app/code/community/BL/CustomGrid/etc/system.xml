@@ -87,6 +87,58 @@
                             <show_in_store>0</show_in_store>
                             <comment><![CDATA[Drag'n'drop is the most convenient way for sorting columns, but imposes their order number, and may be slow in some cases.<br />Choose "<strong>No</strong>" to specify columns orders numbers directly in corresponding text fields.]]></comment>
                         </sort_with_dnd>
+                        <searchable_dropdowns translate="label comment" module="customgrid">
+                            <label>Add A Search Field To Long Dropdowns</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>customgrid/system_config_source_yesno</source_model>
+                            <sort_order>600</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment><![CDATA[Choose "<strong>Yes</strong>" to display a search field above the dropdowns that hold a lot of options, both in the grid filters and in the grid editor. Typing in this field filters the available options.]]></comment>
+                        </searchable_dropdowns>
+                        <searchable_dropdowns_threshold translate="label comment" module="customgrid">
+                            <label>Minimum Number Of Options For Searchable Dropdowns</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>700</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><searchable_dropdowns>1</searchable_dropdowns></depends>
+                            <comment><![CDATA[A search field will only be added to the dropdowns holding strictly more options than this value.<br />If none is set, "<strong>10</strong>" value will be used.]]></comment>
+                        </searchable_dropdowns_threshold>
+                        <searchable_dropdowns_style translate="label comment" module="customgrid">
+                            <label>Searchable Dropdowns Style</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>customgrid/system_config_source_searchable_dropdowns_style</source_model>
+                            <sort_order>800</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><searchable_dropdowns>1</searchable_dropdowns></depends>
+                            <comment><![CDATA[How the searchable dropdowns of the grid <strong>filters</strong> are displayed.<br />"<strong>Dropdown With A Search Field Inside It</strong>" is a single combobox that opens a panel holding the search field, and keeps the filter row to one line.<br />"<strong>Search Field Above The Dropdown</strong>" is the original display: a search field stacked on top of the usual dropdown.<br />The grid editor always uses the latter.]]></comment>
+                        </searchable_dropdowns_style>
+                        <searchable_dropdowns_forms translate="label comment" module="customgrid">
+                            <label>Searchable Dropdowns In Admin Forms</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>900</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><searchable_dropdowns>1</searchable_dropdowns></depends>
+                            <comment><![CDATA[CSS selectors of the admin forms whose long dropdowns should also become searchable, one per line.<br />The default is the product form, where attributes such as a publisher or supplier list often run to hundreds of options.<br />To disable a selector, type // at the beginning of the line; leave the field empty to switch this off entirely.<br />Only applies to the combobox style, and only to dropdowns over the threshold above. Multiple-selection fields are left alone.]]></comment>
+                        </searchable_dropdowns_forms>
+                        <searchable_dropdowns_add_options translate="label comment" module="customgrid">
+                            <label>Allow Adding Values From The Product Form</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>customgrid/system_config_source_yesno</source_model>
+                            <sort_order>1000</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><searchable_dropdowns>1</searchable_dropdowns></depends>
+                            <comment><![CDATA[Choose "<strong>Yes</strong>" to offer an "<strong>Add new</strong>" link inside the searchable dropdowns of the product form, shown when a search matches none of the existing values.<br />It creates the typed value as a new option of that attribute, immediately and for every product, and is only offered on the attributes whose values are managed by Magento itself - not on a status, a country or a tax class.<br />Anyone allowed to edit products can use it.]]></comment>
+                        </searchable_dropdowns_add_options>
                     </fields>
                 </global>
                 <customization_params translate="label" module="customgrid">

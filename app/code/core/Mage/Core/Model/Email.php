@@ -1,29 +1,11 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Possible data fields:
@@ -35,10 +17,28 @@
  * - template (file name)
  * - module (for template)
  *
+ * @package    Mage_Adminhtml
+ *
+ * @method getFromEmail()
+ * @method getFromName()
+ * @method string       getTemplate()
+ * @method array|string getToEmail()
+ * @method getToName()
+ * @method string getType()
+ * @method $this  setFromEmail(string $string)
+ * @method $this  setFromName(string $string)
+ * @method $this  setTemplate(string $string)
+ * @method $this  setToEmail(array|string $string)
+ * @method $this  setToName(string $string)
+ * @method $this  setType(string $string)
  */
 class Mage_Core_Model_Email extends Varien_Object
 {
-    protected $_tplVars = array();
+    protected $_tplVars = [];
+
+    /**
+     * @var Mage_Core_Block_Template
+     */
     protected $_block;
 
     public function __construct()
@@ -49,70 +49,109 @@ class Mage_Core_Model_Email extends Varien_Object
         $this->setType('text');
     }
 
+    /**
+     * @param  array|string $var
+     * @param  null|string  $value
+     * @return $this
+     */
     public function setTemplateVar($var, $value = null)
     {
         if (is_array($var)) {
-            foreach ($var as $index=>$value) {
+            foreach ($var as $index => $value) {
                 $this->_tplVars[$index] = $value;
             }
-        }
-        else {
+        } else {
             $this->_tplVars[$var] = $value;
         }
+
         return $this;
     }
 
+    /**
+     * @return array
+     */
     public function getTemplateVars()
     {
         return $this->_tplVars;
     }
 
+    /**
+     * @return string
+     */
     public function getBody()
     {
-        $body = $this->getData('body');
+        $body = $this->getDataByKey('body');
         if (empty($body) && $this->getTemplate()) {
             $this->_block = Mage::getModel('core/layout')->createBlock('core/template', 'email')
                 ->setArea('frontend')
                 ->setTemplate($this->getTemplate());
-            foreach ($this->getTemplateVars() as $var=>$value) {
+            foreach ($this->getTemplateVars() as $var => $value) {
                 $this->_block->assign($var, $value);
             }
+
             $this->_block->assign('_type', strtolower($this->getType()))
                 ->assign('_section', 'body');
             $body = $this->_block->toHtml();
         }
+
         return $body;
     }
 
+    /**
+     * @return string
+     */
     public function getSubject()
     {
-        $subject = $this->getData('subject');
+        $subject = $this->getDataByKey('subject');
         if (empty($subject) && $this->_block) {
             $this->_block->assign('_section', 'subject');
             $subject = $this->_block->toHtml();
         }
+
         return $subject;
     }
 
+    /**
+     * @return $this
+     * @throws Zend_Mail_Exception
+     */
     public function send()
     {
         if (Mage::getStoreConfigFlag('system/smtp/disable')) {
             return $this;
         }
 
-        $mail = new Zend_Mail();
+        $mail = new Zend_Mail('utf-8');
+        $transport = new Varien_Object();
 
         if (strtolower($this->getType()) == 'html') {
             $mail->setBodyHtml($this->getBody());
-        }
-        else {
+        } else {
             $mail->setBodyText($this->getBody());
         }
 
         $mail->setFrom($this->getFromEmail(), $this->getFromName())
             ->addTo($this->getToEmail(), $this->getToName())
             ->setSubject($this->getSubject());
-        $mail->send();
+
+        Mage::dispatchEvent('email_send_before', [
+            'mail'      => $mail,
+            'template'  => $this->getTemplate(),
+            'transport' => $transport,
+            'variables' => $this->getTemplateVars(),
+        ]);
+
+        if ($transport->getTransport()) {
+            $mail->send($transport->getTransport());
+        } else {
+            $mail->send();
+        }
+
+        Mage::dispatchEvent('email_send_after', [
+            'to'         => $this->getToEmail(),
+            'subject'    => $this->getSubject(),
+            'email_body' => $this->getBody(),
+        ]);
 
         return $this;
     }

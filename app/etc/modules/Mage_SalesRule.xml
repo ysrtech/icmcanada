@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Academic Free License (AFL 3.0)
+ * @package    Mage_SalesRule
+ */
+-->
+<config>
+    <modules>
+        <Mage_SalesRule>
+            <active>true</active>
+            <codePool>core</codePool>
+            <depends>
+                <Mage_Catalog/>
+                <Mage_Rule/>
+                <Mage_Sales/>
+            </depends>
+        </Mage_SalesRule>
+    </modules>
+</config>

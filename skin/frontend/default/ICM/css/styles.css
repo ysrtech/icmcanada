@@ -1544,3 +1544,44 @@ color:#000000;left:0;padding:3px 10px;position:absolute;top:-31px;z-index:80;}
 .gift-messages-form .item:after,
 .send-friend .form-list li p:after { display:block; content:"."; clear:both; font-size:0; line-height:0; height:0; overflow:hidden; }
 /* ======================================================================================= */
+
+/* ------------------------------------------------------------------------
+ * Announcement ribbon from System > Configuration > Design > Footer >
+ * Miscellaneous HTML (design/footer/absolute_footer). The message is repeated
+ * in the markup, so it is shown as a slow ticker; it stops on hover and for
+ * visitors who prefer reduced motion.
+ * ------------------------------------------------------------------------ */
+.bottom-announcement-ribbon {
+    overflow: hidden;
+    background: #84924a;
+    color: #fff;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: .02em;
+    padding: 9px 0;
+    white-space: nowrap;
+}
+.bottom-announcement-ribbon .ribbon-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: icm-ribbon-scroll 40s linear infinite;
+}
+.bottom-announcement-ribbon:hover .ribbon-content {
+    animation-play-state: paused;
+}
+.bottom-announcement-ribbon .ribbon-content span {
+    display: inline-block;
+}
+.bottom-announcement-ribbon .ribbon-content .separator {
+    margin: 0 18px;
+    opacity: .7;
+}
+@keyframes icm-ribbon-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bottom-announcement-ribbon { white-space: normal; text-align: center; padding: 9px 15px; }
+    .bottom-announcement-ribbon .ribbon-content { animation: none; padding-left: 0; }
+    .bottom-announcement-ribbon .ribbon-content span:not(:first-child) { display: none; }
+}

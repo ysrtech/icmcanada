@@ -1,41 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * Payflow link iframe block
  *
- * @category   Mage
  * @package    Mage_Paypal
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
 {
     /**
-     * Set payment method code
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -47,6 +29,7 @@ class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
      *
      * @return string
      */
+    #[Override]
     public function getFrameActionUrl()
     {
         return $this->getTransactionUrl() . '?SECURETOKEN=' . $this->getSecureToken() . '&SECURETOKENID='
@@ -58,6 +41,7 @@ class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
      *
      * @return string
      */
+    #[Override]
     public function getSecureToken()
     {
         return $this->_getOrder()
@@ -70,6 +54,7 @@ class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
      *
      * @return string
      */
+    #[Override]
     public function getSecureTokenId()
     {
         return $this->_getOrder()
@@ -82,6 +67,7 @@ class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
      *
      * @return string
      */
+    #[Override]
     public function getTransactionUrl()
     {
         return Mage_Paypal_Model_Payflowlink::TRANSACTION_PAYFLOW_URL;
@@ -92,6 +78,7 @@ class Mage_Paypal_Block_Payflow_Link_Iframe extends Mage_Paypal_Block_Iframe
      *
      * @return bool
      */
+    #[Override]
     public function isTestMode()
     {
         $mode = Mage::helper('payment')

@@ -47,6 +47,9 @@ class DC_Catalog_Block_AttributeInfo extends Mage_Core_Block_Template
         if (Mage::getStoreConfig('web/default/show_cms_breadcrumbs')
             && ($breadcrumbs = $this->getLayout()->getBlock('breadcrumbs'))) {
 
+                $attrLabel = $this->getAttributeLabel();
+                $urlPrefix = Mage::helper('dc_catalog')->getAttributeUrlPrefix($attributeInfo->getAttributeCode());
+
             	$breadcrumbs->addCrumb(
                 	'home',
                 	array(
@@ -57,10 +60,9 @@ class DC_Catalog_Block_AttributeInfo extends Mage_Core_Block_Template
                 );
 
 	            $breadcrumbs->addCrumb('allvalues', array(
-                    'label' => Mage::helper('dc_catalog')->__(ucfirst($attributeInfo->getAttributeCode()).'s'),
-                    'link'  => Mage::getUrl(''.$attributeInfo->getAttributeCode().'/'),
+                    'label' => ucfirst($attrLabel) . 's',
+                    'link'  => Mage::getUrl($urlPrefix . '/'),
                 ));
-
 
                 $breadcrumbs->addCrumb('dc_catalog', array('label'=>$attributeInfo->getValue(), 'title'=>$attributeInfo->getValue()));
         }
@@ -79,6 +81,25 @@ class DC_Catalog_Block_AttributeInfo extends Mage_Core_Block_Template
             $head->setDescription($attributeInfo->getMetaDescription());
         }
 
+    }
+
+    /**
+     * Return the store-specific EAV frontend label for the attribute,
+     * falling back to the global frontend label.
+     * e.g. 'brand' attribute → 'merk' on NL store, 'brand' on EN store.
+     *
+     * @return string  lowercase label
+     */
+    public function getAttributeLabel()
+    {
+        $storeId      = Mage::app()->getStore()->getId();
+        $attributeRes = Mage::getSingleton('eav/config')
+            ->getAttribute('catalog_product', $this->getAttributeInfo()->getAttributeCode());
+        $storeLabels  = $attributeRes->getStoreLabels();
+        if (is_array($storeLabels) && isset($storeLabels[$storeId])) {
+            return strtolower($storeLabels[$storeId]);
+        }
+        return strtolower($attributeRes->getFrontendLabel());
     }
 
     public function getDescription() {

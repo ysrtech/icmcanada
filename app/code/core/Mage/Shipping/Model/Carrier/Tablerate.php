@@ -1,37 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Shipping
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Shipping
  */
 
-/*
+/**
  * Class Mage_Shipping_Model_Carrier_Tablerate
+ *
+ * @package    Mage_Shipping
+ * @SuppressWarnings("PHPMD.CamelCasePropertyName")
  */
-class Mage_Shipping_Model_Carrier_Tablerate
-    extends Mage_Shipping_Model_Carrier_Abstract
-    implements Mage_Shipping_Model_Carrier_Interface
+class Mage_Shipping_Model_Carrier_Tablerate extends Mage_Shipping_Model_Carrier_Abstract implements Mage_Shipping_Model_Carrier_Interface
 {
-
     /**
      * code name
      *
@@ -40,9 +23,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
     protected $_code = 'tablerate';
 
     /**
-     * boolean isFixed
-     *
-     * @var boolean
+     * @var bool
      */
     protected $_isFixed = true;
 
@@ -58,24 +39,20 @@ class Mage_Shipping_Model_Carrier_Tablerate
      *
      * @var array
      */
-    protected $_conditionNames = array();
+    protected $_conditionNames = [];
 
-    /*
-     * Constructor
-     */
     public function __construct()
     {
         parent::__construct();
-        foreach ($this->getCode('condition_name') as $k => $v) {
-            $this->_conditionNames[] = $k;
+        foreach (array_keys($this->getCode('condition_name')) as $key) {
+            $this->_conditionNames[] = $key;
         }
     }
 
     /**
      * Collect and get rates
      *
-     * @param Mage_Shipping_Model_Rate_Request $request
-     * @return Mage_Shipping_Model_Rate_Result
+     * @return false|Mage_Shipping_Model_Rate_Result
      */
     public function collectRates(Mage_Shipping_Model_Rate_Request $request)
     {
@@ -89,6 +66,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
                 if ($item->getParentItem()) {
                     continue;
                 }
+
                 if ($item->getHasChildren() && $item->isShipSeparately()) {
                     foreach ($item->getChildren() as $child) {
                         if ($child->getProduct()->isVirtual()) {
@@ -106,7 +84,11 @@ class Mage_Shipping_Model_Carrier_Tablerate
         $freePackageValue = 0;
         if ($request->getAllItems()) {
             foreach ($request->getAllItems() as $item) {
-                if ($item->getProduct()->isVirtual() || $item->getParentItem()) {
+                if ($item->getProduct()->isVirtual()) {
+                    continue;
+                }
+
+                if ($item->getParentItem()) {
                     continue;
                 }
 
@@ -123,6 +105,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
                     $freePackageValue += $item->getBaseRowTotal();
                 }
             }
+
             $oldValue = $request->getPackageValue();
             $request->setPackageValue($oldValue - $freePackageValue);
         }
@@ -130,6 +113,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
         if ($freePackageValue) {
             $request->setPackageValue($request->getPackageValue() - $freePackageValue);
         }
+
         if (!$request->getConditionName()) {
             $conditionName = $this->getConfigData('condition_name');
             $request->setConditionName($conditionName ? $conditionName : $this->_default_condition_name);
@@ -142,6 +126,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
         $request->setPackageWeight($request->getFreeMethodWeight());
         $request->setPackageQty($oldQty - $freeQty);
 
+        /** @var Mage_Shipping_Model_Rate_Result $result */
         $result = $this->_getModel('shipping/rate_result');
         $rate = $this->getRate($request);
 
@@ -149,6 +134,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
         $request->setPackageQty($oldQty);
 
         if (!empty($rate) && $rate['price'] >= 0) {
+            /** @var Mage_Shipping_Model_Rate_Result_Method $method */
             $method = $this->_getModel('shipping/rate_result_method');
 
             $method->setCarrier('tablerate');
@@ -178,6 +164,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
             $request->setPackageQty($freeQty);
             $rate = $this->getRate($request);
             if (!empty($rate) && $rate['price'] >= 0) {
+                /** @var Mage_Shipping_Model_Rate_Result_Method $method */
                 $method = $this->_getModel('shipping/rate_result_method');
 
                 $method->setCarrier('tablerate');
@@ -192,6 +179,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
                 $result->append($method);
             }
         } else {
+            /** @var Mage_Shipping_Model_Rate_Result_Error $error */
             $error = $this->_getModel('shipping/rate_result_error');
             $error->setCarrier('tablerate');
             $error->setCarrierTitle($this->getConfigData('title'));
@@ -205,8 +193,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
     /**
      * Get Model
      *
-     * @param string $modelName
-     *
+     * @param  string                   $modelName
      * @return Mage_Core_Model_Abstract
      */
     protected function _getModel($modelName)
@@ -217,9 +204,7 @@ class Mage_Shipping_Model_Carrier_Tablerate
     /**
      * Get Rate
      *
-     * @param Mage_Shipping_Model_Rate_Request $request
-     *
-     * @return Mage_Core_Model_Abstract
+     * @return array|bool
      */
     public function getRate(Mage_Shipping_Model_Rate_Request $request)
     {
@@ -229,34 +214,30 @@ class Mage_Shipping_Model_Carrier_Tablerate
     /**
      * Get code
      *
-     * @param string $type
-     * @param string $code
-     *
-     * @return array
+     * @param  string       $type
+     * @param  string       $code
+     * @return array|string
      */
     public function getCode($type, $code = '')
     {
-        $codes = array(
-
-            'condition_name' => array(
+        $codes = [
+            'condition_name' => [
                 'package_weight' => Mage::helper('shipping')->__('Weight vs. Destination'),
                 'package_value' => Mage::helper('shipping')->__('Price vs. Destination'),
                 'package_qty' => Mage::helper('shipping')->__('# of Items vs. Destination'),
-            ),
-
-            'condition_name_short' => array(
+            ],
+            'condition_name_short' => [
                 'package_weight' => Mage::helper('shipping')->__('Weight (and above)'),
                 'package_value' => Mage::helper('shipping')->__('Order Subtotal (and above)'),
                 'package_qty' => Mage::helper('shipping')->__('# of Items (and above)'),
-            ),
-
-        );
+            ],
+        ];
 
         if (!isset($codes[$type])) {
             throw Mage::exception('Mage_Shipping', Mage::helper('shipping')->__('Invalid Table Rate code type: %s', $type));
         }
 
-        if ('' === $code) {
+        if ($code === '') {
             return $codes[$type];
         }
 
@@ -270,11 +251,10 @@ class Mage_Shipping_Model_Carrier_Tablerate
     /**
      * Get allowed shipping methods
      *
-     * @return array
+     * @return array<string, bool|string>
      */
     public function getAllowedMethods()
     {
-        return array('bestway' => $this->getConfigData('name'));
+        return ['bestway' => $this->getConfigData('name')];
     }
-
 }

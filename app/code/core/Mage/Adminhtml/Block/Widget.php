@@ -1,46 +1,38 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Base widget class
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method $this setHeaderCss(string $value)
+ * @method $this setTitle(string $value)
  */
 class Mage_Adminhtml_Block_Widget extends Mage_Adminhtml_Block_Template
 {
+    /**
+     * @return string
+     */
+    #[Override]
     public function getId()
     {
-        if ($this->getData('id')===null) {
+        if ($this->getDataByKey('id') === null) {
             $this->setData('id', Mage::helper('core')->uniqHash('id_'));
         }
-        return $this->getData('id');
+
+        return $this->getDataByKey('id');
     }
 
+    /**
+     * @return string
+     */
     public function getHtmlId()
     {
         return $this->getId();
@@ -49,46 +41,52 @@ class Mage_Adminhtml_Block_Widget extends Mage_Adminhtml_Block_Template
     /**
      * Get current url
      *
-     * @param array $params url parameters
+     * @param  array  $params url parameters
      * @return string current url
      */
-    public function getCurrentUrl($params = array())
+    public function getCurrentUrl($params = [])
     {
         if (!isset($params['_current'])) {
             $params['_current'] = true;
         }
+
         return $this->getUrl('*/*/*', $params);
     }
 
-    protected function _addBreadcrumb($label, $title=null, $link=null)
+    protected function _addBreadcrumb($label, $title = null, $link = null)
     {
-        $this->getLayout()->getBlock('breadcrumbs')->addLink($label, $title, $link);
+        /** @var Mage_Adminhtml_Block_Widget_Breadcrumbs $block */
+        $block = $this->getLayout()->getBlock('breadcrumbs');
+        $block->addLink($label, $title, $link);
     }
 
     /**
-     * Create buttonn and return its html
+     * Create button and return its html
      *
-     * @param string $label
-     * @param string $onclick
-     * @param string $class
-     * @param string $id
+     * @param  string $label
+     * @param  string $onclick
+     * @param  string $class
+     * @param  string $id
      * @return string
      */
-    public function getButtonHtml($label, $onclick, $class='', $id=null) {
+    public function getButtonHtml($label, $onclick, $class = '', $id = null)
+    {
         return $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
+            ->setData([
                 'label'     => $label,
                 'onclick'   => $onclick,
                 'class'     => $class,
                 'type'      => 'button',
                 'id'        => $id,
-            ))
+            ])
             ->toHtml();
     }
 
+    /**
+     * @return string
+     */
     public function getGlobalIcon()
     {
-        return '<img src="'.$this->getSkinUrl('images/fam_link.gif').'" alt="'.$this->__('Global Attribute').'" title="'.$this->__('This attribute shares the same value in all the stores').'" class="attribute-global"/>';
+        return '<img src="' . $this->getSkinUrl('images/fam_link.gif') . '" alt="' . $this->__('Global Attribute') . '" title="' . $this->__('This attribute shares the same value in all the stores') . '" class="attribute-global"/>';
     }
 }
-

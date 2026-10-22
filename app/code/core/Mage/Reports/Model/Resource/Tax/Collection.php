@@ -1,44 +1,26 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Reports
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+declare(strict_types=1);
+
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Reports
+ */
 
 /**
  * Reports tax collection
  *
- * @category    Mage
- * @package     Mage_Reports
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Reports
  */
 class Mage_Reports_Model_Resource_Tax_Collection extends Mage_Sales_Model_Entity_Order_Collection
 {
     /**
      * Set row identifier field name
-     *
      */
-    public function _construct()
+    #[Override]
+    protected function _construct()
     {
         parent::_construct();
         $this->setRowIdFieldName('tax_id');
@@ -47,22 +29,23 @@ class Mage_Reports_Model_Resource_Tax_Collection extends Mage_Sales_Model_Entity
     /**
      * Set date range
      *
-     * @param string $from
-     * @param string $to
-     * @return Mage_Reports_Model_Resource_Tax_Collection
+     * @param  null|string $dateFrom
+     * @param  null|string $dateTo
+     * @return $this
      */
-    public function setDateRange($from, $to)
+    public function setDateRange($dateFrom, $dateTo)
     {
         $this->_reset();
 
-        $this->addAttributeToFilter('created_at', array('from' => $from, 'to' => $to))
-            ->addExpressionAttributeToSelect('orders', 'COUNT(DISTINCT({{entity_id}}))', array('entity_id'))
+        $this->addAttributeToFilter('created_at', ['from' => $dateFrom, 'to' => $dateTo])
+            ->addExpressionAttributeToSelect('orders', 'COUNT(DISTINCT({{entity_id}}))', ['entity_id'])
             ->getSelect()
             ->join(
-                array('tax_table' => $this->getTable('sales/order_tax')),
-                'e.entity_id = tax_table.order_id')
+                ['tax_table' => $this->getTable('sales/order_tax')],
+                'e.entity_id = tax_table.order_id',
+            )
             ->group('tax_table.code')
-            ->order(array('process', 'priority'));
+            ->order(['process', 'priority']);
         /*
          * Allow Analytic Functions Usage
          */
@@ -74,20 +57,20 @@ class Mage_Reports_Model_Resource_Tax_Collection extends Mage_Sales_Model_Entity
     /**
      * Set store filter to collection
      *
-     * @param array $storeIds
-     * @return Mage_Reports_Model_Resource_Tax_Collection
+     * @param  array $storeIds
+     * @return $this
      */
     public function setStoreIds($storeIds)
     {
         if ($storeIds) {
             $this->getSelect()
-                ->where('e.store_id IN(?)', (array)$storeIds)
-                ->columns(array('tax' => 'SUM(tax_table.base_real_amount)'));
+                ->where('e.store_id IN(?)', (array) $storeIds)
+                ->columns(['tax' => 'SUM(tax_table.base_real_amount)']);
         } else {
             $this->addExpressionAttributeToSelect(
                 'tax',
                 'SUM(tax_table.base_real_amount*{{base_to_global_rate}})',
-                array('base_to_global_rate')
+                ['base_to_global_rate'],
             );
         }
 
@@ -97,8 +80,9 @@ class Mage_Reports_Model_Resource_Tax_Collection extends Mage_Sales_Model_Entity
     /**
      * Get select count sql
      *
-     * @return string
+     * @return Varien_Db_Select
      */
+    #[Override]
     public function getSelectCountSql()
     {
         $countSelect = clone $this->getSelect();
@@ -108,7 +92,7 @@ class Mage_Reports_Model_Resource_Tax_Collection extends Mage_Sales_Model_Entity
         $countSelect->reset(Zend_Db_Select::COLUMNS);
         $countSelect->reset(Zend_Db_Select::GROUP);
         $countSelect->reset(Zend_Db_Select::HAVING);
-        $countSelect->columns("COUNT(DISTINCT e.entity_id)");
+        $countSelect->columns('COUNT(DISTINCT e.entity_id)');
         return $countSelect;
     }
 }

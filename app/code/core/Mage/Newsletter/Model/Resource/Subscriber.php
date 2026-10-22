@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Newsletter
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Newsletter
+ */
 
 /**
  * Newsletter subscriber resource model
  *
- * @category    Mage
- * @package     Mage_Newsletter
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Newsletter
  */
 class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource_Db_Abstract
 {
@@ -63,9 +43,7 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
     protected $_messagesScope          = 'newsletter/session';
 
     /**
-     * Initialize resource model
-     * Get tablename from config
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -88,7 +66,7 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
     /**
      * Load subscriber from DB by email
      *
-     * @param string $subscriberEmail
+     * @param  string $subscriberEmail
      * @return array
      */
     public function loadByEmail($subscriberEmail)
@@ -97,10 +75,10 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
             ->from($this->getMainTable())
             ->where('subscriber_email=:subscriber_email');
 
-        $result = $this->_read->fetchRow($select, array('subscriber_email'=>$subscriberEmail));
+        $result = $this->_read->fetchRow($select, ['subscriber_email' => $subscriberEmail]);
 
         if (!$result) {
-            return array();
+            return [];
         }
 
         return $result;
@@ -109,7 +87,6 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
     /**
      * Load subscriber by customer
      *
-     * @param Mage_Customer_Model_Customer $customer
      * @return array
      */
     public function loadByCustomer(Mage_Customer_Model_Customer $customer)
@@ -118,7 +95,7 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
             ->from($this->getMainTable())
             ->where('customer_id=:customer_id');
 
-        $result = $this->_read->fetchRow($select, array('customer_id'=>$customer->getId()));
+        $result = $this->_read->fetchRow($select, ['customer_id' => $customer->getId()]);
 
         if ($result) {
             return $result;
@@ -126,15 +103,19 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
 
         $select = $this->_read->select()
             ->from($this->getMainTable())
-            ->where('subscriber_email=:subscriber_email');
+            ->where('subscriber_email=:subscriber_email')
+            ->where('store_id=:store_id');
 
-        $result = $this->_read->fetchRow($select, array('subscriber_email'=>$customer->getEmail()));
+        $result = $this->_read->fetchRow(
+            $select,
+            ['subscriber_email' => $customer->getEmail(), 'store_id' => $customer->getStoreId()],
+        );
 
         if ($result) {
             return $result;
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -150,25 +131,23 @@ class Mage_Newsletter_Model_Resource_Subscriber extends Mage_Core_Model_Resource
     /**
      * Updates data when subscriber received
      *
-     * @param Mage_Newsletter_Model_Subscriber $subscriber
-     * @param Mage_Newsletter_Model_Queue $queue
-     * @return Mage_Newsletter_Model_Resource_Subscriber
+     * @return $this
      */
     public function received(Mage_Newsletter_Model_Subscriber $subscriber, Mage_Newsletter_Model_Queue $queue)
     {
         $this->_write->beginTransaction();
         try {
             $data['letter_sent_at'] = Mage::getSingleton('core/date')->gmtDate();
-            $this->_write->update($this->_subscriberLinkTable, $data, array(
+            $this->_write->update($this->_subscriberLinkTable, $data, [
                 'subscriber_id = ?' => $subscriber->getId(),
-                'queue_id = ?' => $queue->getId()
-            ));
+                'queue_id = ?' => $queue->getId(),
+            ]);
             $this->_write->commit();
-        }
-        catch (Exception $e) {
+        } catch (Exception) {
             $this->_write->rollBack();
             Mage::throwException(Mage::helper('newsletter')->__('Cannot mark as received subscriber.'));
         }
+
         return $this;
     }
 }

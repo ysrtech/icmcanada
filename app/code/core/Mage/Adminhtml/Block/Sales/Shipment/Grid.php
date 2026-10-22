@@ -1,46 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
+
+use Mage_Adminhtml_Block_Widget_Grid_Massaction_Abstract as MassAction;
 
 /**
  * Adminhtml sales orders grid
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
  */
 class Mage_Adminhtml_Block_Sales_Shipment_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_sales_shipment_grid';
 
-    /**
-     * Initialization
-     */
     public function __construct()
     {
         parent::__construct();
         $this->setId('sales_shipment_grid');
         $this->setDefaultSort('created_at');
-        $this->setDefaultDir('DESC');
     }
 
     /**
@@ -54,10 +36,9 @@ class Mage_Adminhtml_Block_Sales_Shipment_Grid extends Mage_Adminhtml_Block_Widg
     }
 
     /**
-     * Prepare and set collection of grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel($this->_getCollectionClass());
@@ -66,65 +47,63 @@ class Mage_Adminhtml_Block_Sales_Shipment_Grid extends Mage_Adminhtml_Block_Widg
     }
 
     /**
-     * Prepare and add columns to grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('increment_id', array(
+        $this->addColumn('increment_id', [
             'header'    => Mage::helper('sales')->__('Shipment #'),
             'index'     => 'increment_id',
             'type'      => 'text',
-        ));
+        ]);
 
-        $this->addColumn('created_at', array(
+        $this->addColumn('created_at', [
             'header'    => Mage::helper('sales')->__('Date Shipped'),
             'index'     => 'created_at',
             'type'      => 'datetime',
-        ));
+        ]);
 
-        $this->addColumn('order_increment_id', array(
+        $this->addColumn('order_increment_id', [
             'header'    => Mage::helper('sales')->__('Order #'),
             'index'     => 'order_increment_id',
             'type'      => 'text',
             'escape'    => true,
-        ));
+        ]);
 
-        $this->addColumn('order_created_at', array(
+        $this->addColumn('order_created_at', [
             'header'    => Mage::helper('sales')->__('Order Date'),
             'index'     => 'order_created_at',
             'type'      => 'datetime',
-        ));
+        ]);
 
-        $this->addColumn('shipping_name', array(
+        $this->addColumn('shipping_name', [
             'header' => Mage::helper('sales')->__('Ship to Name'),
             'index' => 'shipping_name',
-        ));
+        ]);
 
-        $this->addColumn('total_qty', array(
+        $this->addColumn('total_qty', [
             'header' => Mage::helper('sales')->__('Total Qty'),
             'index' => 'total_qty',
             'type'  => 'number',
-        ));
+        ]);
 
-        $this->addColumn('action',
-            array(
-                'header'    => Mage::helper('sales')->__('Action'),
-                'width'     => '50px',
+        $this->addColumn(
+            'action',
+            [
                 'type'      => 'action',
                 'getter'     => 'getId',
-                'actions'   => array(
-                    array(
+                'actions'   => [
+                    [
                         'caption' => Mage::helper('sales')->__('View'),
-                        'url'     => array('base'=>'*/sales_shipment/view'),
-                        'field'   => 'shipment_id'
-                    )
-                ),
-                'filter'    => false,
-                'sortable'  => false,
-                'is_system' => true
-        ));
+                        'url'     => ['base' => '*/sales_shipment/view'],
+                        'field'   => 'shipment_id',
+                    ],
+                ],
+                'is_system' => true,
+            ],
+        );
 
         $this->addExportType('*/*/exportCsv', Mage::helper('sales')->__('CSV'));
         $this->addExportType('*/*/exportExcel', Mage::helper('sales')->__('Excel XML'));
@@ -133,56 +112,49 @@ class Mage_Adminhtml_Block_Sales_Shipment_Grid extends Mage_Adminhtml_Block_Widg
     }
 
     /**
-     * Get url for row
-     *
-     * @param string $row
-     * @return string
+     * @inheritDoc
+     * @param  Mage_Sales_Model_Order_Shipment $row
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     public function getRowUrl($row)
     {
-        if (!Mage::getSingleton('admin/session')->isAllowed('sales/order/shipment')) {
-            return false;
+        if ($this->isAllowed('sales/order/shipment')) {
+            return $this->getUrl('*/sales_shipment/view', ['shipment_id' => $row->getId()]);
         }
 
-        return $this->getUrl('*/sales_shipment/view',
-            array(
-                'shipment_id'=> $row->getId(),
-            )
-        );
+        return '';
     }
 
     /**
-     * Prepare and set options for massaction
-     *
-     * @return Mage_Adminhtml_Block_Sales_Shipment_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareMassaction()
     {
         $this->setMassactionIdField('entity_id');
         $this->getMassactionBlock()->setFormFieldName('shipment_ids');
         $this->getMassactionBlock()->setUseSelectAll(false);
 
-        $this->getMassactionBlock()->addItem('pdfshipments_order', array(
-             'label'=> Mage::helper('sales')->__('PDF Packingslips'),
-             'url'  => $this->getUrl('*/sales_shipment/pdfshipments'),
-        ));
+        $this->getMassactionBlock()->addItem(MassAction::PDF_SHIPMENTS_ORDER, [
+            'label' => Mage::helper('sales')->__('PDF Packingslips'),
+            'url'  => $this->getUrl('*/sales_shipment/pdfshipments'),
+        ]);
 
-        $this->getMassactionBlock()->addItem('print_shipping_label', array(
-             'label'=> Mage::helper('sales')->__('Print Shipping Labels'),
-             'url'  => $this->getUrl('*/sales_order_shipment/massPrintShippingLabel'),
-        ));
+        $this->getMassactionBlock()->addItem(MassAction::PRINT_SHIPMENT_LABEL, [
+            'label' => Mage::helper('sales')->__('Print Shipping Labels'),
+            'url'  => $this->getUrl('*/sales_order_shipment/massPrintShippingLabel'),
+        ]);
 
-        return $this;
+        return parent::_prepareMassaction();
     }
 
     /**
-     * Get url of grid
-     *
-     * @return string
+     * @inheritDoc
      */
+    #[Override]
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/*', array('_current' => true));
+        return $this->getUrl('*/*/*', ['_current' => true]);
     }
-
 }

@@ -1,43 +1,22 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Install
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Install
+ */
 
 /**
  * Console installer
- * @category   Mage
  * @package    Mage_Install
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_Abstract
 {
-
     /**
      * Available options
      *
-     * @var array
+     * @var null|array
      */
     protected $_options;
 
@@ -46,12 +25,12 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
      *
      * @var array
      */
-    protected $_args = array();
+    protected $_args = [];
 
     /**
      * Installer data model to store data between installations steps
      *
-     * @var Mage_Install_Model_Installer_Data|Mage_Install_Model_Session
+     * @var null|Mage_Install_Model_Installer_Data|Mage_Install_Model_Session
      */
     protected $_dataModel;
 
@@ -70,42 +49,44 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     protected function _getOptions()
     {
         if (is_null($this->_options)) {
-            $this->_options = array(
-                'license_agreement_accepted'    => array('required' => true, 'comment' => ''),
-                'locale'              => array('required' => true, 'comment' => ''),
-                'timezone'            => array('required' => true, 'comment' => ''),
-                'default_currency'    => array('required' => true, 'comment' => ''),
-                'db_model'            => array('comment' => ''),
-                'db_host'             => array('required' => true, 'comment' => ''),
-                'db_name'             => array('required' => true, 'comment' => ''),
-                'db_user'             => array('required' => true, 'comment' => ''),
-                'db_pass'             => array('comment' => ''),
-                'db_prefix'           => array('comment' => ''),
-                'url'                 => array('required' => true, 'comment' => ''),
-                'skip_url_validation' => array('comment' => ''),
-                'use_rewrites'      => array('required' => true, 'comment' => ''),
-                'use_secure'        => array('required' => true, 'comment' => ''),
-                'secure_base_url'   => array('required' => true, 'comment' => ''),
-                'use_secure_admin'  => array('required' => true, 'comment' => ''),
-                'admin_lastname'    => array('required' => true, 'comment' => ''),
-                'admin_firstname'   => array('required' => true, 'comment' => ''),
-                'admin_email'       => array('required' => true, 'comment' => ''),
-                'admin_username'    => array('required' => true, 'comment' => ''),
-                'admin_password'    => array('required' => true, 'comment' => ''),
-                'encryption_key'    => array('comment' => ''),
-                'session_save'      => array('comment' => ''),
-                'admin_frontname'   => array('comment' => ''),
-                'enable_charts'     => array('comment' => ''),
-            );
+            $this->_options = [
+                'license_agreement_accepted'    => ['required' => true, 'comment' => ''],
+                'locale'              => ['required' => true, 'comment' => ''],
+                'timezone'            => ['required' => true, 'comment' => ''],
+                'default_currency'    => ['required' => true, 'comment' => ''],
+                'db_model'            => ['comment' => ''],
+                'db_host'             => ['required' => true, 'comment' => ''],
+                'db_name'             => ['required' => true, 'comment' => ''],
+                'db_user'             => ['required' => true, 'comment' => ''],
+                'db_pass'             => ['comment' => ''],
+                'db_prefix'           => ['comment' => ''],
+                'url'                 => ['required' => true, 'comment' => ''],
+                'skip_url_validation' => ['comment' => ''],
+                'use_rewrites'      => ['required' => true, 'comment' => ''],
+                'use_secure'        => ['required' => true, 'comment' => ''],
+                'secure_base_url'   => ['required' => true, 'comment' => ''],
+                'use_secure_admin'  => ['required' => true, 'comment' => ''],
+                'admin_lastname'    => ['required' => true, 'comment' => ''],
+                'admin_firstname'   => ['required' => true, 'comment' => ''],
+                'admin_email'       => ['required' => true, 'comment' => ''],
+                'admin_username'    => ['required' => true, 'comment' => ''],
+                'admin_password'    => ['required' => true, 'comment' => ''],
+                'encryption_key'    => ['comment' => ''],
+                'session_save'      => ['comment' => ''],
+                'admin_frontname'   => ['comment' => ''],
+                'enable_charts'     => ['comment' => ''],
+            ];
         }
+
         return $this->_options;
     }
 
     /**
      * Set and validate arguments
      *
-     * @param array $args
-     * @return boolean
+     * @param  array $args
+     * @return bool
+     * @SuppressWarnings("PHPMD.Superglobals")
      */
     public function setArgs($args = null)
     {
@@ -123,13 +104,14 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
             if (preg_match('/^--(.*)$/', $arg, $match)) {
                 // argument name
                 $currentArg = $match[1];
-                // in case if argument doen't need a value
+                // in case if argument doesn't need a value
                 $args[$currentArg] = true;
             } else {
                 // argument value
                 if ($currentArg) {
                     $args[$currentArg] = $arg;
                 }
+
                 $currentArg = false;
             }
         }
@@ -144,10 +126,11 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
          */
         foreach ($this->_getOptions() as $name => $option) {
             if (isset($option['required']) && $option['required'] && !isset($args[$name])) {
-                $error = 'ERROR: ' . 'You should provide the value for --' . $name . ' parameter';
+                $error = 'ERROR: You should provide the value for --' . $name . ' parameter';
                 if (!empty($option['comment'])) {
                     $error .= ': ' . $option['comment'];
                 }
+
                 $this->addError($error);
             }
         }
@@ -161,7 +144,7 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
          */
         if (!$this->_checkFlag($args['license_agreement_accepted'])) {
             $this->addError(
-                'ERROR: You have to accept Magento license agreement terms and conditions to continue installation'
+                'ERROR: You have to accept Magento license agreement terms and conditions to continue installation',
             );
             return false;
         }
@@ -169,8 +152,8 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
         /**
          * Set args values
          */
-        foreach ($this->_getOptions() as $name => $option) {
-            $this->_args[$name] = isset($args[$name]) ? $args[$name] : '';
+        foreach (array_keys($this->_getOptions()) as $name) {
+            $this->_args[$name] = $args[$name] ?? '';
         }
 
         return true;
@@ -179,8 +162,8 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Add error
      *
-     * @param string $error
-     * @return Mage_Install_Model_Installer_Console
+     * @param  string $error
+     * @return $this
      */
     public function addError($error)
     {
@@ -191,7 +174,7 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Check if there were any errors
      *
-     * @return boolean
+     * @return bool
      */
     public function hasErrors()
     {
@@ -214,14 +197,13 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
      * Returns true for 'yes', 1, 'true'
      * Case insensitive
      *
-     * @param string $value
-     * @return boolean
+     * @param  string $value
+     * @return bool
      */
     protected function _checkFlag($value)
     {
-        $res = (1 == $value)
+        return ($value == 1)
             || preg_match('/^(yes|y|true)$/i', $value);
-        return $res;
     }
 
     /**
@@ -234,6 +216,7 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
         if (is_null($this->_dataModel)) {
             $this->_dataModel = Mage::getModel('install/installer_data');
         }
+
         return $this->_dataModel;
     }
 
@@ -250,8 +233,7 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Init installation
      *
-     * @param Mage_Core_Model_App $app
-     * @return boolean
+     * @return bool
      */
     public function init(Mage_Core_Model_App $app)
     {
@@ -270,25 +252,25 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     }
 
     /**
-     * Prepare data ans save it in data model
+     * Prepare data and save it in data model
      *
-     * @return Mage_Install_Model_Installer_Console
+     * @return $this
      */
     protected function _prepareData()
     {
         /**
          * Locale settings
          */
-        $this->_getDataModel()->setLocaleData(array(
+        $this->_getDataModel()->setLocaleData([
             'locale'            => $this->_args['locale'],
             'timezone'          => $this->_args['timezone'],
             'currency'          => $this->_args['default_currency'],
-        ));
+        ]);
 
         /**
          * Database and web config
          */
-        $this->_getDataModel()->setConfigData(array(
+        $this->_getDataModel()->setConfigData([
             'db_model'            => $this->_args['db_model'],
             'db_host'             => $this->_args['db_host'],
             'db_name'             => $this->_args['db_name'],
@@ -304,18 +286,18 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
             'admin_frontname'     => $this->_checkAdminFrontname($this->_args['admin_frontname']),
             'skip_url_validation' => $this->_checkFlag($this->_args['skip_url_validation']),
             'enable_charts'       => $this->_checkFlag($this->_args['enable_charts']),
-        ));
+        ]);
 
         /**
          * Primary admin user
          */
-        $this->_getDataModel()->setAdminData(array(
+        $this->_getDataModel()->setAdminData([
             'firstname'         => $this->_args['admin_firstname'],
             'lastname'          => $this->_args['admin_lastname'],
             'email'             => $this->_args['admin_email'],
             'username'          => $this->_args['admin_username'],
             'new_password'      => $this->_args['admin_password'],
-        ));
+        ]);
 
         return $this;
     }
@@ -323,12 +305,13 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Install Magento
      *
-     * @return boolean
+     * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
     public function install()
     {
         try {
-
             /**
              * Check if already installed
              */
@@ -436,9 +419,8 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
              */
             @chmod('var/cache', 0777);
             @chmod('var/session', 0777);
-
-        } catch (Exception $e) {
-            $this->addError('ERROR: ' . $e->getMessage());
+        } catch (Exception $exception) {
+            $this->addError('ERROR: ' . $exception->getMessage());
             return false;
         }
 
@@ -448,15 +430,15 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Print available currency, locale and timezone options
      *
-     * @return Mage_Install_Model_Installer_Console
+     * @return $this
      */
     public function printOptions()
     {
-        $options = array(
+        $options = [
             'locale'    => $this->_app->getLocale()->getOptionLocales(),
             'currency'  => $this->_app->getLocale()->getOptionCurrencies(),
             'timezone'  => $this->_app->getLocale()->getOptionTimezones(),
-        );
+        ];
         var_export($options);
         return $this;
     }
@@ -464,20 +446,21 @@ class Mage_Install_Model_Installer_Console extends Mage_Install_Model_Installer_
     /**
      * Check if installer is run in shell, and redirect if run on web
      *
-     * @param string $url fallback url to redirect to
-     * @return boolean
+     * @param  string $url fallback url to redirect to
+     * @return bool
      */
-    public function checkConsole($url=null)
+    public function checkConsole($url = null)
     {
         if (defined('STDIN') && defined('STDOUT') && (defined('STDERR'))) {
             return true;
         }
+
         if (is_null($url)) {
             $url = preg_replace('/install\.php/i', '', Mage::getBaseUrl());
             $url = preg_replace('/\/\/$/', '/', $url);
         }
+
         header('Location: ' . $url);
         return false;
     }
-
 }

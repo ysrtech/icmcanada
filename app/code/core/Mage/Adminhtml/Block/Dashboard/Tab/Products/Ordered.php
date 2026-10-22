@@ -1,39 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml dashboard most ordered products grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Adminhtml_Block_Dashboard_Tab_Products_Ordered extends Mage_Adminhtml_Block_Dashboard_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_dashboard_tab_products_ordered';
 
     public function __construct()
     {
@@ -41,19 +22,24 @@ class Mage_Adminhtml_Block_Dashboard_Tab_Products_Ordered extends Mage_Adminhtml
         $this->setId('productsOrderedGrid');
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        if (!Mage::helper('core')->isModuleEnabled('Mage_Sales')) {
+        if (!$this->isModuleEnabled('Mage_Sales')) {
             return $this;
         }
+
         if ($this->getParam('website')) {
             $storeIds = Mage::app()->getWebsite($this->getParam('website'))->getStoreIds();
             $storeId = array_pop($storeIds);
-        } else if ($this->getParam('group')) {
+        } elseif ($this->getParam('group')) {
             $storeIds = Mage::app()->getGroup($this->getParam('group'))->getStoreIds();
             $storeId = array_pop($storeIds);
         } else {
-            $storeId = (int)$this->getParam('store');
+            $storeId = (int) $this->getParam('store');
         }
 
         $collection = Mage::getResourceModel('sales/report_bestsellers_collection')
@@ -66,32 +52,37 @@ class Mage_Adminhtml_Block_Dashboard_Tab_Products_Ordered extends Mage_Adminhtml
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-
-        $this->addColumn('name', array(
+        $this->addColumn('name', [
             'header'    => Mage::helper('sales')->__('Product Name'),
             'sortable'  => false,
-            'index'     => 'product_name'
-        ));
+            'index'     => 'product_name',
+        ]);
 
-        $this->addColumn('price', array(
+        $this->addColumn('price', [
             'header'    => Mage::helper('sales')->__('Price'),
             'width'     => '120px',
             'type'      => 'currency',
-            'currency_code' => (string) Mage::app()->getStore((int)$this->getParam('store'))->getBaseCurrencyCode(),
+            'currency_code' => (string) Mage::app()->getStore((int) $this->getParam('store'))->getBaseCurrencyCode(),
             'sortable'  => false,
-            'index'     => 'product_price'
-        ));
+            'index'     => 'product_price',
+        ]);
 
-        $this->addColumn('ordered_qty', array(
+        $this->addColumn('ordered_qty', [
             'header'    => Mage::helper('sales')->__('Quantity Ordered'),
             'width'     => '120px',
-            'align'     => 'right',
             'sortable'  => false,
             'index'     => 'qty_ordered',
-            'type'      => 'number'
-        ));
+            'type'      => 'number',
+        ]);
 
         $this->setFilterVisibility(false);
         $this->setPagerVisibility(false);
@@ -99,14 +90,15 @@ class Mage_Adminhtml_Block_Dashboard_Tab_Products_Ordered extends Mage_Adminhtml
         return parent::_prepareColumns();
     }
 
-    /*
+    /**
      * Returns row url to show in admin dashboard
      * $row is bestseller row wrapped in Product model
      *
-     * @param Mage_Catalog_Model_Product $row
-     *
-     * @return string
+     * @inheritDoc
+     * @param  Mage_Catalog_Model_Product $row
+     * @throws Exception
      */
+    #[Override]
     public function getRowUrl($row)
     {
         // getId() would return id of bestseller row, and product id we get by getProductId()
@@ -117,10 +109,11 @@ class Mage_Adminhtml_Block_Dashboard_Tab_Products_Ordered extends Mage_Adminhtml
             return '';
         }
 
-        $params = array('id' => $productId);
+        $params = ['id' => $productId];
         if ($this->getRequest()->getParam('store')) {
             $params['store'] = $this->getRequest()->getParam('store');
         }
+
         return $this->getUrl('*/catalog_product/edit', $params);
     }
 }

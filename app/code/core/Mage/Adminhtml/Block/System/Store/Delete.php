@@ -1,43 +1,24 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 
 /**
  * Store / store view / website delete form container
  *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
+ *
+ * @method string getStoreTypeTitle()
  */
 class Mage_Adminhtml_Block_System_Store_Delete extends Mage_Adminhtml_Block_Widget_Form_Container
 {
-
     /**
      * Class constructor
-     *
      */
     public function __construct()
     {
@@ -47,17 +28,16 @@ class Mage_Adminhtml_Block_System_Store_Delete extends Mage_Adminhtml_Block_Widg
 
         parent::__construct();
 
-        $this->_removeButton('save');
-        $this->_removeButton('reset');
+        $this->_removeButton(self::BUTTON_TYPE_SAVE);
+        $this->_removeButton(self::BUTTON_TYPE_RESET);
 
-        $this->_updateButton('delete', 'area', 'footer');
-        $this->_updateButton('delete', 'onclick', 'editForm.submit();');
+        $this->_updateButton(self::BUTTON_TYPE_DELETE, 'area', 'footer');
+        $this->_updateButton(self::BUTTON_TYPE_DELETE, 'onclick', 'editForm.submit();');
 
-        $this->_addButton('cancel', array(
+        $this->_addButton(self::BUTTON_TYPE_CANCEL, [
             'label'     => Mage::helper('adminhtml')->__('Cancel'),
-            'onclick'   => 'setLocation(\'' . $this->getBackUrl() . '\')',
-        ), 2, 100, 'footer');
-
+            'onclick'   => Mage::helper('core/js')->getSetLocationJs($this->getBackUrl()),
+        ], 2, 100, 'footer');
     }
 
     /**
@@ -65,35 +45,39 @@ class Mage_Adminhtml_Block_System_Store_Delete extends Mage_Adminhtml_Block_Widg
      *
      * @return string
      */
+    #[Override]
     public function getHeaderText()
     {
-        return Mage::helper('adminhtml')->__("Delete %s '%s'", $this->getStoreTypeTitle(), $this->escapeHtml($this->getChild('form')->getDataObject()->getName()));
+        return Mage::helper('adminhtml')->__(
+            "Delete %s '%s'",
+            $this->getStoreTypeTitle(),
+            $this->escapeHtml($this->getChild('form')->getDataObject()->getName()),
+        );
     }
 
     /**
      * Set store type title
      *
-     * @param string $title
-     * @return Mage_Adminhtml_Block_System_Store_Delete
+     * @param  string $title
+     * @return $this
      */
     public function setStoreTypeTitle($title)
     {
-        $this->_updateButton('delete', 'label', Mage::helper('adminhtml')->__('Delete %s', $title));
+        $this->_updateButton(self::BUTTON_TYPE_DELETE, 'label', Mage::helper('adminhtml')->__('Delete %s', $title));
         return $this->setData('store_type_title', $title);
     }
 
     /**
      * Set back URL for "Cancel" and "Back" buttons
      *
-     * @param string $url
-     * @return Mage_Adminhtml_Block_System_Store_Delete
+     * @param  string $url
+     * @return $this
      */
     public function setBackUrl($url)
     {
         $this->setData('back_url', $url);
-        $this->_updateButton('cancel', 'onclick', "setLocation('" . $url . "')");
-        $this->_updateButton('back', 'onclick', "setLocation('" . $url . "')");
+        $this->_updateButton(self::BUTTON_TYPE_CANCEL, 'onclick', Mage::helper('core/js')->getSetLocationJs($url));
+        $this->_updateButton(self::BUTTON_TYPE_BACK, 'onclick', Mage::helper('core/js')->getSetLocationJs($url));
         return $this;
     }
-
 }

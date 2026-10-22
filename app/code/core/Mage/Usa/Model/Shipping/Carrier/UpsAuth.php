@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Usa
+ */
+
+/**
+ * UPS Authentication and Access Token handling
+ *
+ * @package    Mage_Usa
+ */
+class Mage_Usa_Model_Shipping_Carrier_UpsAuth extends Mage_Usa_Model_Shipping_Carrier_Abstract implements Mage_Shipping_Model_Carrier_Interface
+{
+    /**
+     * Cache key prefix for UPS API token
+     */
+    public const CACHE_KEY_PREFIX = 'ups_api_token_';
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public function getAccessToken(string $clientId, string $clientSecret, string $clientUrl)
+    {
+        $cacheKey = self::CACHE_KEY_PREFIX;
+        $cache = Mage::app()->getCache();
+        $result = $cache->load($cacheKey);
+        if ($result) {
+            return $result;
+        }
+
+        $headers = [
+            'Content-Type: application/x-www-form-urlencoded',
+            "x-merchant-id: {$clientId}",
+            'Authorization: Basic ' . base64_encode("{$clientId}:{$clientSecret}"),
+        ];
+        $authPayload = http_build_query([
+            'grant_type' => 'client_credentials',
+        ]);
+        $handle = curl_init();
+        curl_setopt($handle, CURLOPT_URL, $clientUrl);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HEADER, false);
+        curl_setopt($handle, CURLOPT_POST, true);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, $authPayload);
+        curl_setopt($handle, CURLOPT_TIMEOUT, 30);
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, $this->getConfigFlag('verify_peer'));
+        $responseData = curl_exec($handle);
+        try {
+            if ($responseData === false) {
+                $code = curl_errno($handle);
+                $description = curl_strerror($code);
+                $message = curl_error($handle);
+                Mage::throwException("cURL Error: ({$code}) {$description} - \"{$message}\"");
+            }
+        } finally {
+            curl_close($handle);
+        }
+
+        $responseData = json_decode($responseData);
+
+        if (isset($responseData->errors)) {
+            Mage::throwException('Failed to authenticate with UPS. Errors: ' . json_encode($responseData->errors));
+        }
+
+        if (!isset($responseData->access_token)) {
+            Mage::throwException('Error decoding auth token from UPS');
+        }
+
+        $result = $responseData->access_token;
+        $expiresIn = $responseData->expires_in ?? 10000;
+        $cache->save($result, $cacheKey, [], $expiresIn);
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function collectRates(Mage_Shipping_Model_Rate_Request $request)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function _doShipmentRequest(Varien_Object $request)
+    {
+        return new Varien_Object();
+    }
+
+    /**
+     * @inheritDoc
+     * @return array<void>
+     */
+    public function getAllowedMethods(): array
+    {
+        return [];
+    }
+}

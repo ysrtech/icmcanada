@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Filter
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Filter
  */
 
 /**
  * Template constructions filter
  *
- * @category   Varien
  * @package    Varien_Filter
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 
 class Varien_Filter_Template implements Zend_Filter_Interface
@@ -37,45 +18,45 @@ class Varien_Filter_Template implements Zend_Filter_Interface
     /**
      * Cunstruction regular expression
      */
-    const CONSTRUCTION_PATTERN = '/{{([a-z]{0,10})(.*?)}}/si';
+    public const CONSTRUCTION_PATTERN = '/{{([a-z]{0,10})(.*?)}}/si';
 
     /**
      * Cunstruction logic regular expression
      */
-    const CONSTRUCTION_DEPEND_PATTERN = '/{{depend\s*(.*?)}}(.*?){{\\/depend\s*}}/si';
-    const CONSTRUCTION_IF_PATTERN = '/{{if\s*(.*?)}}(.*?)({{else}}(.*?))?{{\\/if\s*}}/si';
+    public const CONSTRUCTION_DEPEND_PATTERN = '/{{depend\s*(.*?)}}(.*?){{\\/depend\s*}}/si';
+
+    public const CONSTRUCTION_IF_PATTERN = '/{{if\s*(.*?)}}(.*?)({{else}}(.*?))?{{\\/if\s*}}/si';
 
     /**
      * Assigned template variables
      *
      * @var array
      */
-    protected $_templateVars = array();
+    protected $_templateVars = [];
 
     /**
      * Template processor
      *
-     * @var array|string|null
+     * @var null|Closure|non-empty-array
      */
     protected $_templateProcessor = null;
 
     /**
      * Include processor
      *
-     * @var array|string|null
+     * @var null|Closure|non-empty-array
      */
     protected $_includeProcessor = null;
 
     /**
-     * Sets template variables that's can be called througth {var ...} statement
-     *
-     * @param array $variables
+     * Sets template variables that's can be called through {var ...} statement
      */
     public function setVariables(array $variables)
     {
-        foreach($variables as $name=>$value) {
+        foreach ($variables as $name => $value) {
             $this->_templateVars[$name] = $value;
         }
+
         return $this;
     }
 
@@ -83,9 +64,10 @@ class Varien_Filter_Template implements Zend_Filter_Interface
      * Sets the proccessor of templates. Templates are directives that include email templates based on system
      * configuration path.
      *
-     * @param array $callback it must return string
+     * @phpstan-param non-empty-array|Closure $callback it must return string
+     * @return $this
      */
-    public function setTemplateProcessor(array $callback)
+    public function setTemplateProcessor(array|Closure $callback)
     {
         $this->_templateProcessor = $callback;
         return $this;
@@ -94,7 +76,7 @@ class Varien_Filter_Template implements Zend_Filter_Interface
     /**
      * Sets the proccessor of templates.
      *
-     * @return array|null
+     * @phpstan-return null|non-empty-array|Closure
      */
     public function getTemplateProcessor()
     {
@@ -104,9 +86,10 @@ class Varien_Filter_Template implements Zend_Filter_Interface
     /**
      * Sets the proccessor of includes.
      *
-     * @param array $callback it must return string
+     * @phpstan-param non-empty-array|Closure $callback it must return string
+     * @return $this
      */
-    public function setIncludeProcessor(array $callback)
+    public function setIncludeProcessor(array|Closure $callback)
     {
         $this->_includeProcessor = $callback;
         return $this;
@@ -115,7 +98,7 @@ class Varien_Filter_Template implements Zend_Filter_Interface
     /**
      * Sets the proccessor of includes.
      *
-     * @return array|null
+     * @phpstan-return null|non-empty-array|Closure
      */
     public function getIncludeProcessor()
     {
@@ -125,78 +108,81 @@ class Varien_Filter_Template implements Zend_Filter_Interface
     /**
      * Filter the string as template.
      *
-     * @param string $value
+     * @param  string $value
      * @return string
      */
     public function filter($value)
     {
+        if ($value === null) {
+            return '';
+        }
+
         // "depend" and "if" operands should be first
-        foreach (array(
+        $directives = [
             self::CONSTRUCTION_DEPEND_PATTERN => 'dependDirective',
             self::CONSTRUCTION_IF_PATTERN     => 'ifDirective',
-            ) as $pattern => $directive) {
+        ];
+        foreach ($directives as $pattern => $directive) {
             if (preg_match_all($pattern, $value, $constructions, PREG_SET_ORDER)) {
-                foreach($constructions as $index => $construction) {
-                    $replacedValue = '';
-                    $callback = array($this, $directive);
-                    if(!is_callable($callback)) {
-                        continue;
-                    }
+                foreach ($constructions as $construction) {
+                    $callback = [$this, $directive];
                     try {
                         $replacedValue = call_user_func($callback, $construction);
-                    } catch (Exception $e) {
-                        throw $e;
+                    } catch (Exception $exception) {
+                        throw $exception;
                     }
+
                     $value = str_replace($construction[0], $replacedValue, $value);
                 }
             }
         }
 
-        if(preg_match_all(self::CONSTRUCTION_PATTERN, $value, $constructions, PREG_SET_ORDER)) {
-            foreach($constructions as $index=>$construction) {
+        if (preg_match_all(self::CONSTRUCTION_PATTERN, $value, $constructions, PREG_SET_ORDER)) {
+            foreach ($constructions as $construction) {
                 $replacedValue = '';
-                $callback = array($this, $construction[1].'Directive');
-                if(!is_callable($callback)) {
+                $callback = [$this, $construction[1] . 'Directive'];
+                if (!is_callable($callback)) {
                     continue;
                 }
+
                 try {
                     $replacedValue = call_user_func($callback, $construction);
-                } catch (Exception $e) {
-                    throw $e;
+                } catch (Exception $exception) {
+                    throw $exception;
                 }
+
                 $value = str_replace($construction[0], $replacedValue, $value);
             }
         }
+
         return $value;
     }
 
-
     public function varDirective($construction)
     {
-        if (count($this->_templateVars)==0) {
+        if (count($this->_templateVars) == 0) {
             // If template preprocessing
             return $construction[0];
         }
 
-        $replacedValue = $this->_getVariable($construction[2], '');
-        return $replacedValue;
+        return $this->_getVariable($construction[2], '');
     }
 
     public function includeDirective($construction)
     {
         // Processing of {include template=... [...]} statement
         $includeParameters = $this->_getIncludeParameters($construction[2]);
-        if(!isset($includeParameters['template']) or !$this->getIncludeProcessor()) {
+        if (!isset($includeParameters['template']) || is_null($this->getIncludeProcessor())) {
             // Not specified template or not seted include processor
-            $replacedValue = '{Error in include processing}';
-        } else {
-            // Including of template
-            $templateCode = $includeParameters['template'];
-            unset($includeParameters['template']);
-            $includeParameters = array_merge_recursive($includeParameters, $this->_templateVars);
-            $replacedValue = call_user_func($this->getIncludeProcessor(), $templateCode, $includeParameters);
+            return '{Error in include processing}';
         }
-        return $replacedValue;
+
+        // Including of template
+        $templateCode = $includeParameters['template'];
+        unset($includeParameters['template']);
+        $includeParameters = array_merge_recursive($includeParameters, $this->_templateVars);
+
+        return call_user_func($this->getIncludeProcessor(), $templateCode, $includeParameters);
     }
 
     /**
@@ -206,37 +192,37 @@ class Varien_Filter_Template implements Zend_Filter_Interface
      * Mage_Sales_Model_Order::sales_email/order/template. This directive is useful to include things like a global
      * header/footer.
      *
-     * @param $construction
+     * @param               $construction
      * @return mixed|string
      */
     public function templateDirective($construction)
     {
         // Processing of {template config_path=... [...]} statement
         $templateParameters = $this->_getIncludeParameters($construction[2]);
-        if (!isset($templateParameters['config_path']) or !$this->getTemplateProcessor()) {
-            $replacedValue = '{Error in template processing}';
-        } else {
-            // Including of template
-            $configPath = $templateParameters['config_path'];
-            unset($templateParameters['config_path']);
-            $templateParameters = array_merge_recursive($templateParameters, $this->_templateVars);
-            $replacedValue = call_user_func($this->getTemplateProcessor(), $configPath, $templateParameters);
+        if (!isset($templateParameters['config_path']) || is_null($this->getTemplateProcessor())) {
+            return '{Error in template processing}';
         }
-        return $replacedValue;
+
+        // Including of template
+        $configPath = $templateParameters['config_path'];
+        unset($templateParameters['config_path']);
+        $templateParameters = array_merge_recursive($templateParameters, $this->_templateVars);
+
+        return call_user_func($this->getTemplateProcessor(), $configPath, $templateParameters);
     }
 
     public function dependDirective($construction)
     {
-        if (count($this->_templateVars)==0) {
+        if (count($this->_templateVars) == 0) {
             // If template preprocessing
             return $construction[0];
         }
 
-        if($this->_getVariable($construction[1], '')=='') {
+        if ($this->_getVariable($construction[1], '') == '') {
             return '';
-        } else {
-            return $construction[2];
         }
+
+        return $construction[2];
     }
 
     public function ifDirective($construction)
@@ -245,94 +231,102 @@ class Varien_Filter_Template implements Zend_Filter_Interface
             return $construction[0];
         }
 
-        if($this->_getVariable($construction[1], '') == '') {
+        if ($this->_getVariable($construction[1], '') == '') {
             if (isset($construction[3]) && isset($construction[4])) {
                 return $construction[4];
             }
+
             return '';
-        } else {
-            return $construction[2];
         }
+
+        return $construction[2];
     }
 
     /**
      * Return associative array of include construction.
      *
-     * @param string $value raw parameters
+     * @param  string $value raw parameters
      * @return array
      */
     protected function _getIncludeParameters($value)
     {
         $tokenizer = new Varien_Filter_Template_Tokenizer_Parameter();
         $tokenizer->setString($value);
+
         $params = $tokenizer->tokenize();
         foreach ($params as $key => $value) {
-            if (substr($value, 0, 1) === '$') {
+            if (str_starts_with($value, '$')) {
                 $params[$key] = $this->_getVariable(substr($value, 1), null);
             }
         }
+
         return $params;
     }
 
-     /**
+    /**
      * Return variable value for var construction
      *
-     * @param string $value raw parameters
-     * @param string $default default value
+     * @param  string      $value   raw parameters
+     * @param  null|string $default default value
      * @return string
      */
-    protected function _getVariable($value, $default='{no_value_defined}')
+    protected function _getVariable($value, $default = '{no_value_defined}')
     {
-        Varien_Profiler::start("email_template_proccessing_variables");
+        Varien_Profiler::start('email_template_proccessing_variables');
         $tokenizer = new Varien_Filter_Template_Tokenizer_Variable();
         $tokenizer->setString($value);
+
         $stackVars = $tokenizer->tokenize();
         $result = $default;
         $last = 0;
-        /** @var $emailPathValidator Mage_Adminhtml_Model_Email_PathValidator */
+        /** @var Mage_Adminhtml_Model_Email_PathValidator $emailPathValidator */
         $emailPathValidator = $this->getEmailPathValidator();
-        for($i = 0; $i < count($stackVars); $i ++) {
+        $counter = count($stackVars);
+        for ($i = 0; $i < $counter; $i++) {
             if ($i == 0 && isset($this->_templateVars[$stackVars[$i]['name']])) {
                 // Getting of template value
-                $stackVars[$i]['variable'] =& $this->_templateVars[$stackVars[$i]['name']];
-            } elseif (isset($stackVars[$i-1]['variable']) && $stackVars[$i-1]['variable'] instanceof Varien_Object) {
+                $stackVars[$i]['variable'] = & $this->_templateVars[$stackVars[$i]['name']];
+            } elseif (isset($stackVars[$i - 1]['variable']) && $stackVars[$i - 1]['variable'] instanceof Varien_Object) {
                 // If object calling methods or getting properties
                 if ($stackVars[$i]['type'] == 'property') {
                     $caller = 'get' . uc_words($stackVars[$i]['name'], '');
-                    $stackVars[$i]['variable'] = method_exists($stackVars[$i-1]['variable'], $caller)
-                        ? $stackVars[$i-1]['variable']->$caller()
-                        : $stackVars[$i-1]['variable']->getData($stackVars[$i]['name']);
+                    $stackVars[$i]['variable'] = method_exists($stackVars[$i - 1]['variable'], $caller)
+                        ? $stackVars[$i - 1]['variable']->$caller()
+                        : $stackVars[$i - 1]['variable']->getData($stackVars[$i]['name']);
                 } elseif ($stackVars[$i]['type'] == 'method') {
                     // Calling of object method
-                    if (method_exists($stackVars[$i-1]['variable'], $stackVars[$i]['name'])
-                        || substr($stackVars[$i]['name'], 0, 3) == 'get'
+                    if (method_exists($stackVars[$i - 1]['variable'], $stackVars[$i]['name'])
+                        || str_starts_with($stackVars[$i]['name'], 'get')
                     ) {
                         $isEncrypted = false;
                         if ($stackVars[$i]['name'] == 'getConfig') {
                             $isEncrypted = $emailPathValidator->isValid($stackVars[$i]['args']);
                         }
+
                         $stackVars[$i]['variable'] = call_user_func_array(
-                            array($stackVars[$i-1]['variable'], $stackVars[$i]['name']),
-                            !$isEncrypted ? $stackVars[$i]['args'] : array(null)
+                            [$stackVars[$i - 1]['variable'], $stackVars[$i]['name']],
+                            $isEncrypted ? [null] : $stackVars[$i]['args'],
                         );
                     }
                 }
+
                 $last = $i;
             }
         }
 
-        if(isset($stackVars[$last]['variable'])) {
+        if (isset($stackVars[$last]['variable'])) {
             // If value for construction exists set it
             $result = $stackVars[$last]['variable'];
         }
-        Varien_Profiler::stop("email_template_proccessing_variables");
+
+        Varien_Profiler::stop('email_template_proccessing_variables');
         return $result;
     }
 
     /**
      * Retrieve model object
      *
-     * @return Mage_Core_Model_Abstract
+     * @return Mage_Adminhtml_Model_Email_PathValidator
      */
     protected function getEmailPathValidator()
     {

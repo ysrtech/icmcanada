@@ -1,38 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Widget
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Widget
  */
 
 /**
  * Widget Instance page groups (predefined layouts group) to display on
  *
- * @category    Mage
- * @package     Mage_Widget
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Widget
+ *
+ * @method Mage_Widget_Model_Widget_Instance getWidgetInstance()
+ * @method $this                             setWidgetInstance(Mage_Widget_Model_Widget_Instance $value)
  */
-class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
-    extends Mage_Adminhtml_Block_Template implements Varien_Data_Form_Element_Renderer_Interface
+class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout extends Mage_Adminhtml_Block_Template implements Varien_Data_Form_Element_Renderer_Interface
 {
     /**
      * @var Varien_Data_Form_Element_Abstract
@@ -40,8 +23,9 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
     protected $_element = null;
 
     /**
-     * Internal constructor
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -62,8 +46,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
     /**
      * Setter
      *
-     * @param Varien_Data_Form_Element_Abstract $element
-     * @return
+     * @return $this
      */
     public function setElement(Varien_Data_Form_Element_Abstract $element)
     {
@@ -88,7 +71,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      */
     public function getCategoriesChooserUrl()
     {
-        return $this->getUrl('*/*/categories', array('_current' => true));
+        return $this->getUrl('*/*/categories', ['_current' => true]);
     }
 
     /**
@@ -98,7 +81,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      */
     public function getProductsChooserUrl()
     {
-        return $this->getUrl('*/*/products', array('_current' => true));
+        return $this->getUrl('*/*/products', ['_current' => true]);
     }
 
     /**
@@ -108,7 +91,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      */
     public function getBlockChooserUrl()
     {
-        return $this->getUrl('*/*/blocks', array('_current' => true));
+        return $this->getUrl('*/*/blocks', ['_current' => true]);
     }
 
     /**
@@ -118,7 +101,7 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      */
     public function getTemplateChooserUrl()
     {
-        return $this->getUrl('*/*/template', array('_current' => true));
+        return $this->getUrl('*/*/template', ['_current' => true]);
     }
 
     /**
@@ -143,55 +126,57 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      * - Products (product types depend on configuration)
      * - Generic (predefined) pages (all pages and single layout update)
      *
-     * @return array
+     * @return array<int, array<string, array<string, string|string[]>[]|string|string[]>>
      */
     protected function _getDisplayOnOptions()
     {
-        $options = array();
-        $options[] = array(
+        $options = [];
+        $options[] = [
             'value' => '',
-            'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('-- Please Select --'))
-        );
-        $options[] = array(
+            'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('-- Please Select --')),
+        ];
+        $options[] = [
             'label' => Mage::helper('widget')->__('Categories'),
-            'value' => array(
-                array(
+            'value' => [
+                [
                     'value' => 'anchor_categories',
-                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Anchor Categories'))
-                ),
-                array(
+                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Anchor Categories')),
+                ],
+                [
                     'value' => 'notanchor_categories',
-                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Non-Anchor Categories'))
-                )
-            )
-        );
+                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Non-Anchor Categories')),
+                ],
+            ],
+        ];
+        $productsOptions = [];
         foreach (Mage_Catalog_Model_Product_Type::getTypes() as $typeId => $type) {
-            $productsOptions[] = array(
-               'value' => $typeId.'_products',
-               'label' => $this->helper('core')->jsQuoteEscape($type['label'])
-            );
+            $productsOptions[] = [
+                'value' => $typeId . '_products',
+                'label' => $this->helper('core')->jsQuoteEscape($type['label']),
+            ];
         }
-        array_unshift($productsOptions, array(
+
+        array_unshift($productsOptions, [
             'value' => 'all_products',
-            'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('All Product Types'))
-        ));
-        $options[] = array(
+            'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('All Product Types')),
+        ]);
+        $options[] = [
             'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Products')),
-            'value' => $productsOptions
-        );
-        $options[] = array(
+            'value' => $productsOptions,
+        ];
+        $options[] = [
             'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Generic Pages')),
-            'value' => array(
-                array(
+            'value' => [
+                [
                     'value' => 'all_pages',
-                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('All Pages'))
-                ),
-                array(
+                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('All Pages')),
+                ],
+                [
                     'value' => 'pages',
-                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Specified Page'))
-                )
-            )
-        );
+                    'label' => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Specified Page')),
+                ],
+            ],
+        ];
         return $options;
     }
 
@@ -202,41 +187,42 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
      */
     public function getDisplayOnContainers()
     {
-        $container = array();
-        $container['anchor'] = array(
+        $container = [];
+        $container['anchor'] = [
             'label' => 'Categories',
             'code' => 'categories',
             'name' => 'anchor_categories',
             'layout_handle' => 'default,catalog_category_layered',
             'is_anchor_only' => 1,
-            'product_type_id' => ''
-        );
-        $container['notanchor'] = array(
+            'product_type_id' => '',
+        ];
+        $container['notanchor'] = [
             'label' => 'Categories',
             'code' => 'categories',
             'name' => 'notanchor_categories',
             'layout_handle' => 'default,catalog_category_default',
             'is_anchor_only' => 0,
-            'product_type_id' => ''
-        );
-        $container['all_products'] = array(
+            'product_type_id' => '',
+        ];
+        $container['all_products'] = [
             'label' => 'Products',
             'code' => 'products',
             'name' => 'all_products',
             'layout_handle' => 'default,catalog_product_view',
             'is_anchor_only' => '',
-            'product_type_id' => ''
-        );
-        foreach (Mage_Catalog_Model_Product_Type::getTypes() as $typeId => $type) {
-            $container[$typeId] = array(
+            'product_type_id' => '',
+        ];
+        foreach (array_keys(Mage_Catalog_Model_Product_Type::getTypes()) as $typeId) {
+            $container[$typeId] = [
                 'label' => 'Products',
                 'code' => 'products',
                 'name' => $typeId . '_products',
-                'layout_handle' => 'default,catalog_product_view,PRODUCT_TYPE_'.$typeId,
+                'layout_handle' => 'default,catalog_product_view,PRODUCT_TYPE_' . $typeId,
                 'is_anchor_only' => '',
-                'product_type_id' => $typeId
-            );
+                'product_type_id' => $typeId,
+            ];
         }
+
         return $container;
     }
 
@@ -264,11 +250,11 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
     public function getAddLayoutButtonHtml()
     {
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
+            ->setData([
                 'label'     => Mage::helper('widget')->__('Add Layout Update'),
                 'onclick'   => 'WidgetInstance.addPageGroup({})',
-                'class'     => 'add'
-            ));
+                'class'     => 'add',
+            ]);
         return $button->toHtml();
     }
 
@@ -280,11 +266,11 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
     public function getRemoveLayoutButtonHtml()
     {
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
+            ->setData([
                 'label'     => $this->helper('core')->jsQuoteEscape(Mage::helper('widget')->__('Remove Layout Update')),
                 'onclick'   => 'WidgetInstance.removePageGroup(this)',
-                'class'     => 'delete'
-            ));
+                'class'     => 'delete',
+            ]);
         return $button->toHtml();
     }
 
@@ -296,20 +282,21 @@ class Mage_Widget_Block_Adminhtml_Widget_Instance_Edit_Tab_Main_Layout
     public function getPageGroups()
     {
         $widgetInstance = $this->getWidgetInstance();
-        $pageGroups = array();
+        $pageGroups = [];
         if ($widgetInstance->getPageGroups()) {
             foreach ($widgetInstance->getPageGroups() as $pageGroup) {
-                $pageGroups[] = array(
+                $pageGroups[] = [
                     'page_id' => $pageGroup['page_id'],
                     'group' => $pageGroup['page_group'],
                     'block' => $pageGroup['block_reference'],
                     'for_value'   => $pageGroup['page_for'],
                     'layout_handle' => $pageGroup['layout_handle'],
-                    $pageGroup['page_group'].'_entities' => $pageGroup['entities'],
-                    'template' => $pageGroup['page_template']
-                );
+                    $pageGroup['page_group'] . '_entities' => $pageGroup['entities'],
+                    'template' => $pageGroup['page_template'],
+                ];
             }
         }
+
         return $pageGroups;
     }
 }

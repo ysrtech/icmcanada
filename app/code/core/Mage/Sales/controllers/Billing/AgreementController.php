@@ -1,39 +1,24 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
  * Billing agreements controller
  *
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Sales
+ *
+ * @method int getAgreementId()
  */
 class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_Action
 {
     /**
      * View billing agreements
-     *
+     * @return void
      */
     public function indexAction()
     {
@@ -47,21 +32,27 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
      * Action predispatch
      *
      * Check customer authentication
+     *
+     * @return null|$this
      */
+    #[Override]
     public function preDispatch()
     {
         parent::preDispatch();
         if (!$this->getRequest()->isDispatched()) {
-            return;
+            return null;
         }
+
         if (!$this->_getSession()->authenticate($this)) {
             $this->setFlag('', 'no-dispatch', true);
         }
+
+        return $this;
     }
 
     /**
      * View billing agreement
-     *
+     * @return void
      */
     public function viewAction()
     {
@@ -85,12 +76,14 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
         if ($navigationBlock) {
             $navigationBlock->setActive('sales/billing_agreement/');
         }
+
         $this->renderLayout();
     }
 
     /**
      * Wizard start action
      *
+     * @return null|$this
      */
     public function startWizardAction()
     {
@@ -100,24 +93,26 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
             try {
                 $agreement->setStoreId(Mage::app()->getStore()->getId())
                     ->setMethodCode($paymentCode)
-                    ->setReturnUrl(Mage::getUrl('*/*/returnWizard', array('payment_method' => $paymentCode)))
-                    ->setCancelUrl(Mage::getUrl('*/*/cancelWizard', array('payment_method' => $paymentCode)));
+                    ->setReturnUrl(Mage::getUrl('*/*/returnWizard', ['payment_method' => $paymentCode]))
+                    ->setCancelUrl(Mage::getUrl('*/*/cancelWizard', ['payment_method' => $paymentCode]));
 
                 $this->_redirectUrl($agreement->initToken());
                 return $this;
-            } catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Mage_Core_Exception $mageCoreException) {
+                $this->_getSession()->addError($mageCoreException->getMessage());
+            } catch (Exception $exception) {
+                Mage::logException($exception);
                 $this->_getSession()->addError($this->__('Failed to start billing agreement wizard.'));
             }
         }
+
         $this->_redirect('*/*/');
+        return null;
     }
 
     /**
      * Wizard return action
-     *
+     * @return void
      */
     public function returnWizardAction()
     {
@@ -132,23 +127,24 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
                     ->setCustomer(Mage::getSingleton('customer/session')->getCustomer())
                     ->place();
                 $this->_getSession()->addSuccess(
-                    $this->__('The billing agreement "%s" has been created.', $agreement->getReferenceId())
+                    $this->__('The billing agreement "%s" has been created.', $agreement->getReferenceId()),
                 );
-                $this->_redirect('*/*/view', array('agreement' => $agreement->getId()));
+                $this->_redirect('*/*/view', ['agreement' => $agreement->getId()]);
                 return;
-            } catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Mage_Core_Exception $mageCoreException) {
+                $this->_getSession()->addError($mageCoreException->getMessage());
+            } catch (Exception $exception) {
+                Mage::logException($exception);
                 $this->_getSession()->addError($this->__('Failed to finish billing agreement wizard.'));
             }
+
             $this->_redirect('*/*/index');
         }
     }
 
     /**
      * Wizard cancel action
-     *
+     * @return void
      */
     public function cancelWizardAction()
     {
@@ -158,19 +154,19 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
     /**
      * Cancel action
      * Set billing agreement status to 'Canceled'
-     *
+     * @return void
      */
     public function cancelAction()
     {
         $agreement = $this->_initAgreement();
-        if(!$agreement) {
-            $this->_redirect('*/*/view', array('_current' => true));
+        if (!$agreement) {
+            $this->_redirect('*/*/view', ['_current' => true]);
             return;
         }
 
         $customerIdSession = $this->_getSession()->getCustomer()->getId();
         if (!$agreement->canPerformAction($customerIdSession)) {
-            $this->_redirect('*/*/view', array('_current' => true));
+            $this->_redirect('*/*/view', ['_current' => true]);
             return;
         }
 
@@ -178,25 +174,29 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
             try {
                 $agreement->cancel();
                 $this->_getSession()->addNotice($this->__('The billing agreement "%s" has been canceled.', $agreement->getReferenceId()));
-            } catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Mage_Core_Exception $mageCoreException) {
+                $this->_getSession()->addError($mageCoreException->getMessage());
+            } catch (Exception $exception) {
+                Mage::logException($exception);
                 $this->_getSession()->addError($this->__('Failed to cancel the billing agreement.'));
             }
         }
-        $this->_redirect('*/*/view', array('_current' => true));
+
+        $this->_redirect('*/*/view', ['_current' => true]);
     }
 
     /**
      * Init billing agreement model from request
      *
-     * @return Mage_Sales_Model_Billing_Agreement
+     * @return false|Mage_Sales_Model_Billing_Agreement
      */
     protected function _initAgreement()
     {
         $agreementId = $this->getRequest()->getParam('agreement');
+        $billingAgreement = false;
+
         if ($agreementId) {
+            /** @var Mage_Sales_Model_Billing_Agreement $billingAgreement */
             $billingAgreement = Mage::getModel('sales/billing_agreement')->load($agreementId);
             if (!$billingAgreement->getAgreementId()) {
                 $this->_getSession()->addError($this->__('Wrong billing agreement ID specified.'));
@@ -204,6 +204,7 @@ class Mage_Sales_Billing_AgreementController extends Mage_Core_Controller_Front_
                 return false;
             }
         }
+
         Mage::register('current_billing_agreement', $billingAgreement);
         return $billingAgreement;
     }

@@ -76,7 +76,7 @@ class RicoNeitzel_PaymentFilter_Helper_Data extends Mage_Core_Helper_Abstract
      * @see Netzarbeiter_ProductPayments_Helper_Payment::getStoreMethods()
      * @see Mage_Payment_Helper_Data::getStoreMethods()
      */
-    public function getForbiddenPaymentMethodsForCart(Mage_Sales_Model_Quote $quote=null)
+    public function getForbiddenPaymentMethodsForCart(?Mage_Sales_Model_Quote $quote=null)
     {
         if( is_null($quote) ) {
             $quote = $this->getCurrentQuote();

@@ -1,39 +1,24 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Install
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Install
  */
 
+use Carbon\Carbon;
 
 /**
  * Config installer
- * @category   Mage
+ *
  * @package    Mage_Install
  */
 class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_Abstract
 {
-    const TMP_INSTALL_DATE_VALUE= 'd-d-d-d-d';
-    const TMP_ENCRYPT_KEY_VALUE = 'k-k-k-k-k';
+    public const TMP_INSTALL_DATE_VALUE = 'd-d-d-d-d';
+
+    public const TMP_ENCRYPT_KEY_VALUE = 'k-k-k-k-k';
 
     /**
      * Path to local configuration file
@@ -42,7 +27,7 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
      */
     protected $_localConfigFile;
 
-    protected $_configData = array();
+    protected $_configData = [];
 
     public function __construct()
     {
@@ -54,6 +39,7 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
         if (is_array($data)) {
             $this->_configData = $data;
         }
+
         return $this;
     }
 
@@ -65,29 +51,32 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
     public function install()
     {
         $data = $this->getConfigData();
-        foreach (Mage::getModel('core/config')->getDistroServerVars() as $index=>$value) {
+        foreach (Mage::getModel('core/config')->getDistroServerVars() as $index => $value) {
             if (!isset($data[$index])) {
                 $data[$index] = $value;
             }
         }
 
         if (isset($data['unsecure_base_url'])) {
-            $data['unsecure_base_url'] .= substr($data['unsecure_base_url'], -1) != '/' ? '/' : '';
-            if (strpos($data['unsecure_base_url'], 'http') !== 0) {
+            $data['unsecure_base_url'] .= str_ends_with($data['unsecure_base_url'], '/') ? '' : '/';
+            if (!str_starts_with($data['unsecure_base_url'], 'http')) {
                 $data['unsecure_base_url'] = 'http://' . $data['unsecure_base_url'];
             }
+
             if (!$this->_getInstaller()->getDataModel()->getSkipBaseUrlValidation()) {
                 $this->_checkUrl($data['unsecure_base_url']);
             }
         }
+
         if (isset($data['secure_base_url'])) {
-            $data['secure_base_url'] .= substr($data['secure_base_url'], -1) != '/' ? '/' : '';
-            if (strpos($data['secure_base_url'], 'http') !== 0) {
+            $data['secure_base_url'] .= str_ends_with($data['secure_base_url'], '/') ? '' : '/';
+            if (!str_starts_with($data['secure_base_url'], 'http')) {
                 $data['secure_base_url'] = 'https://' . $data['secure_base_url'];
             }
 
             if (!empty($data['use_secure'])
-                && !$this->_getInstaller()->getDataModel()->getSkipUrlValidation()) {
+                && !$this->_getInstaller()->getDataModel()->getSkipUrlValidation()
+            ) {
                 $this->_checkUrl($data['secure_base_url']);
             }
         }
@@ -104,6 +93,7 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
         foreach ($data as $index => $value) {
             $template = str_replace('{{' . $index . '}}', '<![CDATA[' . $value . ']]>', $template);
         }
+
         file_put_contents($this->_localConfigFile, $template);
         chmod($this->_localConfigFile, 0777);
     }
@@ -118,7 +108,7 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
         $connectDefault = Mage::getConfig()
                 ->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
 
-        $data = Mage::getModel('varien/object')
+        return Mage::getModel('varien/object')
             ->setDbHost($connectDefault->host)
             ->setDbName($connectDefault->dbname)
             ->setDbUser($connectDefault->username)
@@ -127,11 +117,15 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
             ->setSecureBaseUrl($baseSecureUrl)
             ->setUnsecureBaseUrl($baseUrl)
             ->setAdminFrontname('admin')
-            ->setEnableCharts('1')
-        ;
-        return $data;
+            ->setEnableCharts('1');
     }
 
+    /**
+     * @param  array                      $data
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Zend_Http_Client_Exception
+     */
     protected function _checkHostsInfo($data)
     {
         $url  = $data['protocol'] . '://' . $data['host'] . ':' . $data['port'] . $data['base_path'];
@@ -144,44 +138,55 @@ class Mage_Install_Model_Installer_Config extends Mage_Install_Model_Installer_A
         return $this;
     }
 
+    /**
+     * @param  string                     $url
+     * @param  bool                       $secure
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Zend_Http_Client_Exception
+     */
     protected function _checkUrl($url, $secure = false)
     {
         $prefix = $secure ? 'install/wizard/checkSecureHost/' : 'install/wizard/checkHost/';
         try {
             $client = new Varien_Http_Client($url . 'index.php/' . $prefix);
             $response = $client->request('GET');
-            /* @var $responce Zend_Http_Response */
             $body = $response->getBody();
-        }
-        catch (Exception $e){
+        } catch (Exception $exception) {
             $this->_getInstaller()->getDataModel()
                 ->addError(Mage::helper('install')->__('The URL "%s" is not accessible.', $url));
-            throw $e;
+            throw $exception;
         }
 
         if ($body != Mage_Install_Model_Installer::INSTALLER_HOST_RESPONSE) {
             $this->_getInstaller()->getDataModel()
                 ->addError(Mage::helper('install')->__('The URL "%s" is invalid.', $url));
-            Mage::throwException(Mage::helper('install')->__('Response from server isn\'t valid.'));
+            Mage::throwException(Mage::helper('install')->__("Response from server isn't valid."));
         }
+
         return $this;
     }
 
     public function replaceTmpInstallDate($date = null)
     {
-        $stamp    = strtotime((string) $date);
+        $stamp    = Carbon::parse((string) $date)->getTimestamp();
         $localXml = file_get_contents($this->_localConfigFile);
-        $localXml = str_replace(self::TMP_INSTALL_DATE_VALUE, date('r', $stamp ? $stamp : time()), $localXml);
+        $localXml = str_replace(self::TMP_INSTALL_DATE_VALUE, Carbon::createFromTimestamp($stamp ? $stamp : Mage::helper('core/clock')->getTimestamp())->format('r'), $localXml);
         file_put_contents($this->_localConfigFile, $localXml);
 
         return $this;
     }
 
+    /**
+     * @param  null|string $key
+     * @return $this
+     */
     public function replaceTmpEncryptKey($key = null)
     {
         if (!$key) {
             $key = md5(Mage::helper('core')->getRandomString(10));
         }
+
         $localXml = file_get_contents($this->_localConfigFile);
         $localXml = str_replace(self::TMP_ENCRYPT_KEY_VALUE, $key, $localXml);
         file_put_contents($this->_localConfigFile, $localXml);

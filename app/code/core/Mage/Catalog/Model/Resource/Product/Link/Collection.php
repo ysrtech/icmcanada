@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog product links collection
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Catalog
  */
 class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
@@ -56,7 +36,7 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
     protected $_linkTypeId;
 
     /**
-     * Resource initialization
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -66,8 +46,7 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
     /**
      * Declare link model and initialize type attributes join
      *
-     * @param Mage_Catalog_Model_Product_Link $linkModel
-     * @return Mage_Catalog_Model_Resource_Product_Link_Collection
+     * @return $this
      */
     public function setLinkModel(Mage_Catalog_Model_Product_Link $linkModel)
     {
@@ -75,6 +54,7 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
         if ($linkModel->hasLinkTypeId()) {
             $this->_linkTypeId = $linkModel->getLinkTypeId();
         }
+
         return $this;
     }
 
@@ -91,8 +71,7 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
     /**
      * Initialize collection parent product and add limitation join
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return Mage_Catalog_Model_Resource_Product_Link_Collection
+     * @return $this
      */
     public function setProduct(Mage_Catalog_Model_Product $product)
     {
@@ -113,39 +92,42 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
     /**
      * Add link's type to filter
      *
-     * @return Mage_Catalog_Model_Resource_Product_Link_Collection
+     * @return $this
      */
     public function addLinkTypeIdFilter()
     {
         if ($this->_linkTypeId) {
-            $this->addFieldToFilter('link_type_id', array('eq' => $this->_linkTypeId));
+            $this->addFieldToFilter('link_type_id', ['eq' => $this->_linkTypeId]);
         }
+
         return $this;
     }
 
     /**
      * Add product to filter
      *
-     * @return Mage_Catalog_Model_Resource_Product_Link_Collection
+     * @return $this
      */
     public function addProductIdFilter()
     {
         if ($this->getProduct() && $this->getProduct()->getId()) {
-            $this->addFieldToFilter('product_id',  array('eq' => $this->getProduct()->getId()));
+            $this->addFieldToFilter('product_id', ['eq' => $this->getProduct()->getId()]);
         }
+
         return $this;
     }
 
     /**
      * Join attributes
      *
-     * @return Mage_Catalog_Model_Resource_Product_Link_Collection
+     * @return $this
      */
     public function joinAttributes()
     {
         if (!$this->getLinkModel()) {
             return $this;
         }
+
         $attributes = $this->getLinkModel()->getAttributes();
         $adapter = $this->getConnection();
         foreach ($attributes as $attribute) {
@@ -154,10 +136,10 @@ class Mage_Catalog_Model_Resource_Product_Link_Collection extends Mage_Core_Mode
 
             $aliasInCondition = $adapter->quoteColumnAs($alias, null);
             $this->getSelect()->joinLeft(
-                array($alias => $table),
+                [$alias => $table],
                 $aliasInCondition . '.link_id = main_table.link_id AND '
                     . $aliasInCondition . '.product_link_attribute_id = ' . (int) $attribute['id'],
-                array($attribute['code'] => 'value')
+                [$attribute['code'] => 'value'],
             );
         }
 

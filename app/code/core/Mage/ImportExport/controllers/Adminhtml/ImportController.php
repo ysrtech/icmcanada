@@ -1,42 +1,27 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ImportExport
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ImportExport
  */
 
 /**
  * Import controller
  *
- * @category    Mage
- * @package     Mage_ImportExport
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_ImportExport
  */
 class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Controller_Action
 {
     /**
+     * ACL resource
+     * @see Mage_Adminhtml_Controller_Action::_isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'system/convert/import';
+
+    /**
      * Custom constructor.
-     *
-     * @return void
      */
     protected function _construct()
     {
@@ -47,37 +32,26 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
     /**
      * Initialize layout.
      *
-     * @return Mage_ImportExport_Adminhtml_ImportController
+     * @return $this
      */
     protected function _initAction()
     {
         $this->_title($this->__('Import/Export'))
             ->loadLayout()
-            ->_setActiveMenu('system/importexport');
+            ->_setActiveMenu('system/convert/import');
 
         return $this;
     }
 
     /**
-     * Check access (in the ACL) for current user.
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed('system/convert/import');
-    }
-
-    /**
      * Index action.
-     *
      * @return void
      */
     public function indexAction()
     {
         $maxUploadSize = Mage::helper('importexport')->getMaxUploadSize();
         $this->_getSession()->addNotice(
-            $this->__('Total size of uploadable files must not exceed %s', $maxUploadSize)
+            $this->__('Total size of uploadable files must not exceed %s', $maxUploadSize),
         );
         $this->_initAction()
             ->_title($this->__('Import'))
@@ -88,7 +62,6 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
 
     /**
      * Start import process action.
-     *
      * @return void
      */
     public function startAction()
@@ -97,9 +70,9 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
         if ($data) {
             $this->loadLayout(false);
 
-            /** @var $resultBlock Mage_ImportExport_Block_Adminhtml_Import_Frame_Result */
+            /** @var Mage_ImportExport_Block_Adminhtml_Import_Frame_Result $resultBlock */
             $resultBlock = $this->getLayout()->getBlock('import.frame.result');
-            /** @var $importModel Mage_ImportExport_Model_Import */
+            /** @var Mage_ImportExport_Model_Import $importModel */
             $importModel = Mage::getModel('importexport/import');
 
             try {
@@ -107,12 +80,13 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
                 $importModel->invalidateIndex();
                 $resultBlock->addAction('show', 'import_validation_container')
                     ->addAction('innerHTML', 'import_validation_container_header', $this->__('Status'));
-            } catch (Exception $e) {
-                $resultBlock->addError($e->getMessage());
+            } catch (Exception $exception) {
+                $resultBlock->addError($exception->getMessage());
                 $this->renderLayout();
                 return;
             }
-            $resultBlock->addAction('hide', array('edit_form', 'upload_button', 'messages'))
+
+            $resultBlock->addAction('hide', ['edit_form', 'upload_button', 'messages'])
                 ->addSuccess($this->__('Import successfully done.'));
             $this->renderLayout();
         } else {
@@ -123,6 +97,7 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
     /**
      * Validate uploaded files action.
      *
+     * @SuppressWarnings("PHPMD.Superglobals")
      * @return void
      */
     public function validateAction()
@@ -130,17 +105,16 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
         $data = $this->getRequest()->getPost();
         if ($data) {
             $this->loadLayout(false);
-            /** @var $resultBlock Mage_ImportExport_Block_Adminhtml_Import_Frame_Result */
+            /** @var Mage_ImportExport_Block_Adminhtml_Import_Frame_Result $resultBlock */
             $resultBlock = $this->getLayout()->getBlock('import.frame.result');
             // common actions
             $resultBlock->addAction('show', 'import_validation_container')
-                ->addAction('clear', array(
+                ->addAction('clear', [
                     Mage_ImportExport_Model_Import::FIELD_NAME_SOURCE_FILE,
-                    Mage_ImportExport_Model_Import::FIELD_NAME_IMG_ARCHIVE_FILE)
-                );
+                    Mage_ImportExport_Model_Import::FIELD_NAME_IMG_ARCHIVE_FILE]);
 
             try {
-                /** @var $import Mage_ImportExport_Model_Import */
+                /** @var Mage_ImportExport_Model_Import $import */
                 $import = Mage::getModel('importexport/import');
                 $validationResult = $import->validateSource($import->setData($data)->uploadSource());
 
@@ -150,50 +124,52 @@ class Mage_ImportExport_Adminhtml_ImportController extends Mage_Adminhtml_Contro
                     if (!$validationResult) {
                         if ($import->getProcessedRowsCount() == $import->getInvalidRowsCount()) {
                             $resultBlock->addNotice(
-                                $this->__('File is totally invalid. Please fix errors and re-upload file')
+                                $this->__('File is totally invalid. Please fix errors and re-upload file'),
                             );
                         } elseif ($import->getErrorsCount() >= $import->getErrorsLimit()) {
                             $resultBlock->addNotice(
-                                $this->__('Errors limit (%d) reached. Please fix errors and re-upload file', $import->getErrorsLimit())
+                                $this->__('Errors limit (%d) reached. Please fix errors and re-upload file', $import->getErrorsLimit()),
+                            );
+                        } elseif ($import->isImportAllowed()) {
+                            $resultBlock->addNotice(
+                                $this->__('Please fix errors and re-upload file or simply press "Import" button to skip rows with errors'),
+                                true,
                             );
                         } else {
-                            if ($import->isImportAllowed()) {
-                                $resultBlock->addNotice(
-                                    $this->__('Please fix errors and re-upload file or simply press "Import" button to skip rows with errors'),
-                                    true
-                                );
-                            } else {
-                                $resultBlock->addNotice(
-                                    $this->__('File is partially valid, but import is not possible'), false
-                                );
-                            }
+                            $resultBlock->addNotice(
+                                $this->__('File is partially valid, but import is not possible'),
+                                false,
+                            );
                         }
+
                         // errors info
                         foreach ($import->getErrors() as $errorCode => $rows) {
                             $error = $errorCode . ' ' . $this->__('in rows:') . ' ' . implode(', ', $rows);
                             $resultBlock->addError($error);
                         }
+                    } elseif ($import->isImportAllowed()) {
+                        $resultBlock->addSuccess(
+                            $this->__('File is valid! To start import process press "Import" button'),
+                            true,
+                        );
                     } else {
-                        if ($import->isImportAllowed()) {
-                            $resultBlock->addSuccess(
-                                $this->__('File is valid! To start import process press "Import" button'), true
-                            );
-                        } else {
-                            $resultBlock->addError(
-                                $this->__('File is valid, but import is not possible'), false
-                            );
-                        }
+                        $resultBlock->addError(
+                            $this->__('File is valid, but import is not possible'),
+                        );
                     }
+
                     $resultBlock->addNotice($import->getNotices());
                     $resultBlock->addNotice($this->__('Checked rows: %d, checked entities: %d, invalid rows: %d, total errors: %d', $import->getProcessedRowsCount(), $import->getProcessedEntitiesCount(), $import->getInvalidRowsCount(), $import->getErrorsCount()));
                 }
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 $resultBlock->addNotice($this->__('Please fix errors and re-upload file'))
-                    ->addError($e->getMessage());
+                    ->addError($exception->getMessage());
             }
+
             $this->renderLayout();
         } elseif ($this->getRequest()->isPost() && empty($_FILES)) {
             $this->loadLayout(false);
+            /** @var Mage_ImportExport_Block_Adminhtml_Import_Frame_Result $resultBlock */
             $resultBlock = $this->getLayout()->getBlock('import.frame.result');
             $resultBlock->addError($this->__('File was not uploaded'));
             $this->renderLayout();

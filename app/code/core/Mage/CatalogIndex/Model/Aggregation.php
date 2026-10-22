@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogIndex
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogIndex
  */
 
 /**
@@ -29,31 +12,30 @@
  *
  * Allow cache some aggregated data with tag dependency
  *
- * @method Mage_CatalogIndex_Model_Resource_Aggregation _getResource()
- * @method Mage_CatalogIndex_Model_Resource_Aggregation getResource()
- * @method int getStoreId()
- * @method Mage_CatalogIndex_Model_Aggregation setStoreId(int $value)
- * @method string getCreatedAt()
- * @method Mage_CatalogIndex_Model_Aggregation setCreatedAt(string $value)
- * @method string getKey()
- * @method Mage_CatalogIndex_Model_Aggregation setKey(string $value)
+ * @package    Mage_CatalogIndex
  *
- * @category    Mage
- * @package     Mage_CatalogIndex
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_CatalogIndex_Model_Resource_Aggregation _getResource()
+ * @method string                                       getKey()
+ * @method Mage_CatalogIndex_Model_Resource_Aggregation getResource()
+ * @method int                                          getStoreId()
+ * @method $this                                        setKey(string $value)
+ * @method $this                                        setStoreId(int $value)
  */
 class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
 {
-    const CACHE_FLAG_NAME   = 'layered_navigation';
+    public const CACHE_FLAG_NAME   = 'layered_navigation';
 
     /**
-     * Initialize resource model
+     * @inheritDoc
      */
     protected function _construct()
     {
         $this->_init('catalogindex/aggregation');
     }
 
+    /**
+     * @return array|bool
+     */
     protected function _isEnabled()
     {
         return Mage::app()->useCache(self::CACHE_FLAG_NAME);
@@ -62,11 +44,11 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
     /**
      * Get aggregated data by data key and store
      *
-     * @param   string $key
-     * @param   null|int|string|Mage_Core_Model_Store $store
-     * @return  array|null
+     * @param  string                                $key
+     * @param  null|int|Mage_Core_Model_Store|string $store
+     * @return null|array
      */
-    public function getCacheData($key, $store=null)
+    public function getCacheData($key, $store = null)
     {
         if (!$this->_isEnabled()) {
             return null;
@@ -78,18 +60,20 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
         if (empty($data)) {
             return null;
         }
+
         return $data;
     }
 
     /**
      * Save aggregation data to cache
      *
-     * @param   string $key
-     * @param   array $tags
-     * @param   null|int|string|Mage_Core_Model_Store $store
-     * @return  Mage_CatalogIndex_Model_Aggregation
+     * @param  array                                 $data
+     * @param  string                                $key
+     * @param  array                                 $tags
+     * @param  null|int|Mage_Core_Model_Store|string $store
+     * @return $this
      */
-    public function saveCacheData($data, $key, $tags, $store=null)
+    public function saveCacheData($data, $key, $tags, $store = null)
     {
         if (!$this->_isEnabled()) {
             return $this;
@@ -106,16 +90,17 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
     /**
      * Delete cached aggregation data
      *
-     * @param   array $tags
-     * @param   int|null|string $store
-     * @return  Mage_CatalogIndex_Model_Aggregation
+     * @param  array           $tags
+     * @param  null|int|string $store
+     * @return $this
      */
-    public function clearCacheData($tags = array(), $store = null)
+    public function clearCacheData($tags = [], $store = null)
     {
         $tags    = $this->_processTags($tags);
         if ($store !== null) {
             $store = Mage::app()->getStore($store)->getId();
         }
+
         $this->_getResource()->clearCacheData($tags, $store);
         return $this;
     }
@@ -123,32 +108,33 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
     /**
      * Clear all cache data related with products
      *
-     * @param   int|array $productIds
-     * @return  Mage_CatalogIndex_Model_Aggregation
+     * @param  array $productIds
+     * @return $this
      */
     public function clearProductData($productIds)
     {
         $categoryPaths = $this->_getResource()->getProductCategoryPaths($productIds);
         if (!empty($categoryPaths)) {
-            $tags = array();
+            $tags = [];
             foreach ($categoryPaths as $path) {
-                $tags[] = Mage_Catalog_Model_Category::CACHE_TAG.':'.$path;
+                $tags[] = Mage_Catalog_Model_Category::CACHE_TAG . ':' . $path;
             }
+
             $this->clearCacheData($tags);
         }
+
         return $this;
     }
 
     /**
      * Prepare data key
      *
-     * @param   string $key
-     * @return  string
+     * @param  string $key
+     * @return string
      */
     protected function _processKey($key)
     {
         return $key;
-        return md5($key);
     }
 
     /**
@@ -157,15 +143,15 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
      * this method split tags like "category:1,2,3" to four
      * different tags: category, category1, category2, category3
      *
-     * @param unknown_type $tags
-     * @return unknown
+     * @param  array $tags
+     * @return array
      */
     protected function _processTags($tags)
     {
-        $newTags = array();
+        $newTags = [];
         foreach ($tags as $tag) {
             $tagInfo = explode(':', $tag);
-            if (count($tagInfo)==1) {
+            if (count($tagInfo) == 1) {
                 $newTags[] = $tagInfo[0];
             } else {
                 $tagVariants = explode('/', $tagInfo[1]);
@@ -174,6 +160,7 @@ class Mage_CatalogIndex_Model_Aggregation extends Mage_Core_Model_Abstract
                 }
             }
         }
+
         return $newTags;
     }
 }

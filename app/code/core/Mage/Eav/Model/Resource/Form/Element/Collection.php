@@ -1,41 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
+ */
 
 /**
  * Eav Form Element Resource Collection
  *
- * @category    Mage
- * @package     Mage_Eav
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Eav
  */
 class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
     /**
-     * Initialize collection model
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -45,8 +25,8 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Add Form Type filter to collection
      *
-     * @param Mage_Eav_Model_Form_Type|int $type
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @param  int|Mage_Eav_Model_Form_Type $type
+     * @return $this
      */
     public function addTypeFilter($type)
     {
@@ -60,8 +40,8 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Add Form Fieldset filter to collection
      *
-     * @param Mage_Eav_Model_Form_Fieldset|int $fieldset
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @param  int|Mage_Eav_Model_Form_Fieldset $fieldset
+     * @return $this
      */
     public function addFieldsetFilter($fieldset)
     {
@@ -75,9 +55,9 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Add Attribute filter to collection
      *
-     * @param Mage_Eav_Model_Entity_Attribute_Abstract|int $attribute
+     * @param int|Mage_Eav_Model_Entity_Attribute_Abstract $attribute
      *
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @return $this
      */
     public function addAttributeFilter($attribute)
     {
@@ -91,7 +71,7 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Set order by element sort order
      *
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @return $this
      */
     public function setSortOrder()
     {
@@ -103,14 +83,14 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Join attribute data
      *
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @return $this
      */
     protected function _joinAttributeData()
     {
         $this->getSelect()->join(
-            array('eav_attribute' => $this->getTable('eav/attribute')),
+            ['eav_attribute' => $this->getTable('eav/attribute')],
             'main_table.attribute_id = eav_attribute.attribute_id',
-            array('attribute_code', 'entity_type_id')
+            ['attribute_code', 'entity_type_id'],
         );
 
         return $this;
@@ -119,15 +99,15 @@ class Mage_Eav_Model_Resource_Form_Element_Collection extends Mage_Core_Model_Re
     /**
      * Load data (join attribute data)
      *
-     * @param boolean $printQuery
-     * @param boolean $logQuery
-     * @return Mage_Eav_Model_Resource_Form_Element_Collection
+     * @inheritDoc
      */
+    #[Override]
     public function load($printQuery = false, $logQuery = false)
     {
         if (!$this->isLoaded()) {
             $this->_joinAttributeData();
         }
+
         return parent::load($printQuery, $logQuery);
     }
 }

@@ -79,7 +79,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Text extends Mage_Adminhtm
             }
         }
         if ($this->getColumn()->getEscapeHtml()) {
-            $textValue = $this->htmlEscape($textValue);
+            $textValue = $this->escapeHtml($textValue);
         }
         if ($this->getColumn()->getNl2br()) {
             $textValue = nl2br($textValue);

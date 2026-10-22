@@ -49,15 +49,15 @@
             <sort_order>30000</sort_order>
         </cms_page>
         
+        <cms_poll model="customgrid/grid_type_cms_poll" module="customgrid">
+            <name>Polls</name>
+            <sort_order>50000</sort_order>
+        </cms_poll>
+        
         <cms_widget model="customgrid/grid_type_cms_widget" module="customgrid">
             <name>CMS Widgets</name>
             <sort_order>40000</sort_order>
         </cms_widget>
-        
-        <poll model="customgrid/grid_type_poll" module="customgrid">
-            <name>Polls</name>
-            <sort_order>50000</sort_order>
-        </poll>
         
         <product model="customgrid/grid_type_product" module="customgrid">
             <name>Products</name>
@@ -77,6 +77,28 @@
                     <allow_customization>1</allow_customization> 
                     <allow_store>1</allow_store>
                 </frontend_link>
+                
+                <images_count model="customgrid/custom_column_product_images" module="customgrid">
+                    <name>Images Number</name>
+                    <description>Displays the number of images held by the media gallery of each product</description>
+                    <group>Images</group>
+                    <allow_customization>1</allow_customization>
+                    <allow_store>1</allow_store>
+                    <config_params>
+                        <display_mode>count</display_mode>
+                    </config_params>
+                </images_count>
+                
+                <multiple_images model="customgrid/custom_column_product_images" module="customgrid">
+                    <name>Multiple Images</name>
+                    <description>Displays whether each product has several images in its media gallery</description>
+                    <group>Images</group>
+                    <allow_customization>1</allow_customization>
+                    <allow_store>1</allow_store>
+                    <config_params>
+                        <display_mode>flag</display_mode>
+                    </config_params>
+                </multiple_images>
                 
                 <carts_count model="customgrid/custom_column_product_stats_quote" module="customgrid">
                     <name>Carts Number</name>
@@ -129,7 +151,6 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>manage_stock</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>boolean</field_type>
                     </config_params>
                 </stock_manage_stock>
@@ -149,7 +170,7 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>min_qty</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
+                        <field_type>decimal</field_type>
                     </config_params>
                 </stock_min_qty>
                 
@@ -159,7 +180,6 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>min_sale_qty</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>decimal</field_type>
                     </config_params>
                 </stock_min_sale_qty>
@@ -170,7 +190,6 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>max_sale_qty</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>decimal</field_type>
                     </config_params>
                 </stock_max_sale_qty>
@@ -190,7 +209,6 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>backorders</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>options</field_type>
                         <source_model>cataloginventory/source_backorders</source_model>
                     </config_params>
@@ -202,7 +220,6 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>notify_stock_qty</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>decimal</field_type>
                     </config_params>
                 </stock_notify_stock_qty>
@@ -213,44 +230,16 @@
                     <allow_customization>1</allow_customization>
                     <config_params>
                         <table_field_name>qty_increments</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
                         <field_type>decimal</field_type>
                     </config_params>
                 </stock_qty_increments>
-                
-                <stock_enable_qty_increments model="customgrid/custom_column_product_inventory" module="customgrid">
-                    <name>Enable Qty Increments</name>
-                    <group>Inventory</group>
-                    <allow_customization>1</allow_customization>
-                    <availability>
-                        <excluded_versions>
-                            <v16>1.6.*</v16>
-                            <v17>1.7.*</v17>
-                            <v18>1.8.*</v18>
-                            <v19>1.9.*</v19>
-                        </excluded_versions>
-                    </availability>
-                    <config_params>
-                        <table_field_name>enable_qty_increments</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
-                        <field_type>boolean</field_type>
-                    </config_params>
-                </stock_enable_qty_increments>
                 
                 <stock_enable_qty_inc model="customgrid/custom_column_product_inventory" module="customgrid">
                     <name>Enable Qty Increments</name>
                     <group>Inventory</group>
                     <allow_customization>1</allow_customization>
-                    <availability>
-                        <excluded_versions>
-                            <v14>1.4.*</v14>
-                            <v15>1.5.*</v15>
-                        </excluded_versions>
-                    </availability>
                     <config_params>
                         <table_field_name>enable_qty_increments</table_field_name>
-                        <is_use_config_field>1</is_use_config_field>
-                        <use_config_field_name>use_config_enable_qty_inc</use_config_field_name>
                         <field_type>boolean</field_type>
                     </config_params>
                 </stock_enable_qty_inc>
@@ -260,12 +249,13 @@
                     <group>Inventory</group>
                     <config_params>
                         <table_field_name>is_in_stock</table_field_name>
-                        <field_type>boolean</field_type>
+                        <field_type>options</field_type>
+                        <source_model>cataloginventory/source_stock</source_model>
                     </config_params>
                 </stock_is_in_stock>
             </custom_columns>
         </product>
-
+        
         <product_attribute model="customgrid/grid_type_product_attributes" module="customgrid">
             <name>Product Attributes</name>
             <sort_order>65000</sort_order>
@@ -299,6 +289,11 @@
             <sort_order>80000</sort_order>
         </customer_group>
         
+        <newsletter model="customgrid/grid_type_newsletter" module="customgrid">
+            <name>Newsletter</name>
+            <sort_order>85000</sort_order>
+        </newsletter>
+        
         <order_view_tab model="customgrid/grid_type_order_tab" module="customgrid">
             <name>Order View Tab</name>
             <sort_order>90000</sort_order>
@@ -313,6 +308,11 @@
             <name>Products Widget Chooser</name>
             <sort_order>110000</sort_order>
         </product_widget_chooser>
+
+        <promo_widget_chooser_sku model="customgrid/grid_type_promo_widget_chooser_sku" module="customgrid">
+            <name>Promo SKU Chooser</name>
+            <sort_order>115000</sort_order>
+        </promo_widget_chooser_sku>
         
         <customer_edit_tab model="customgrid/grid_type_customer_tab" module="customgrid">
             <name>Customer Edit Tab</name>
@@ -348,7 +348,7 @@
             <name>Reviews</name>
             <sort_order>180000</sort_order>
         </product_review>
-
+        
         <product_rating model="customgrid/grid_type_product_rating" module="customgrid">
             <name>Review Ratings</name>
             <sort_order>181000</sort_order>
@@ -469,7 +469,7 @@
             <name>Credit Memos</name>
             <sort_order>230000</sort_order>
         </sales_creditmemo>
-
+        
         <system_store model="customgrid/grid_type_system_store" module="customgrid">
             <name>Manage Stores</name>
             <sort_order>300000</sort_order>
@@ -485,7 +485,12 @@
             </custom_columns>
         </system_store>
         
-        <other model="customgrid/grid_type_other" module="customgrid">
+        <email_template model="customgrid/grid_type_email_template" module="customgrid">
+            <name>Email Templates</name>
+            <sort_order>400000</sort_order>
+        </email_template>
+        
+        <other model="customgrid/grid_type_default" module="customgrid">
             <name>Other</name>
             <sort_order>1000000000</sort_order>
         </other>

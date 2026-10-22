@@ -1,64 +1,47 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_System
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_System
  */
 
 /**
  * Class to work with remote FTP server
  *
- * @category    Mage
- * @package     Mage_System
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_System
  */
 class Mage_System_Ftp
 {
-
     /**
      * Connection object
      *
-     * @var resource
+     * @var false|FTP\Connection
      */
     protected $_conn = false;
 
     /**
      * Check connected, throw exception if not
      *
-     * @throws Exception
      * @return void
+     * @throws Exception
      */
     protected function checkConnected()
     {
-        if(!$this->_conn) {
-            throw new Exception(__CLASS__." - no connection established with server");
+        if (!$this->_conn) {
+            throw new Exception(self::class . ' - no connection established with server');
         }
     }
 
     /**
      * ftp_mkdir wrapper
      *
-     * @param stin$name
-     * @return unknown_type
+     * @param  string $name
+     * @return string
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function mdkir($name)
     {
@@ -69,65 +52,80 @@ class Mage_System_Ftp
     /**
      * Make dir recursive
      *
-     * @param string $path
-     * @param int $mode
+     * @param  string $path
+     * @param  int    $mode
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function mkdirRecursive($path, $mode = 0777)
     {
         $this->checkConnected();
-        $dir = explode("/", $path);
-        $path= "";
+        $dir = explode('/', $path);
+        $path = '';
         $ret = true;
-        for ($i=0; $i < count($dir); $i++) {
-            $path .= "/" .$dir[$i];
-            if(!@ftp_chdir($this->_conn, $path)) {
-                @ftp_chdir($this->_conn,"/");
-                if(!@ftp_mkdir($this->_conn,$path)) {
-                    $ret=false;
+        $counter = count($dir);
+        for ($index = 0; $index < $counter; $index++) {
+            $path .= '/' . $dir[$index];
+            if (!@ftp_chdir($this->_conn, $path)) {
+                @ftp_chdir($this->_conn, '/');
+                if (!@ftp_mkdir($this->_conn, $path)) {
+                    $ret = false;
                     break;
                 } else {
                     @ftp_chmod($this->_conn, $mode, $path);
                 }
             }
         }
+
         return $ret;
     }
 
     /**
      * Try to login to server
-     * 
-     * @param string $login
-     * @param string $password
-     * @throws Exception on invalid login credentials
+     *
+     * @param  string    $login
+     * @param  string    $password
      * @return bool
+     * @throws Exception on invalid login credentials
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
-    public function login($login = "anonymous", $password = "test@gmail.com")
+    public function login($login = 'anonymous', $password = 'test@gmail.com')
     {
+        $login = new Mage_Core_Model_Security_Obfuscated($login);
+        $password = new Mage_Core_Model_Security_Obfuscated($password);
+
         $this->checkConnected();
         $res = @ftp_login($this->_conn, $login, $password);
-        if(!$res) {
-            throw new Exception("Invalid login credentials");
+        if (!$res) {
+            throw new Exception('Invalid login credentials');
         }
+
         return $res;
     }
 
     /**
      * Validate connection string
-     * 
-     * @param string $string
+     *
+     * @param  string    $string
+     * @return array
      * @throws Exception
-     * @return string
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
     public function validateConnectionString($string)
     {
         $data = @parse_url($string);
-        if(false === $data) {
+        if (false === $data) {
             throw new Exception("Connection string invalid: '{$string}'");
         }
-        if($data['scheme'] != 'ftp') {
+
+        if ($data['scheme'] != 'ftp') {
             throw new Exception("Support for scheme unsupported: '{$data['scheme']}'");
         }
+
         return $data;
     }
 
@@ -136,39 +134,43 @@ class Mage_System_Ftp
      * Connection string: ftp://user:pass@server:port/path
      * user,pass,port,path are optional parts
      *
-     * @param string $string
-     * @param int $timeout
+     * @param  string    $string
+     * @param  int       $timeout
+     * @throws Exception
      */
     public function connect($string, $timeout = 900)
     {
         $params = $this->validateConnectionString($string);
-        $port = isset($params['port']) ? intval($params['port']) : 21;
+        $port = isset($params['port']) ? (int) $params['port'] : 21;
 
         $this->_conn = ftp_connect($params['host'], $port, $timeout);
 
-        if(!$this->_conn) {
+        if (!$this->_conn) {
             throw new Exception("Cannot connect to host: {$params['host']}");
         }
-        if(isset($params['user']) && isset($params['pass'])) {
+
+        if (isset($params['user']) && isset($params['pass'])) {
             $this->login($params['user'], $params['pass']);
         } else {
             $this->login();
         }
-        if(isset($params['path'])) {
-            if(!$this->chdir($params['path'])) {
-                throw new Exception ("Cannot chdir after login to: {$params['path']}");
-            }
+
+        if (isset($params['path']) && !$this->chdir($params['path'])) {
+            throw new Exception("Cannot chdir after login to: {$params['path']}");
         }
     }
 
     /**
      * ftp_fput wrapper
      *
-     * @param string $remoteFile
-     * @param resource $handle
-     * @param int $mode  FTP_BINARY | FTP_ASCII
-     * @param int $startPos
+     * @param  string   $remoteFile
+     * @param  resource $handle
+     * @param  int      $mode       FTP_BINARY | FTP_ASCII
+     * @param  int      $startPos
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function fput($remoteFile, $handle, $mode = FTP_BINARY, $startPos = 0)
     {
@@ -178,12 +180,13 @@ class Mage_System_Ftp
 
     /**
      * ftp_put wrapper
-     * 
-     * @param string $remoteFile
-     * @param string $localFile
-     * @param int $mode FTP_BINARY | FTP_ASCII
-     * @param int $startPos
+     *
+     * @param  string    $remoteFile
+     * @param  string    $localFile
+     * @param  1|2       $mode       FTP_BINARY|FTP_ASCII
+     * @param  int       $startPos
      * @return bool
+     * @throws Exception
      */
     public function put($remoteFile, $localFile, $mode = FTP_BINARY, $startPos = 0)
     {
@@ -193,31 +196,38 @@ class Mage_System_Ftp
 
     /**
      * Get current working directory
-     * 
-     * @return mixed
+     *
+     * @return false|string
+     * @throws Exception
      */
     public function getcwd()
     {
-        $d = $this->raw("pwd");
-        $data = explode(" ", $d[0], 3);
-        if(empty($data[1])) {
+        $raw = $this->raw('pwd');
+        $data = explode(' ', $raw[0], 3);
+        if (empty($data[1])) {
             return false;
         }
-        if(intval($data[0]) != 257) {
+
+        if ((int) $data[0] != 257) {
             return false;
         }
+
         $out = trim($data[1], '"');
-        if($out !== "/") {
-            $out = rtrim($out, "/");
+        if ($out !== '/') {
+            return rtrim($out, '/');
         }
+
         return $out;
     }
 
     /**
      * ftp_raw wrapper
-     * 
-     * @param string $cmd
-     * @return mixed
+     *
+     * @param  string     $cmd
+     * @return null|array
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function raw($cmd)
     {
@@ -228,56 +238,62 @@ class Mage_System_Ftp
     /**
      * Upload local file to remote
      *
-     * Can be used for relative and absoulte remote paths
+     * Can be used for relative and absolute remote paths
      * Relative: use chdir before calling this
      *
-     * @param srting $remote
-     * @param string $local
-     * @param int $dirMode
-     * @param int $ftpMode
-     * @return unknown_type
+     * @param  string    $remote
+     * @param  string    $local
+     * @param  int       $dirMode
+     * @param  1|2       $ftpMode
+     * @return bool
+     * @throws Exception
      */
     public function upload($remote, $local, $dirMode = 0777, $ftpMode = FTP_BINARY)
     {
         $this->checkConnected();
 
-        if(!file_exists($local)) {
-            throw new Exception("Local file doesn't exist: {$localFile}");
-        }
-        if(!is_readable($local)) {
-            throw new Exception("Local file is not readable: {$localFile}");
-        }
-        if(is_dir($local)) {
-            throw new Exception("Directory given instead of file: {$localFile}");
+        if (!file_exists($local)) {
+            throw new Exception("Local file doesn't exist: {$local}");
         }
 
-        $globalPathMode = substr($remote, 0, 1) == "/";
+        if (!is_readable($local)) {
+            throw new Exception("Local file is not readable: {$local}");
+        }
+
+        if (is_dir($local)) {
+            throw new Exception("Directory given instead of file: {$local}");
+        }
+
+        $globalPathMode = str_starts_with($remote, '/');
         $dirname = dirname($remote);
         $cwd = $this->getcwd();
-        if(false === $cwd) {
-            throw new Exception("Server returns something awful on PWD command");
+        if (false === $cwd) {
+            throw new Exception('Server returns something awful on PWD command');
         }
 
-        if(!$globalPathMode) {
-            $dirname = $cwd."/".$dirname;
-            $remote = $cwd."/".$remote;
+        if (!$globalPathMode) {
+            $dirname = $cwd . '/' . $dirname;
+            $remote = $cwd . '/' . $remote;
         }
+
         $res = $this->mkdirRecursive($dirname, $dirMode);
         $this->chdir($cwd);
 
-        if(!$res) {
+        if (!$res) {
             return false;
         }
+
         return $this->put($remote, $local, $ftpMode);
     }
 
     /**
      * Download remote file to local machine
-     * 
-     * @param string $remote
-     * @param string $local
-     * @param int $ftpMode  FTP_BINARY|FTP_ASCII
+     *
+     * @param  string    $remote
+     * @param  string    $local
+     * @param  1|2       $ftpMode FTP_BINARY|FTP_ASCII
      * @return bool
+     * @throws Exception
      */
     public function download($remote, $local, $ftpMode = FTP_BINARY)
     {
@@ -287,9 +303,12 @@ class Mage_System_Ftp
 
     /**
      * ftp_pasv wrapper
-     * 
-     * @param bool $pasv
+     *
+     * @param  bool $pasv
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function pasv($pasv)
     {
@@ -299,22 +318,27 @@ class Mage_System_Ftp
 
     /**
      * Close FTP connection
-     * 
+     *
      * @return void
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
     public function close()
     {
-        if($this->_conn) {
+        if ($this->_conn) {
             @ftp_close($this->_conn);
         }
     }
 
     /**
      * ftp_chmod wrapper
-     * 
-     * @param $mode
-     * @param $remoteFile
+     *
+     * @param       $mode
+     * @param       $remoteFile
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function chmod($mode, $remoteFile)
     {
@@ -324,9 +348,12 @@ class Mage_System_Ftp
 
     /**
      * ftp_chdir wrapper
-     * 
-     * @param string $dir
+     *
+     * @param  string $dir
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function chdir($dir)
     {
@@ -336,8 +363,11 @@ class Mage_System_Ftp
 
     /**
      * ftp_cdup wrapper
-     * 
+     *
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function cdup()
     {
@@ -347,12 +377,15 @@ class Mage_System_Ftp
 
     /**
      * ftp_get wrapper
-     * 
-     * @param string $localFile
-     * @param string $remoteFile
-     * @param int $fileMode         FTP_BINARY | FTP_ASCII
-     * @param int $resumeOffset
+     *
+     * @param  string $localFile
+     * @param  string $remoteFile
+     * @param  1|2    $fileMode     FTP_BINARY|FTP_ASCII
+     * @param  int    $resumeOffset
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function get($localFile, $remoteFile, $fileMode = FTP_BINARY, $resumeOffset = 0)
     {
@@ -363,11 +396,14 @@ class Mage_System_Ftp
 
     /**
      * ftp_nlist wrapper
-     * 
-     * @param string $dir
+     *
+     * @param  string $dir
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
-    public function nlist($dir = "/")
+    public function nlist($dir = '/')
     {
         $this->checkConnected();
         $dir = $this->correctFilePath($dir);
@@ -376,12 +412,15 @@ class Mage_System_Ftp
 
     /**
      * ftp_rawlist wrapper
-     * 
-     * @param string $dir
-     * @param bool $recursive
-     * @return mixed
+     *
+     * @param  string               $dir
+     * @param  bool                 $recursive
+     * @return array|false|string[]
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
-    public function rawlist( $dir = "/", $recursive = false )
+    public function rawlist($dir = '/', $recursive = false)
     {
         $this->checkConnected();
         $dir = $this->correctFilePath($dir);
@@ -390,26 +429,26 @@ class Mage_System_Ftp
 
     /**
      * Convert byte count to float KB/MB format
-     * 
-     * @param int $bytes
+     *
+     * @param  int    $bytes
      * @return string
      */
     public static function byteconvert($bytes)
     {
-        $symbol = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
-        $exp = floor( log($bytes) / log(1024) );
-        return sprintf( '%.2f ' . $symbol[ $exp ], ($bytes / pow(1024, floor($exp))) );
+        $symbol = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        $exp = floor(log($bytes) / log(1024));
+        return sprintf('%.2f ' . $symbol[(string) $exp], ($bytes / 1024 ** floor($exp)));
     }
 
     /**
      * Chmod string "-rwxrwxrwx" to "777" converter
-     * 
-     * @param string $chmod
+     *
+     * @param  string $chmod
      * @return string
      */
     public static function chmodnum($chmod)
     {
-        $trans = array('-' => '0', 'r' => '4', 'w' => '2', 'x' => '1');
+        $trans = ['-' => '0', 'r' => '4', 'w' => '2', 'x' => '1'];
         $chmod = substr(strtr($chmod, $trans), 1);
         $array = str_split($chmod, 3);
         return array_sum(str_split($array[0])) . array_sum(str_split($array[1])) . array_sum(str_split($array[2]));
@@ -418,87 +457,94 @@ class Mage_System_Ftp
     /**
      * Check whether file exists
      *
-     * @param string $path
-     * @param bool $excludeIfIsDir
+     * @param  string    $path
+     * @param  bool      $excludeIfIsDir
      * @return bool
+     * @throws Exception
      */
     public function fileExists($path, $excludeIfIsDir = true)
     {
         $path = $this->correctFilePath($path);
-        $globalPathMode = substr($path, 0, 1) == "/";
+        $globalPathMode = str_starts_with($path, '/');
 
         $file = basename($path);
-        $dir = $globalPathMode ? dirname($path) : $this->getcwd()."/".$path;
+        $dir = $globalPathMode ? dirname($path) : $this->getcwd() . '/' . $path;
         $data = $this->ls($dir);
-        foreach($data as $row) {
-            if($file == $row['name']) {
-                if($excludeIfIsDir && $row['dir']) {
+        foreach ($data as $row) {
+            if ($file == $row['name']) {
+                if ($excludeIfIsDir && $row['dir']) {
                     continue;
                 }
+
                 return true;
             }
         }
+
         return false;
     }
 
     /**
      * Get directory contents in PHP array
-     * 
-     * @param string $dir
-     * @param bool $recursive
-     * @return array
+     *
+     * @param  string               $dir
+     * @param  bool                 $recursive
+     * @return array<string, mixed>
+     * @throws Exception
      */
-    public function ls($dir = "/", $recursive = false)
+    public function ls($dir = '/', $recursive = false)
     {
-        $dir= $this->correctFilePath($dir);
+        $dir = $this->correctFilePath($dir);
         $rawfiles = (array) $this->rawlist($dir, $recursive);
-        $structure = array();
+        $structure = [];
         $arraypointer = &$structure;
         foreach ($rawfiles as $rawfile) {
             if ($rawfile[0] == '/') {
                 $paths = array_slice(explode('/', str_replace(':', '', $rawfile)), 1);
                 $arraypointer = &$structure;
                 foreach ($paths as $path) {
-                    foreach ($arraypointer as $i => $file) {
+                    foreach ($arraypointer as $index => $file) {
                         if ($file['name'] == $path) {
-                            $arraypointer = &$arraypointer[ $i ]['children'];
+                            $arraypointer = &$arraypointer[$index]['children'];
                             break;
                         }
                     }
                 }
-            } elseif(!empty($rawfile)) {
+            } elseif (!empty($rawfile)) {
                 $info = preg_split("/[\s]+/", $rawfile, 9);
-                $arraypointer[] = array(
-                    'name'   => $info[8],
-                    'dir'  => $info[0]{0} == 'd',
-                    'size'   => (int) $info[4],
-                    'chmod'  => self::chmodnum($info[0]),
-                    'rawdata' => $info,
-                    'raw'     => $rawfile
-                );
+                $arraypointer[] = [
+                    'name'      => $info[8],
+                    'dir'       => $info[0][0] == 'd',
+                    'size'      => (int) $info[4],
+                    'chmod'     => self::chmodnum($info[0]),
+                    'rawdata'   => $info,
+                    'raw'       => $rawfile,
+                ];
             }
         }
+
         return $structure;
     }
 
     /**
      * Correct file path
-     * 
-     * @param string $str
+     *
+     * @param  string $str
      * @return string
      */
     public function correctFilePath($str)
     {
-        $str = str_replace("\\", "/", $str);
-        $str = preg_replace("/^.\//", "", $str);
-        return $str;
+        $str = str_replace('\\', '/', $str);
+        return preg_replace("/^.\//", '', $str);
     }
 
     /**
      * Delete file
      *
-     * @param string $file
+     * @param  string $file
      * @return bool
+     *
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
+     * @throws Exception
      */
     public function delete($file)
     {

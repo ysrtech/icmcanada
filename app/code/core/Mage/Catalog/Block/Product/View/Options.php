@@ -1,42 +1,25 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Product options block
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
 {
+    /**
+     * @var Mage_Catalog_Model_Product
+     */
     protected $_product;
 
-    protected $_optionRenders = array();
+    protected $_optionRenders = [];
 
     public function __construct()
     {
@@ -44,7 +27,7 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
         $this->addOptionRenderer(
             'default',
             'catalog/product_view_options_type_default',
-            'catalog/product/view/options/type/default.phtml'
+            'catalog/product/view/options/type/default.phtml',
         );
     }
 
@@ -62,16 +45,16 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
                 $this->_product = Mage::getSingleton('catalog/product');
             }
         }
+
         return $this->_product;
     }
 
     /**
      * Set product object
      *
-     * @param Mage_Catalog_Model_Product $product
-     * @return Mage_Catalog_Block_Product_View_Options
+     * @return $this
      */
-    public function setProduct(Mage_Catalog_Model_Product $product = null)
+    public function setProduct(?Mage_Catalog_Model_Product $product = null)
     {
         $this->_product = $product;
         return $this;
@@ -80,36 +63,36 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
     /**
      * Add option renderer to renderers array
      *
-     * @param string $type
-     * @param string $block
-     * @param string $template
-     * @return Mage_Catalog_Block_Product_View_Options
+     * @param  string $type
+     * @param  string $block
+     * @param  string $template
+     * @return $this
      */
     public function addOptionRenderer($type, $block, $template)
     {
-        $this->_optionRenders[$type] = array(
+        $this->_optionRenders[$type] = [
             'block' => $block,
             'template' => $template,
-            'renderer' => null
-        );
+            'renderer' => null,
+        ];
         return $this;
     }
 
     /**
      * Get option render by given type
      *
-     * @param string $type
+     * @param  string $type
      * @return array
      */
     public function getOptionRender($type)
     {
-        if (isset($this->_optionRenders[$type])) {
-            return $this->_optionRenders[$type];
-        }
-
-        return $this->_optionRenders['default'];
+        return $this->_optionRenders[$type] ?? $this->_optionRenders['default'];
     }
 
+    /**
+     * @param  string $type
+     * @return string
+     */
     public function getGroupOfOption($type)
     {
         $group = Mage::getSingleton('catalog/product_option')->getGroupByType($type);
@@ -127,30 +110,33 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
         return $this->getProduct()->getOptions();
     }
 
+    /**
+     * @return bool
+     */
     public function hasOptions()
     {
-        if ($this->getOptions()) {
-            return true;
-        }
-        return false;
+        return (bool) $this->getOptions();
     }
 
     /**
      * Get price configuration
      *
-     * @param Mage_Catalog_Model_Product_Option_Value|Mage_Catalog_Model_Product_Option $option
-     * @return array
+     * @param  Mage_Catalog_Model_Product_Option|Mage_Catalog_Model_Product_Option_Value $option
+     * @return array<string, mixed>
+     * @throws Mage_Core_Model_Store_Exception
      */
     protected function _getPriceConfiguration($option)
     {
-        $data = array();
-        $data['price']      = Mage::helper('core')->currency($option->getPrice(true), false, false);
-        $data['oldPrice']   = Mage::helper('core')->currency($option->getPrice(false), false, false);
-        $data['priceValue'] = $option->getPrice(false);
-        $data['type']       = $option->getPriceType();
-        $data['excludeTax'] = $price = Mage::helper('tax')->getPrice($option->getProduct(), $data['price'], false);
-        $data['includeTax'] = $price = Mage::helper('tax')->getPrice($option->getProduct(), $data['price'], true);
-        return $data;
+        $price = Mage::helper('core')::currency($option->getPrice(true), false, false);
+
+        return [
+            'price' => $price,
+            'oldPrice' => Mage::helper('core')::currency($option->getPrice(false), false, false),
+            'priceValue' => $option->getPrice(false),
+            'type' => $option->getPriceType(),
+            'excludeTax' => Mage::helper('tax')->getPrice($option->getProduct(), $price, false),
+            'includeTax' => Mage::helper('tax')->getPrice($option->getProduct(), $price, true),
+        ];
     }
 
     /**
@@ -160,22 +146,23 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
      */
     public function getJsonConfig()
     {
-        $config = array();
+        $config = [];
 
         foreach ($this->getOptions() as $option) {
-            /* @var $option Mage_Catalog_Model_Product_Option */
+            /** @var Mage_Catalog_Model_Product_Option $option */
             $priceValue = 0;
             if ($option->getGroupByType() == Mage_Catalog_Model_Product_Option::OPTION_GROUP_SELECT) {
-                $_tmpPriceValues = array();
+                $_tmpPriceValues = [];
                 foreach ($option->getValues() as $value) {
-                    /* @var $value Mage_Catalog_Model_Product_Option_Value */
                     $id = $value->getId();
                     $_tmpPriceValues[$id] = $this->_getPriceConfiguration($value);
                 }
+
                 $priceValue = $_tmpPriceValues;
             } else {
                 $priceValue = $this->_getPriceConfiguration($option);
             }
+
             $config[$option->getId()] = $priceValue;
         }
 
@@ -185,17 +172,18 @@ class Mage_Catalog_Block_Product_View_Options extends Mage_Core_Block_Template
     /**
      * Get option html block
      *
-     * @param Mage_Catalog_Model_Product_Option $option
+     * @return string
      */
     public function getOptionHtml(Mage_Catalog_Model_Product_Option $option)
     {
         $renderer = $this->getOptionRender(
-            $this->getGroupOfOption($option->getType())
+            $this->getGroupOfOption($option->getType()),
         );
         if (is_null($renderer['renderer'])) {
             $renderer['renderer'] = $this->getLayout()->createBlock($renderer['block'])
                 ->setTemplate($renderer['template']);
         }
+
         return $renderer['renderer']
             ->setProduct($this->getProduct())
             ->setOption($option)

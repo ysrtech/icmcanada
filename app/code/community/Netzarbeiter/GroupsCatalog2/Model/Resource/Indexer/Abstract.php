@@ -239,7 +239,7 @@ abstract class Netzarbeiter_GroupsCatalog2_Model_Resource_Indexer_Abstract exten
      * @param array $limitToGroupIds Only add the specified group ids to the index
      * @return void
      */
-    protected function _reindexEntity($event = null, array $limitToGroupIds = null)
+    protected function _reindexEntity($event = null, ?array $limitToGroupIds = null)
     {
         Varien_Profiler::start($this->_getProfilerName() . '::reindexEntity');
         
@@ -284,7 +284,7 @@ abstract class Netzarbeiter_GroupsCatalog2_Model_Resource_Indexer_Abstract exten
      * @param array $groupIds
      */
     protected function _clearRecordsForReindex(
-        array $entityIds = null, array $groupIds = null
+        ?array $entityIds = null, ?array $groupIds = null
     ) {
         if (is_null($entityIds) && is_null($groupIds)) {
             $this->_getWriteAdapter()->truncateTable($this->_getIndexTable());
@@ -307,7 +307,7 @@ abstract class Netzarbeiter_GroupsCatalog2_Model_Resource_Indexer_Abstract exten
      * @param array $limitToGroupIds Only add records for these group ids
      * @return void
      */
-    protected function _insertIndexRecords(Zend_Db_Statement $stmt, array $limitToGroupIds = null)
+    protected function _insertIndexRecords(Zend_Db_Statement $stmt, ?array $limitToGroupIds = null)
     {
         Varien_Profiler::start($this->_getProfilerName() . '::reindexEntity::insert');
         $entityId = null;
@@ -503,7 +503,7 @@ abstract class Netzarbeiter_GroupsCatalog2_Model_Resource_Indexer_Abstract exten
      * @return void
      */
     protected function _addMissingStoreRecords(
-        array &$data, $entityId, $entityDefaultGroupsWithoutMode, array $storesHandled, array $limitToGroupIds = null
+        array &$data, $entityId, $entityDefaultGroupsWithoutMode, array $storesHandled, ?array $limitToGroupIds = null
     )
     {
         foreach (array_diff($this->_frontendStoreIds, $storesHandled) as $storeId) {

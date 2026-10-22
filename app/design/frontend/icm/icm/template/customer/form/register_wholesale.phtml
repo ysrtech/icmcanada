@@ -52,13 +52,13 @@
                     <div class="field">
                         <label for="email_address" class="required"><em>*</em><?php echo $this->__('Email Address') ?></label>
                         <div class="input-box">
-                            <input type="text" name="email" id="email_address" value="<?php echo $this->htmlEscape($this->getFormData()->getEmail()) ?>" title="<?php echo $this->__('Email Address') ?>" class="input-text validate-email required-entry" />
+                            <input type="text" name="email" id="email_address" value="<?php echo $this->escapeHtml($this->getFormData()->getEmail()) ?>" title="<?php echo $this->__('Email Address') ?>" class="input-text validate-email required-entry" />
                         </div>
                     </div>
                     <div class="field">
                         <label for="company_website"><?php echo $this->__('Website') ?></label>
                         <div class="input-box">
-                            <input type="text" name="company_website" id="company_website" title="<?php echo $this->__('Website') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getcompany_website()) ?>" class="input-text"/>
+                            <input type="text" name="company_website" id="company_website" title="<?php echo $this->__('Website') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getcompany_website()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -66,13 +66,13 @@
                     <div class="field">
                         <label for="business_name" class="required"><em>*</em><?php echo $this->__('Business Name') ?></label>
                         <div class="input-box">
-                            <input type="text" name="business_name" id="business_name" value="<?php echo $this->htmlEscape($this->getFormData()->getbusiness_name()) ?>" title="<?php echo $this->__('Business Name') ?>" class="input-text" />
+                            <input type="text" name="business_name" id="business_name" value="<?php echo $this->escapeHtml($this->getFormData()->getbusiness_name()) ?>" title="<?php echo $this->__('Business Name') ?>" class="input-text" />
                         </div>
                     </div>
                     <div class="field">
                         <label for="principals_name"><?php echo $this->__("Principals' Name") ?></label>
                         <div class="input-box">
-                            <input type="text" name="principals_name" id="company_website" title="<?php echo $this->__("Principals' Name") ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getprincipals_name()) ?>" class="input-text"/>
+                            <input type="text" name="principals_name" id="company_website" title="<?php echo $this->__("Principals' Name") ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getprincipals_name()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -80,13 +80,13 @@
                     <div class="field">
                         <label for="years_operation"><?php echo $this->__('# of years in operation') ?></label>
                         <div class="input-box">
-                            <input type="text" name="years_operation" id="years_operation" value="<?php echo $this->htmlEscape($this->getFormData()->getyears_operation()) ?>" title="<?php echo $this->__('# of years in operation') ?>" class="input-text" />
+                            <input type="text" name="years_operation" id="years_operation" value="<?php echo $this->escapeHtml($this->getFormData()->getyears_operation()) ?>" title="<?php echo $this->__('# of years in operation') ?>" class="input-text" />
                         </div>
                     </div>
                     <div class="field">
                         <label for="store_locations"><?php echo $this->__("# of store locations (if applicable)") ?></label>
                         <div class="input-box">
-                            <input type="text" name="store_locations" id="store_locations" title="<?php echo $this->__("# of store locations (if applicable)") ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getstore_locations()) ?>" class="input-text"/>
+                            <input type="text" name="store_locations" id="store_locations" title="<?php echo $this->__("# of store locations (if applicable)") ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getstore_locations()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -100,26 +100,26 @@
                     <div class="field">
                         <label for="company" class="required"><em>*</em><?php echo $this->__('Company') ?></label>
                         <div class="input-box">
-                            <input type="text" name="company" id="company" value="<?php echo $this->htmlEscape($this->getFormData()->getCompany()) ?>" title="<?php echo $this->__('Company') ?>" class="input-text required-entry" />
+                            <input type="text" name="company" id="company" value="<?php echo $this->escapeHtml($this->getFormData()->getCompany()) ?>" title="<?php echo $this->__('Company') ?>" class="input-text required-entry" />
                         </div>
                     </div>
                     <div class="field">
                         <label for="telephone" class="required"><em>*</em><?php echo $this->__('Telephone') ?></label>
                         <div class="input-box">
-                            <input type="text" name="telephone" id="telephone" value="<?php echo $this->htmlEscape($this->getFormData()->getTelephone()) ?>" title="<?php echo $this->__('Telephone') ?>" class="input-text required-entry" />
+                            <input type="text" name="telephone" id="telephone" value="<?php echo $this->escapeHtml($this->getFormData()->getTelephone()) ?>" title="<?php echo $this->__('Telephone') ?>" class="input-text required-entry" />
                         </div>
                     </div>
                 </li>
                 <li class="wide">
                     <label for="street_1" class="required"><em>*</em><?php echo $this->__('Street Address') ?></label>
                     <div class="input-box">
-                        <input type="text" name="street[]" value="<?php echo $this->htmlEscape($this->getFormData()->getStreet(1)) ?>" title="<?php echo $this->__('Street Address') ?>" id="street_1" class="input-text required-entry" />
+                        <input type="text" name="street[]" value="<?php echo $this->escapeHtml($this->getFormData()->getStreet(1)) ?>" title="<?php echo $this->__('Street Address') ?>" id="street_1" class="input-text required-entry" />
                     </div>
                 </li>
                 <?php for ($_i = 2, $_n = $this->helper('customer/address')->getStreetLines(); $_i <= $_n; $_i++): ?>
                     <li class="wide">
                         <div class="input-box">
-                            <input type="text" name="street[]" value="<?php echo $this->htmlEscape($this->getFormData()->getStreet($_i)) ?>" title="<?php echo $this->__('Street Address %s', $_i) ?>" id="street_<?php echo $_i ?>" class="input-text" />
+                            <input type="text" name="street[]" value="<?php echo $this->escapeHtml($this->getFormData()->getStreet($_i)) ?>" title="<?php echo $this->__('Street Address %s', $_i) ?>" id="street_<?php echo $_i ?>" class="input-text" />
                         </div>
                     </li>
                 <?php endfor ?>
@@ -127,7 +127,7 @@
                     <div class="field">
                         <label for="city" class="required"><em>*</em><?php echo $this->__('City') ?></label>
                         <div class="input-box">
-                            <input type="text" name="city" value="<?php echo $this->htmlEscape($this->getFormData()->getCity()) ?>" title="<?php echo $this->__('City') ?>" class="input-text required-entry" id="city" />
+                            <input type="text" name="city" value="<?php echo $this->escapeHtml($this->getFormData()->getCity()) ?>" title="<?php echo $this->__('City') ?>" class="input-text required-entry" id="city" />
                         </div>
                     </div>
                     <div class="field">
@@ -141,7 +141,7 @@
                                 $('region_id').setAttribute('defaultValue', "<?php echo $this->getFormData()->getRegionId() ?>");
                                 //]]>
                             </script>
-                            <input type="text" id="region" name="region" value="<?php echo $this->htmlEscape($this->getRegion()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" style="display:none;" />
+                            <input type="text" id="region" name="region" value="<?php echo $this->escapeHtml($this->getRegion()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" style="display:none;" />
                         </div>
                     </div>
                 </li>
@@ -149,7 +149,7 @@
                     <div class="field">
                         <label for="zip" class="required"><em>*</em><?php echo $this->__('Zip/Postal Code') ?></label>
                         <div class="input-box">
-                            <input type="text" name="postcode" value="<?php echo $this->htmlEscape($this->getFormData()->getPostcode()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="zip" class="input-text validate-zip-international required-entry" />
+                            <input type="text" name="postcode" value="<?php echo $this->escapeHtml($this->getFormData()->getPostcode()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="zip" class="input-text validate-zip-international required-entry" />
                         </div>
                     </div>
                     <div class="field">
@@ -211,13 +211,13 @@
                     <div class="field">
                         <label for="payment_credit"><?php echo $this->__('How much credit do you require?') ?></label>
                         <div class="input-box">
-                            <input type="text" name="payment_credit" id="payment_credit" value="<?php echo $this->htmlEscape($this->getFormData()->getpayment_credit()) ?>" title="<?php echo $this->__('How much credit do you require?') ?>" class="input-text" />
+                            <input type="text" name="payment_credit" id="payment_credit" value="<?php echo $this->escapeHtml($this->getFormData()->getpayment_credit()) ?>" title="<?php echo $this->__('How much credit do you require?') ?>" class="input-text" />
                         </div>
                     </div>
                     <div class="field">
                         <label for="payment_estimate"><?php echo $this->__('Estimated monthly purchases') ?></label>
                         <div class="input-box">
-                            <input type="text" name="payment_estimate" id="payment_estimate" title="<?php echo $this->__('Estimated monthly purchases') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getpayment_estimate()) ?>" class="input-text"/>
+                            <input type="text" name="payment_estimate" id="payment_estimate" title="<?php echo $this->__('Estimated monthly purchases') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getpayment_estimate()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -285,7 +285,7 @@
                     <div class="field two-thirds">
                         <label for="payment_estimate"><?php echo $this->__('Appointment contact name & phone') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ship_appointment_contact" id="ship_appointment_contact" title="<?php echo $this->__('Appointment contact name & phone') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getship_appointment_contact()) ?>" class="input-text"/>
+                            <input type="text" name="ship_appointment_contact" id="ship_appointment_contact" title="<?php echo $this->__('Appointment contact name & phone') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getship_appointment_contact()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -300,7 +300,7 @@
                     <div class="field two-thirds">
                         <label for="payment_estimate"><?php echo $this->__('Carrier name & account #') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ship_carrier_details" id="ship_carrier_details" title="<?php echo $this->__('Carrier name & account #') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getship_carrier_details()) ?>" class="input-text"/>
+                            <input type="text" name="ship_carrier_details" id="ship_carrier_details" title="<?php echo $this->__('Carrier name & account #') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getship_carrier_details()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -315,7 +315,7 @@
                     <div class="field two-thirds">
                         <label for="payment_estimate"><?php echo $this->__('Routing details') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ship_routing_details" id="ship_routing_details" title="<?php echo $this->__('Routing details') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getship_routing_details()) ?>" class="input-text"/>
+                            <input type="text" name="ship_routing_details" id="ship_routing_details" title="<?php echo $this->__('Routing details') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getship_routing_details()) ?>" class="input-text"/>
                         </div>
                     </div>
                 </li>
@@ -358,7 +358,7 @@
                                 <input type="radio" title="Interior Design" name="info_nature" id="info_nature" value="26" class="radio" /><label for="info_nature"><?php echo $this->__('Interior Design') ?></label>
                             </li><li class="control">
                                 <input type="radio" title="Other" name="info_nature" id="info_nature" value="27" class="radio" /><label for="info_nature"><?php echo $this->__('Other') ?></label>
-                                <input type="text" name="info_nature_other" id="info_nature_other" value="<?php echo $this->htmlEscape($this->getFormData()->getinfo_nature_other()) ?>" title="<?php echo $this->__('Other') ?>" class="input-text" />
+                                <input type="text" name="info_nature_other" id="info_nature_other" value="<?php echo $this->escapeHtml($this->getFormData()->getinfo_nature_other()) ?>" title="<?php echo $this->__('Other') ?>" class="input-text" />
                             </li>
                         </ul>
                     </div>
@@ -376,27 +376,27 @@
                     <li class="wide">
                         <label for="ref_one_name"><?php echo $this->__('Company Name') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_one_name" id="ref_one_name" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
+                            <input type="text" name="ref_one_name" id="ref_one_name" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
                         </div>
 
                     </li>
                     <li class="wide">
                         <label for="ref_one_address"><?php echo $this->__('Street Address') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_one_address" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_one_address" class="input-text" />
+                            <input type="text" name="ref_one_address" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_one_address" class="input-text" />
                         </div>
                     </li>
                     <li class="fields">
                         <div class="field">
                             <label for="ref_one_city"><?php echo $this->__('City') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_city" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_one_city" />
+                                <input type="text" name="ref_one_city" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_one_city" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_one_province"><?php echo $this->__('State/Province') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_province" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_one_province" />
+                                <input type="text" name="ref_one_province" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_one_province" />
                             </div>
                         </div>
                     </li>
@@ -404,13 +404,13 @@
                         <div class="field">
                             <label for="ref_one_postal"><?php echo $this->__('Zip/Postal Code') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_postal" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_one_postal" class="input-text validate-zip-international" />
+                                <input type="text" name="ref_one_postal" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_one_postal" class="input-text validate-zip-international" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_one_phone"><?php echo $this->__('Phone') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_phone" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_one_phone" class="input-text" />
+                                <input type="text" name="ref_one_phone" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_one_phone" class="input-text" />
                             </div>
                         </div>
                     </li>
@@ -418,14 +418,14 @@
                         <div class="field">
                             <label for="ref_one_fax" ><?php echo $this->__('Fax') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_fax" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_one_fax" class="input-text" />
+                                <input type="text" name="ref_one_fax" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_one_fax" class="input-text" />
                             </div>
                         </div>
 
                         <div class="field">
                             <label for="ref_one_account"><?php echo $this->__('Account #') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_one_account" id="ref_one_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getref_one_account()) ?>" class="input-text"/>
+                                <input type="text" name="ref_one_account" id="ref_one_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getref_one_account()) ?>" class="input-text"/>
                             </div>
                         </div>
                     </li>
@@ -438,27 +438,27 @@
                     <li class="wide">
                         <label for="ref_two_name"><?php echo $this->__('Company Name') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_two_name" id="ref_two_name" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
+                            <input type="text" name="ref_two_name" id="ref_two_name" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
                         </div>
 
                     </li>
                     <li class="wide">
                         <label for="ref_two_address"><?php echo $this->__('Street Address') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_two_address" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_two_address" class="input-text" />
+                            <input type="text" name="ref_two_address" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_two_address" class="input-text" />
                         </div>
                     </li>
                     <li class="fields">
                         <div class="field">
                             <label for="ref_two_city"><?php echo $this->__('City') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_city" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_two_city" />
+                                <input type="text" name="ref_two_city" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_two_city" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_two_province"><?php echo $this->__('State/Province') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_province" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_two_province" />
+                                <input type="text" name="ref_two_province" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_two_province" />
                             </div>
                         </div>
                     </li>
@@ -466,13 +466,13 @@
                         <div class="field">
                             <label for="ref_two_postal"><?php echo $this->__('Zip/Postal Code') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_postal" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_two_postal" class="input-text validate-zip-international" />
+                                <input type="text" name="ref_two_postal" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_two_postal" class="input-text validate-zip-international" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_two_phone"><?php echo $this->__('Phone') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_phone" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_two_phone" class="input-text" />
+                                <input type="text" name="ref_two_phone" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_two_phone" class="input-text" />
                             </div>
                         </div>
                     </li>
@@ -480,14 +480,14 @@
                         <div class="field">
                             <label for="ref_two_fax" ><?php echo $this->__('Fax') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_fax" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_two_fax" class="input-text" />
+                                <input type="text" name="ref_two_fax" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_two_fax" class="input-text" />
                             </div>
                         </div>
 
                         <div class="field">
                             <label for="ref_two_account"><?php echo $this->__('Account #') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_two_account" id="ref_two_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getref_two_account()) ?>" class="input-text"/>
+                                <input type="text" name="ref_two_account" id="ref_two_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getref_two_account()) ?>" class="input-text"/>
                             </div>
                         </div>
                     </li>
@@ -500,27 +500,27 @@
                     <li class="wide">
                         <label for="ref_three_name"><?php echo $this->__('Company Name') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_three_name" id="ref_three_name" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
+                            <input type="text" name="ref_three_name" id="ref_three_name" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_name()) ?>" title="<?php echo $this->__('Company Name') ?>" class="input-text" />
                         </div>
 
                     </li>
                     <li class="wide">
                         <label for="ref_three_address"><?php echo $this->__('Street Address') ?></label>
                         <div class="input-box">
-                            <input type="text" name="ref_three_address" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_three_address" class="input-text" />
+                            <input type="text" name="ref_three_address" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_address()) ?>" title="<?php echo $this->__('Street Address') ?>" id="ref_three_address" class="input-text" />
                         </div>
                     </li>
                     <li class="fields">
                         <div class="field">
                             <label for="ref_three_city"><?php echo $this->__('City') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_city" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_three_city" />
+                                <input type="text" name="ref_three_city" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_city()) ?>" title="<?php echo $this->__('City') ?>" class="input-text" id="ref_three_city" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_three_province"><?php echo $this->__('State/Province') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_province" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_three_province" />
+                                <input type="text" name="ref_three_province" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_province()) ?>" title="<?php echo $this->__('State/Province') ?>" class="input-text" id="ref_three_province" />
                             </div>
                         </div>
                     </li>
@@ -528,13 +528,13 @@
                         <div class="field">
                             <label for="ref_three_postal"><?php echo $this->__('Zip/Postal Code') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_postal" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_three_postal" class="input-text validate-zip-international" />
+                                <input type="text" name="ref_three_postal" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_postal()) ?>" title="<?php echo $this->__('Zip/Postal Code') ?>" id="ref_three_postal" class="input-text validate-zip-international" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="ref_three_phone"><?php echo $this->__('Phone') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_phone" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_three_phone" class="input-text" />
+                                <input type="text" name="ref_three_phone" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_phone()) ?>" title="<?php echo $this->__('Phone') ?>" id="ref_three_phone" class="input-text" />
                             </div>
                         </div>
                     </li>
@@ -542,14 +542,14 @@
                         <div class="field">
                             <label for="ref_three_fax" ><?php echo $this->__('Fax') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_fax" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_three_fax" class="input-text" />
+                                <input type="text" name="ref_three_fax" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_fax()) ?>" title="<?php echo $this->__('Fax') ?>" id="ref_three_fax" class="input-text" />
                             </div>
                         </div>
 
                         <div class="field">
                             <label for="ref_three_account"><?php echo $this->__('Account #') ?></label>
                             <div class="input-box">
-                                <input type="text" name="ref_three_account" id="ref_three_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->htmlEscape($this->getFormData()->getref_three_account()) ?>" class="input-text"/>
+                                <input type="text" name="ref_three_account" id="ref_three_account" title="<?php echo $this->__('Account #') ?>" value="<?php echo $this->escapeHtml($this->getFormData()->getref_three_account()) ?>" class="input-text"/>
                             </div>
                         </div>
                     </li>
@@ -564,13 +564,13 @@
                         <div class="field">
                             <label for="bank_name"><?php echo $this->__('Bank Name') ?></label>
                             <div class="input-box">
-                                <input type="text" name="bank_name" value="<?php echo $this->htmlEscape($this->getFormData()->getbank_name()) ?>" title="<?php echo $this->__('Bank Name') ?>" class="input-text" id="bank_name" />
+                                <input type="text" name="bank_name" value="<?php echo $this->escapeHtml($this->getFormData()->getbank_name()) ?>" title="<?php echo $this->__('Bank Name') ?>" class="input-text" id="bank_name" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="bank_account"><?php echo $this->__('Account number') ?></label>
                             <div class="input-box">
-                                <input type="text" name="bank_account" value="<?php echo $this->htmlEscape($this->getFormData()->getbank_account()) ?>" title="<?php echo $this->__('Account number') ?>" class="input-text" id="bank_account" />
+                                <input type="text" name="bank_account" value="<?php echo $this->escapeHtml($this->getFormData()->getbank_account()) ?>" title="<?php echo $this->__('Account number') ?>" class="input-text" id="bank_account" />
                             </div>
                         </div>
                     </li>
@@ -578,13 +578,13 @@
                         <div class="field">
                             <label for="bank_branch"><?php echo $this->__('Branch number') ?></label>
                             <div class="input-box">
-                                <input type="text" name="bank_branch" value="<?php echo $this->htmlEscape($this->getFormData()->getbank_branch()) ?>" title="<?php echo $this->__('Branch number') ?>" id="bank_branch" class="input-text" />
+                                <input type="text" name="bank_branch" value="<?php echo $this->escapeHtml($this->getFormData()->getbank_branch()) ?>" title="<?php echo $this->__('Branch number') ?>" id="bank_branch" class="input-text" />
                             </div>
                         </div>
                         <div class="field">
                             <label for="bank_phone"><?php echo $this->__('Bank phone') ?></label>
                             <div class="input-box">
-                                <input type="text" name="bank_phone" value="<?php echo $this->htmlEscape($this->getFormData()->getbank_phone()) ?>" title="<?php echo $this->__('Bank Phone') ?>" id="bank_phone" class="input-text" />
+                                <input type="text" name="bank_phone" value="<?php echo $this->escapeHtml($this->getFormData()->getbank_phone()) ?>" title="<?php echo $this->__('Bank Phone') ?>" id="bank_phone" class="input-text" />
                             </div>
                         </div>
                     </li>

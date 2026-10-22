@@ -27,8 +27,8 @@
             <frontend_type>text</frontend_type>
             <sort_order>41</sort_order>
             <show_in_default>1</show_in_default>
-            <show_in_website>0</show_in_website>
-            <show_in_store>0</show_in_store>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
             <groups>
                 <attributes translate="label">
                     <label>Attribute Selection</label>
@@ -48,6 +48,24 @@
                         </selectedattributes>
                     </fields>
                 </attributes>
+
+                <url_labels translate="label">
+                    <label>Attribute URL Labels (per Store View)</label>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <mapping translate="label comment">
+                            <label>Attribute URL Label Mapping</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>One mapping per line: attribute_code=url_prefix (e.g. brand=merk). Leave empty to use the attribute code as-is. Store-view scope overrides the default.</comment>
+                        </mapping>
+                    </fields>
+                </url_labels>
             </groups>
         </dc_catalog>
     </sections>

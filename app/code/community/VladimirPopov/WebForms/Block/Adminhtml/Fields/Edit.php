@@ -41,9 +41,9 @@ class VladimirPopov_WebForms_Block_Adminhtml_Fields_Edit
 	
 	public function getHeaderText(){
 		if( Mage::registry('fields_data') && Mage::registry('fields_data')->getId() ) {
-			return Mage::helper('webforms')->__("Edit '%s' Field - %s", $this->htmlEscape(Mage::registry('fields_data')->getName()), $this->htmlEscape($this->htmlEscape(Mage::registry('webforms_data')->getName())));
+			return Mage::helper('webforms')->__("Edit '%s' Field - %s", $this->escapeHtml(Mage::registry('fields_data')->getName()), $this->escapeHtml($this->escapeHtml(Mage::registry('webforms_data')->getName())));
 		} else {
-			return Mage::helper('webforms')->__('Add Field - %s',$this->htmlEscape(Mage::registry('webforms_data')->getName()));
+			return Mage::helper('webforms')->__('Add Field - %s',$this->escapeHtml(Mage::registry('webforms_data')->getName()));
 		}
 	}
 

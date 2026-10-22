@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogSearch
+ */
 
 /**
  * Advanced Catalog Search resource model
  *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_CatalogSearch
  */
 class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Initialize connection and define catalog product table as main table
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -47,22 +26,22 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
      * Prepare response object and dispatch prepare price event
      * Return response object
      *
-     * @param Varien_Db_Select $select
+     * @param  Varien_Db_Select $select
      * @return Varien_Object
      */
     protected function _dispatchPreparePriceEvent($select)
     {
         // prepare response object for event
         $response = new Varien_Object();
-        $response->setAdditionalCalculations(array());
+        $response->setAdditionalCalculations([]);
 
         // prepare event arguments
-        $eventArgs = array(
+        $eventArgs = [
             'select'          => $select,
             'table'           => 'price_index',
             'store_id'        => Mage::app()->getStore()->getId(),
-            'response_object' => $response
-        );
+            'response_object' => $response,
+        ];
 
         Mage::dispatchEvent('catalog_prepare_price_select', $eventArgs);
 
@@ -72,10 +51,10 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
     /**
      * Prepare search condition for attribute
      *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @param string|array $value
-     * @param Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
-     * @return mixed
+     * @param  Mage_Catalog_Model_Resource_Eav_Attribute             $attribute
+     * @param  array|string                                          $value
+     * @param  Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
+     * @return array|false|string|string[]
      */
     public function prepareCondition($attribute, $value, $collection)
     {
@@ -84,18 +63,16 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
         if (is_array($value)) {
             if (!empty($value['from']) || !empty($value['to'])) { // range
                 $condition = $value;
-            } else if (in_array($attribute->getBackendType(), array('varchar', 'text'))) { // multiselect
-                $condition = array('in_set' => $value);
-            } else if (!isset($value['from']) && !isset($value['to'])) { // select
-                $condition = array('in' => $value);
+            } elseif (in_array($attribute->getBackendType(), ['varchar', 'text'])) { // multiselect
+                $condition = ['in_set' => $value];
+            } elseif (!isset($value['from']) && !isset($value['to'])) { // select
+                $condition = ['in' => $value];
             }
-        } else {
-            if (strlen($value) > 0) {
-                if (in_array($attribute->getBackendType(), array('varchar', 'text', 'static'))) {
-                    $condition = array('like' => '%' . $value . '%'); // text search
-                } else {
-                    $condition = $value;
-                }
+        } elseif ((string) $value !== '') {
+            if (in_array($attribute->getBackendType(), ['varchar', 'text', 'static'])) {
+                $condition = ['like' => '%' . $value . '%']; // text search
+            } else {
+                $condition = $value;
             }
         }
 
@@ -105,24 +82,31 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
     /**
      * Add filter by attribute rated price
      *
-     * @param Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @param string|array $value
-     * @param int $rate
+     * @param  Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
+     * @param  Mage_Catalog_Model_Resource_Eav_Attribute             $attribute
+     * @param  array|string                                          $value
+     * @param  int                                                   $rate
      * @return bool
      */
     public function addRatedPriceFilter($collection, $attribute, $value, $rate = 1)
     {
         $adapter = $this->_getReadAdapter();
 
-        $conditions = array();
-        if (strlen($value['from']) > 0) {
+        $conditions = [];
+        if ((string) $value['from'] !== '') {
             $conditions[] = $adapter->quoteInto(
-                'price_index.min_price %s * %s >= ?', $value['from'], Zend_Db::FLOAT_TYPE);
+                'price_index.min_price %s * %s >= ?',
+                $value['from'],
+                Zend_Db::FLOAT_TYPE,
+            );
         }
-        if (strlen($value['to']) > 0) {
+
+        if ((string) $value['to'] !== '') {
             $conditions[] = $adapter->quoteInto(
-                'price_index.min_price %s * %s <= ?', $value['to'], Zend_Db::FLOAT_TYPE);
+                'price_index.min_price %s * %s <= ?',
+                $value['to'],
+                Zend_Db::FLOAT_TYPE,
+            );
         }
 
         if (!$conditions) {
@@ -131,8 +115,8 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
 
         $collection->addPriceData();
         $select     = $collection->getSelect();
-        $response   = $this->_dispatchPreparePriceEvent($select);
-        $additional = join('', $response->getAdditionalCalculations());
+        $response = $this->_dispatchPreparePriceEvent($select);
+        $additional = implode('', $response->getAdditionalCalculations());
 
         foreach ($conditions as $condition) {
             $select->where(sprintf($condition, $additional, $rate));
@@ -144,9 +128,9 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
     /**
      * Add filter by indexable attribute
      *
-     * @param Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @param string|array $value
+     * @param  Mage_CatalogSearch_Model_Resource_Advanced_Collection $collection
+     * @param  Mage_Catalog_Model_Resource_Eav_Attribute             $attribute
+     * @param  array|string                                          $value
      * @return bool
      */
     public function addIndexableAttributeModifiedFilter($collection, $attribute, $value)
@@ -161,30 +145,31 @@ class Mage_CatalogSearch_Model_Resource_Advanced extends Mage_Core_Model_Resourc
         $storeId    = Mage::app()->getStore()->getId();
         $select     = $collection->getSelect();
 
-        if (is_array($value)) {
-            if (isset($value['from']) && isset($value['to'])) {
-                if (empty($value['from']) && empty($value['to'])) {
-                    return false;
-                }
-            }
+        if (is_array($value)
+            && (isset($value['from']) && isset($value['to']))
+            && (empty($value['from']) && empty($value['to']))
+        ) {
+            return false;
         }
 
         $select->distinct(true);
         $select->join(
-            array($tableAlias => $table),
+            [$tableAlias => $table],
             "e.entity_id={$tableAlias}.entity_id "
                 . " AND {$tableAlias}.attribute_id={$attribute->getAttributeId()}"
                 . " AND {$tableAlias}.store_id={$storeId}",
-            array()
+            [],
         );
 
         if (is_array($value) && (isset($value['from']) || isset($value['to']))) {
             if (isset($value['from']) && !empty($value['from'])) {
                 $select->where("{$tableAlias}.value >= ?", $value['from']);
             }
+
             if (isset($value['to']) && !empty($value['to'])) {
                 $select->where("{$tableAlias}.value <= ?", $value['to']);
             }
+
             return true;
         }
 

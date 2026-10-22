@@ -1,41 +1,22 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Customer
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Customer
  */
 
 /**
  * Customer address api
  *
- * @category   Mage
  * @package    Mage_Customer
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
 {
-    protected $_mapAttributes = array(
-        'customer_address_id' => 'entity_id'
-    );
+    protected $_mapAttributes = [
+        'customer_address_id' => 'entity_id',
+    ];
 
     public function __construct()
     {
@@ -43,31 +24,33 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
     }
 
     /**
-     * Retrive customer addresses list
+     * Retrieve customer addresses list
      *
-     * @param int $customerId
+     * @param  int                 $customerId
      * @return array
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Exception
      */
     public function items($customerId)
     {
         $customer = Mage::getModel('customer/customer')
             ->load($customerId);
-        /* @var $customer Mage_Customer_Model_Customer */
+        /** @var Mage_Customer_Model_Customer $customer */
 
         if (!$customer->getId()) {
             $this->_fault('customer_not_exists');
         }
 
-        $result = array();
+        $result = [];
         foreach ($customer->getAddresses() as $address) {
             $data = $address->toArray();
-            $row  = array();
+            $row  = [];
 
             foreach ($this->_mapAttributes as $attributeAlias => $attributeCode) {
-                $row[$attributeAlias] = isset($data[$attributeCode]) ? $data[$attributeCode] : null;
+                $row[$attributeAlias] = $data[$attributeCode] ?? null;
             }
 
-            foreach ($this->getAllowedAttributes($address) as $attributeCode => $attribute) {
+            foreach (array_keys($this->getAllowedAttributes($address)) as $attributeCode) {
                 if (isset($data[$attributeCode])) {
                     $row[$attributeCode] = $data[$attributeCode];
                 }
@@ -77,7 +60,6 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
             $row['is_default_shipping'] = $customer->getDefaultShipping() == $address->getId();
 
             $result[] = $row;
-
         }
 
         return $result;
@@ -86,15 +68,17 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Create new address for customer
      *
-     * @param int $customerId
-     * @param array $addressData
+     * @param  int                 $customerId
+     * @param  array|Varien_Object $addressData
      * @return int
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Exception
      */
     public function create($customerId, $addressData)
     {
         $customer = Mage::getModel('customer/customer')
             ->load($customerId);
-        /* @var $customer Mage_Customer_Model_Customer */
+        /** @var Mage_Customer_Model_Customer $customer */
 
         if (!$customer->getId()) {
             $this->_fault('customer_not_exists');
@@ -102,7 +86,7 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
 
         $address = Mage::getModel('customer/address');
 
-        foreach ($this->getAllowedAttributes($address) as $attributeCode=>$attribute) {
+        foreach (array_keys($this->getAllowedAttributes($address)) as $attributeCode) {
             if (isset($addressData[$attributeCode])) {
                 $address->setData($attributeCode, $addressData[$attributeCode]);
             }
@@ -126,8 +110,8 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
 
         try {
             $address->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('data_invalid', $mageCoreException->getMessage());
         }
 
         return $address->getId();
@@ -136,8 +120,10 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Retrieve address data
      *
-     * @param int $addressId
+     * @param  int                 $addressId
      * @return array
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Exception
      */
     public function info($addressId)
     {
@@ -148,16 +134,15 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
             $this->_fault('not_exists');
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($this->_mapAttributes as $attributeAlias => $attributeCode) {
             $result[$attributeAlias] = $address->getData($attributeCode);
         }
 
-        foreach ($this->getAllowedAttributes($address) as $attributeCode => $attribute) {
+        foreach (array_keys($this->getAllowedAttributes($address)) as $attributeCode) {
             $result[$attributeCode] = $address->getData($attributeCode);
         }
-
 
         if ($customer = $address->getCustomer()) {
             $result['is_default_billing']  = $customer->getDefaultBilling() == $address->getId();
@@ -170,9 +155,11 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Update address data
      *
-     * @param int $addressId
-     * @param array $addressData
-     * @return boolean
+     * @param  int                 $addressId
+     * @param  array|Varien_Object $addressData
+     * @return bool
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Exception
      */
     public function update($addressId, $addressData)
     {
@@ -183,7 +170,7 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
             $this->_fault('not_exists');
         }
 
-        foreach ($this->getAllowedAttributes($address) as $attributeCode=>$attribute) {
+        foreach (array_keys($this->getAllowedAttributes($address)) as $attributeCode) {
             if (isset($addressData[$attributeCode])) {
                 $address->setData($attributeCode, $addressData[$attributeCode]);
             }
@@ -204,8 +191,8 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
 
         try {
             $address->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('data_invalid', $mageCoreException->getMessage());
         }
 
         return true;
@@ -214,8 +201,10 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
     /**
      * Delete address
      *
-     * @param int $addressId
-     * @return boolean
+     * @param  int                 $addressId
+     * @return bool
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Exception
      */
     public function delete($addressId)
     {
@@ -228,10 +217,10 @@ class Mage_Customer_Model_Address_Api extends Mage_Customer_Model_Api_Resource
 
         try {
             $address->delete();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('not_deleted', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('not_deleted', $mageCoreException->getMessage());
         }
 
         return true;
     }
-} // Class Mage_Customer_Model_Address_Api End
+}

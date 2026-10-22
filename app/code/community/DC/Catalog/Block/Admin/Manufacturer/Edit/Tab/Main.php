@@ -26,6 +26,28 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit_Tab_Main
     {
         $model = Mage::registry('dc_catalog_manufacturer');
 
+        // Determine current store scope.
+        // For existing pages use attribute_value_store_id; for new pages use the
+        // store_id that was passed in the URL (stored as 'store_id' on the model
+        // from the eav/attribute_option_value join).
+        $currentStoreId = $model->getAttributeValueStoreId();
+        if (!$currentStoreId && $currentStoreId !== 0) {
+            $currentStoreId = (int)$model->getData('store_id');
+        }
+        $isStoreScope = ($currentStoreId != 0);
+
+        // Load the default-store page so we can show its values in the "Use Default" hint.
+        $defaultModel = null;
+        if ($isStoreScope) {
+            $attrCode = $model->getAttributeCode();
+            $optionId = $model->getAttributeOptionId() ?: $model->getOptionId();
+            if ($attrCode && $optionId) {
+                $defaultModel = Mage::getModel('dc_catalog/manufacturer');
+                $defaultModel->loadFromAttribute($attrCode, $optionId, 0);
+                // loadFromAttribute runs _mergeDefaultValues which is a no-op for store_id=0
+            }
+        }
+
         $form = new Varien_Data_Form();
 
         $form->setHtmlIdPrefix('page_');
@@ -105,7 +127,7 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit_Tab_Main
             'required'  => false,
         ));
 
-    	$fieldset->addField('description', 'editor', array(
+        $descriptionConfig = array(
             'name'      => 'description',
             'label'     => Mage::helper('adminhtml')->__('Content'),
             'title'     => Mage::helper('adminhtml')->__('Content'),
@@ -113,7 +135,15 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit_Tab_Main
             'wysiwyg'   => true,
             'config'    => Mage::getVersion() > '1.4' ? @Mage::getSingleton('cms/wysiwyg_config')->getConfig() : false,
             'required'  => false,
-        ));
+        );
+        if ($isStoreScope) {
+            $useDefault    = (bool)$model->getUseDefaultDescription();
+            $descriptionConfig['after_element_html'] = $this->_getScopeCheckboxHtml(
+                'description', $useDefault,
+                $defaultModel ? $defaultModel->getDescription() : ''
+            );
+        }
+    	$fieldset->addField('description', 'editor', $descriptionConfig);
 
 
         //fix the image upload nag
@@ -129,6 +159,47 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit_Tab_Main
         $this->setForm($form);
 
         return parent::_prepareForm();
+    }
+
+    /**
+     * Build the "Use Default Value" checkbox HTML that appears below a store-scoped field.
+     *
+     * @param  string $fieldName       e.g. 'description'
+     * @param  bool   $isChecked
+     * @param  string $defaultValue    Raw default-store value (shown as a hint)
+     * @return string
+     */
+    protected function _getScopeCheckboxHtml($fieldName, $isChecked, $defaultValue = '')
+    {
+        $checkboxId  = 'use_default_' . $fieldName;
+        $textareaId  = 'page_' . $fieldName;   // Varien form uses the html_id_prefix "page_"
+        $checked     = $isChecked ? ' checked="checked"' : '';
+        $label       = Mage::helper('adminhtml')->__('Use Default Value');
+
+        // Truncate default hint to 120 chars to avoid huge tooltips
+        $hint = '';
+        if ($defaultValue !== '') {
+            $plainDefault = strip_tags($defaultValue);
+            $hint = Mage::helper('core')->escapeHtml(
+                mb_strlen($plainDefault) > 120
+                    ? mb_substr($plainDefault, 0, 120) . '…'
+                    : $plainDefault
+            );
+        }
+        $hintHtml = $hint !== ''
+            ? '<span class="dc-scope-hint"> &mdash; ' . $hint . '</span>'
+            : '';
+
+        return <<<HTML
+<div class="dc-use-default-row" id="dc_use_default_row_{$fieldName}">
+    <input type="checkbox"
+           id="{$checkboxId}"
+           name="{$checkboxId}"
+           value="1"{$checked}
+           onclick="dcToggleUseDefault('{$textareaId}', this)" />
+    <label for="{$checkboxId}"><small>{$label}</small></label>{$hintHtml}
+</div>
+HTML;
     }
 
 }

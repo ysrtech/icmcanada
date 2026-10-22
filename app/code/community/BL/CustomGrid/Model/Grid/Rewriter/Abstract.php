@@ -15,7 +15,7 @@
 
 abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_Object
 {
-    const REWRITE_CODE_VERSION = 3; // bump this value when significant changes are made to the rewriting code
+    const REWRITE_CODE_VERSION = 4; // bump this value when significant changes are made to the rewriting code
     
     /**
      * Return the fixed base of the rewriting class names used by the extension
@@ -51,44 +51,82 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     abstract protected function _rewriteGrid($blcgClassName, $originalClassName, $blockType);
     
     /**
+     * Check the current rewrite state for the two given grid block classes,
+     * return whether a rewrite is needed,
+     * and throw an exception if the grid block can not be rewrited
+     * 
+     * @param $originalClassName Original class name
+     * @param $blcgClassName Rewriting class name
+     * @return bool True if the rewrite does not yet exist, false otherwise
+     * @throws Mage_Core_Exception
+     */
+    protected function _checkClassRewriteState($originalClassName, $blcgClassName)
+    {
+        $isRewriteNeeded = true;
+        
+        if (!class_exists($originalClassName, true)) {
+            Mage::throwException('The original class does not exist : "' . $originalClassName . '"');
+        }
+        if (class_exists($blcgClassName, false)) {
+            if (get_parent_class($blcgClassName) !== $originalClassName) {
+                Mage::throwException('The rewriting class already exists : "' . $blcgClassName . '"');
+            } else {
+                // The existing rewriting class already does what we want to do, so it's actually fine
+                $isRewriteNeeded = false;
+            }
+        }
+        
+        return $isRewriteNeeded;
+    }
+    
+    /**
      * Rewrite the grid block corresponding to the given class name
      * 
-     * @param string $originalClassName Original class name
      * @param string $blockType Grid block type
      * @return string|false The name of the rewriting class if the rewrite succeeded, false otherwise
      */
-    final public function rewriteGrid($originalClassName, $blockType)
+    final public function rewriteGrid($blockType)
     {
         /** @var $helper BL_CustomGrid_Helper_Data */
         $helper = Mage::helper('customgrid');
+        list($configGroup, $configClass, $rewritingClassName) = $helper->getBlockTypeInfos($blockType);
+        
+        if (!$originalClassName = $rewritingClassName) {
+            $originalClassName = $helper->getBlockClassName($configGroup, $configClass);
+        }
+        
         $blcgClassName  = $this->_getBlcgClassName($originalClassName, $blockType);
-        $rewriteSuccess = false;
         
         try {
-            if (!class_exists($originalClassName, true)) {
-                Mage::throwException($helper->__('The original class "%s" does not exist', $originalClassName));
-            }
-            if (class_exists($blcgClassName, false)) {
-                if (get_parent_class($blcgClassName) !== $originalClassName) {
-                    Mage::throwException($helper->__('The rewriting class "%s" already exists', $blcgClassName));
-                } else {
-                    // The existing rewriting class already does what we want to do, so it's actually fine
-                    $rewriteSuccess = true;
-                }
-            }
-            
-            if (!$rewriteSuccess) {
+            if (!$rewriteSuccess = !$this->_checkClassRewriteState($originalClassName, $blcgClassName)) {
                 $this->_rewriteGrid($blcgClassName, $originalClassName, $blockType);
                 
                 if (!class_exists($blcgClassName, true)) {
-                    $message = 'The generated rewriting class "%s" can not be found';
-                    Mage::throwException($helper->__($message, $blcgClassName));
+                    Mage::throwException('The generated rewriting class can not be found : "' . $blcgClassName . '"');
                 }
             }
             
-            $rewriteSuccess = true;
+            // Register the block rewrite in the config (this will also replace any existing previous rewrite)
+            $rewriteXml = new Varien_Simplexml_Config();
             
+            $rewriteXml->loadString(
+                '<config>'
+                . '<global>'
+                . '<blocks>'
+                . '<' . $configGroup . '>'
+                . '<rewrite>'
+                . '<' . $configClass . '>' . $blcgClassName . '</' . $configClass . '>'
+                . '</rewrite>'
+                . '</' . $configGroup . '>'
+                . '</blocks>'
+                . '</global>'
+                . '</config>'
+            );
+            
+            Mage::app()->getConfig()->extend($rewriteXml, true);
+            $rewriteSuccess = true;
         } catch (Exception $e) {
+            $rewriteSuccess = false;
             $message = 'An error occurred while rewriting "%s" : "%s" (rewriter: "%s")';
             Mage::throwException($helper->__($message, $blockType, $e->getMessage(), $this->getId()));
         }
@@ -189,7 +227,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!$this->_blcg_holdPrepareCollection) {
             if (!is_null($this->_blcg_gridModel)) {
-                $data = $this->_blcg_gridModel->getApplier()->verifyGridBlockFilters($this, $data);
+                $data = $this->_blcg_gridModel->getFiltersHandler()->verifyGridBlockFilters($this, $data);
             }
             
             $this->_blcg_launchCollectionCallbacks(\'before_set_filters\', array($this, $this->_collection, $data));
@@ -320,7 +358,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     public function setDefaultPage($page)
     {
         if (!is_null($this->_blcg_gridModel)) {
-            $page = $this->_blcg_gridModel->getApplier()->getGridBlockDefaultParamValue(
+            $page = $this->_blcg_gridModel->getDefaultParamsHandler()->getGridBlockDefaultParamValue(
                 \'page\',
                 $page,
                 null,
@@ -335,7 +373,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultLimit;
-            $limit = $this->_blcg_gridModel->getApplier()
+            $limit = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'limit\', $limit, null, false, $default);
         }
         return parent::setDefaultLimit($limit);
@@ -345,7 +383,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultSort;
-            $sort = $this->_blcg_gridModel->getApplier()
+            $sort = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'sort\', $sort, null, false, $default);
         }
         return parent::setDefaultSort($sort);
@@ -355,7 +393,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultDir;
-            $dir = $this->_blcg_gridModel->getApplier()
+            $dir = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'dir\', $dir, null, false, $default);
         }
         return parent::setDefaultDir($dir);
@@ -365,7 +403,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultFilter;
-            $filter = $this->_blcg_gridModel->getApplier()
+            $filter = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'filter\', $filter, null, false, $default);
         }
         return parent::setDefaultFilter($filter);
@@ -375,7 +413,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultPage;
-            $page = $this->_blcg_gridModel->getApplier()
+            $page = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'page\', $default, $page, true);
         }
         return parent::setDefaultPage($page);
@@ -385,7 +423,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!$forced && !is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultLimit;
-            $limit = $this->_blcg_gridModel->getApplier()
+            $limit = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'limit\', $default, $limit, true);
         }
         return parent::setDefaultLimit($limit);
@@ -395,7 +433,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultSort;
-            $sort = $this->_blcg_gridModel->getApplier()
+            $sort = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'sort\', $default, $sort, true);
         }
         return parent::setDefaultSort($sort);
@@ -405,7 +443,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultDir;
-            $dir = $this->_blcg_gridModel->getApplier()
+            $dir = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'dir\', $default, $dir, true);
         }
         return parent::setDefaultDir($dir);
@@ -415,7 +453,7 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
     {
         if (!is_null($this->_blcg_gridModel)) {
             $default = $this->_defaultFilter;
-            $filter = $this->_blcg_gridModel->getApplier()
+            $filter = $this->_blcg_gridModel->getDefaultParamsHandler()
                 ->getGridBlockDefaultParamValue(\'filter\', $default, $filter, true);
         }
         return parent::setDefaultFilter($filter);
@@ -598,5 +636,29 @@ abstract class BL_CustomGrid_Model_Grid_Rewriter_Abstract extends BL_CustomGrid_
         return $this;
     }
 }';
+    }
+    
+    /**
+     * Return whether rewrite errors should be displayed depending on the given rewrite result
+     * 
+     * @param bool $isRewriteSuccess Whether the grid rewrite succeeded
+     * @return bool
+     */
+    public function shouldDisplayErrorsGivenRewriteResult($isRewriteSuccess)
+    {
+        return (!$isRewriteSuccess && $this->getDisplayErrors())
+            || ($isRewriteSuccess && $this->getDisplayErrorsIfSuccess());
+    }
+    
+    /**
+     * Return whether rewrite errors should be logged depending on the given rewrite result
+     *
+     * @param bool $isRewriteSuccess Whether the grid rewrite succeeded
+     * @return bool
+     */
+    public function shouldLogErrorsGivenRewriteResult($isRewriteSuccess)
+    {
+        return (!$isRewriteSuccess && $this->getLogErrors())
+            || ($isRewriteSuccess && $this->getLogErrorsIfSuccess());
     }
 }

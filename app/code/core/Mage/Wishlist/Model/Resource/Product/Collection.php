@@ -1,46 +1,26 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Wishlist
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Wishlist
+ */
 
 /**
  * Wishlist Product collection
  * Deprecated because after Magento 1.4.2.0 it's impossible
  * to use product collection in wishlist
  *
- * @deprecated after 1.4.2.0
- * @category   Mage
  * @package    Mage_Wishlist
- * @author     Magento Core Team <core@magentocommerce.com>
+ * @deprecated after 1.4.2.0
  */
 class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model_Resource_Product_Collection
 {
     /**
-     * Add days in whishlist filter of product collection
+     * Add days in wishlist filter of product collection
      *
-     * @var boolean
+     * @var bool
      */
     protected $_addDaysInWishlist  = false;
 
@@ -51,9 +31,9 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     protected $_wishlistItemTableAlias         = 't_wi';
 
     /**
-     * Get add days in whishlist filter of product collection flag
+     * Get add days in wishlist filter of product collection flag
      *
-     * @return boolean
+     * @return bool
      */
     public function getDaysInWishlist()
     {
@@ -61,10 +41,10 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     }
 
     /**
-     * Set add days in whishlist filter of product collection flag
+     * Set add days in wishlist filter of product collection flag
      *
-     * @param unknown_type $flag
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @param  bool  $flag
+     * @return $this
      */
     public function setDaysInWishlist($flag)
     {
@@ -75,26 +55,25 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     /**
      * Add wishlist filter to collection
      *
-     * @param Mage_Wishlist_Model_Wishlist $wishlist
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @return $this
      */
     public function addWishlistFilter(Mage_Wishlist_Model_Wishlist $wishlist)
     {
         $this->joinTable(
-            array($this->_wishlistItemTableAlias => 'wishlist/item'),
+            [$this->_wishlistItemTableAlias => 'wishlist/item'],
             'product_id=entity_id',
-            array(
+            [
                 'product_id'                => 'product_id',
                 'wishlist_item_description' => 'description',
                 'item_store_id'             => 'store_id',
                 'added_at'                  => 'added_at',
                 'wishlist_id'               => 'wishlist_id',
                 'wishlist_item_id'          => 'wishlist_item_id',
-            ),
-            array(
+            ],
+            [
                 'wishlist_id'               => $wishlist->getId(),
-                'store_id'                  => array('in' => $wishlist->getSharedStoreIds())
-            )
+                'store_id'                  => ['in' => $wishlist->getSharedStoreIds()],
+            ],
         );
 
         $this->_productLimitationFilters['store_table']  = $this->_wishlistItemTableAlias;
@@ -108,9 +87,9 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     /**
      * Add wishlist sort order
      *
-     * @param string $attribute
-     * @param string $dir
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @param  string $attribute
+     * @param  string $dir
+     * @return $this
      */
     public function addWishListSortOrder($attribute = 'added_at', $dir = 'desc')
     {
@@ -121,7 +100,7 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     /**
      * Reset sort order
      *
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @return $this
      */
     public function resetSortOrder()
     {
@@ -132,7 +111,7 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     /**
      * Add store data (days in wishlist)
      *
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @return $this
      */
     public function addStoreData()
     {
@@ -143,14 +122,16 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
 
         $this->setDaysInWishlist(false);
 
+        /** @var Mage_Core_Model_Resource_Helper_Mysql4 $resourceHelper */
         $resourceHelper = Mage::getResourceHelper('core');
         $nowDate = $adapter->formatDate(Mage::getSingleton('core/date')->date());
 
         $this->joinField('store_name', 'core/store', 'name', 'store_id=item_store_id');
-        $this->joinField('days_in_wishlist',
+        $this->joinField(
+            'days_in_wishlist',
             'wishlist/item',
             $resourceHelper->getDateDiff($this->_wishlistItemTableAlias . '.added_at', $nowDate),
-            'wishlist_item_id=wishlist_item_id'
+            'wishlist_item_id=wishlist_item_id',
         );
 
         return $this;
@@ -159,14 +140,15 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
     /**
      * Rewrite retrieve attribute field name for wishlist attributes
      *
-     * @param string $attributeCode
-     * @return Mage_Wishlist_Model_Resource_Product_Collection
+     * @inheritDoc
      */
+    #[Override]
     protected function _getAttributeFieldName($attributeCode)
     {
-        if ($attributeCode == 'days_in_wishlist') {
+        if ($attributeCode === 'days_in_wishlist') {
             return $this->_joinFields[$attributeCode]['field'];
         }
+
         return parent::_getAttributeFieldName($attributeCode);
     }
 
@@ -174,8 +156,11 @@ class Mage_Wishlist_Model_Resource_Product_Collection extends Mage_Catalog_Model
      * Prevent loading collection because after Magento 1.4.2.0 it's impossible
      * to use product collection in wishlist
      *
-     * @return bool
+     * @param  bool  $printQuery
+     * @param  bool  $logQuery
+     * @return $this
      */
+    #[Override]
     public function load($printQuery = false, $logQuery = false)
     {
         return $this;

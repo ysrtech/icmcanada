@@ -1,0 +1,60 @@
+/**
+ * ICM admin theme - header logo, בס"ד and footer (same approach as ysrtech/pardes).
+ *
+ * openmage/default renders the OpenMage mark as an inline <svg> in page/header.phtml.
+ * Hiding it and painting our logo as a background keeps that template untouched, so
+ * upgrades to it still apply. images/logo.png is the ICM logo in white, because the
+ * header bar is #3A499D.
+ *
+ * Every selector is qualified with .header so it wins on specificity over menu.css,
+ * which is emitted after this file in the <head>.
+ */
+.header .header-top .logo {
+    box-sizing: border-box;
+    display: block;
+    width: 70px;
+    height: 40px;
+    padding: 0;
+    margin-left: 15px;
+    background: url(images/logo.png) left center no-repeat;
+    background-size: contain;
+}
+
+.header .header-top .logo svg {
+    display: none;
+}
+
+/* the logo is absolutely positioned; make room for it before the first menu item
+   (openmage/default reserves 70px for its own mark) */
+.header .nav-bar {
+    padding-left: 100px;
+}
+
+/* בס"ד in the top right of the admin header, past the global search and user menu.
+   direction/unicode-bidi keep the gershayim between the samekh and the dalet. */
+.header .header-right {
+    padding-right: 30px;
+}
+
+.header .header-right::before {
+    content: 'בס"ד';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    margin-top: -12px;
+    direction: rtl;
+    unicode-bidi: isolate;
+    font-size: 13px;
+    line-height: 18px;
+    color: #fff;
+    opacity: .85;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* the footer's right-hand links go to the OpenMage project and issue tracker;
+   not useful to the people running this store */
+.footer-content .legality,
+.footer .legality {
+    display: none;
+}

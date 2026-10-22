@@ -1,88 +1,87 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
+/**
+ * @package    Mage_Adminhtml
+ */
 class Mage_Adminhtml_Block_Dashboard extends Mage_Adminhtml_Block_Template
 {
     protected $_locale;
 
     /**
      * Location of the "Enable Chart" config param
+     *
+     * @deprecated
+     * @see Mage_Adminhtml_Helper_Dashboard_Data::XML_PATH_ENABLE_CHARTS
      */
-    const XML_PATH_ENABLE_CHARTS = 'admin/dashboard/enable_charts';
+    public const XML_PATH_ENABLE_CHARTS = 'admin/dashboard/enable_charts';
 
     public function __construct()
     {
         parent::__construct();
         $this->setTemplate('dashboard/index.phtml');
-
     }
 
+    #[Override]
     protected function _prepareLayout()
     {
-        $this->setChild('lastOrders',
-                $this->getLayout()->createBlock('adminhtml/dashboard_orders_grid')
+        $this->setChild(
+            'lastOrders',
+            $this->getLayout()->createBlock('adminhtml/dashboard_orders_grid'),
         );
 
-        $this->setChild('totals',
-                $this->getLayout()->createBlock('adminhtml/dashboard_totals')
+        $this->setChild(
+            'totals',
+            $this->getLayout()->createBlock('adminhtml/dashboard_totals'),
         );
 
-        $this->setChild('sales',
-                $this->getLayout()->createBlock('adminhtml/dashboard_sales')
+        $this->setChild(
+            'sales',
+            $this->getLayout()->createBlock('adminhtml/dashboard_sales'),
         );
 
-        $this->setChild('lastSearches',
-                $this->getLayout()->createBlock('adminhtml/dashboard_searches_last')
+        $this->setChild(
+            'lastSearches',
+            $this->getLayout()->createBlock('adminhtml/dashboard_searches_last'),
         );
 
-        $this->setChild('topSearches',
-                $this->getLayout()->createBlock('adminhtml/dashboard_searches_top')
+        $this->setChild(
+            'topSearches',
+            $this->getLayout()->createBlock('adminhtml/dashboard_searches_top'),
         );
 
-        if (Mage::getStoreConfig(self::XML_PATH_ENABLE_CHARTS)) {
+        /** @var Mage_Adminhtml_Helper_Dashboard_Data $helper */
+        $helper = Mage::helper('adminhtml/dashboard_data');
+        if ($helper->isChartEnabled()) {
             $block = $this->getLayout()->createBlock('adminhtml/dashboard_diagrams');
         } else {
             $block = $this->getLayout()->createBlock('adminhtml/template')
                 ->setTemplate('dashboard/graph/disabled.phtml')
-                ->setConfigUrl($this->getUrl('adminhtml/system_config/edit', array('section'=>'admin')));
+                ->setConfigUrl($this->getUrl('adminhtml/system_config/edit', ['section' => 'admin']));
         }
+
         $this->setChild('diagrams', $block);
 
-        $this->setChild('grids',
-                $this->getLayout()->createBlock('adminhtml/dashboard_grids')
+        $this->setChild(
+            'grids',
+            $this->getLayout()->createBlock('adminhtml/dashboard_grids'),
         );
 
-        parent::_prepareLayout();
+        return parent::_prepareLayout();
     }
 
     public function getSwitchUrl()
     {
-        if ($url = $this->getData('switch_url')) {
+        if ($url = $this->getDataByKey('switch_url')) {
             return $url;
         }
-        return $this->getUrl('*/*/*', array('_current'=>true, 'period'=>null));
+
+        return $this->getUrl('*/*/*', ['_current' => true, 'period' => null]);
     }
 }

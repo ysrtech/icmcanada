@@ -77,7 +77,7 @@ class BL_CustomGrid_Model_Grid_Type_Product_Tab extends BL_CustomGrid_Model_Grid
         return $exportTypes;
     }
     
-    public function beforeGridExport($format, Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
+    public function beforeGridExport($format, ?Mage_Adminhtml_Block_Widget_Grid $gridBlock = null)
     {
         if (is_null($gridBlock)) {
             if (!Mage::registry('current_product')) {

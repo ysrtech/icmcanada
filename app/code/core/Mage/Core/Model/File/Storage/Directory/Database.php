@@ -1,36 +1,25 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * Directory database storage model class
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
+ *
+ * @method Mage_Core_Model_Resource_File_Storage_Directory_Database _getResource()
+ * @method string                                                   getConnectionName()
+ * @method string                                                   getPath()
+ * @method Mage_Core_Model_Resource_File_Storage_Directory_Database getResource()
+ * @method $this                                                    setName(string $value)
+ * @method $this                                                    setParentId(string $value)
+ * @method $this                                                    setPath(string $value)
+ * @method $this                                                    setUploadTime(string $value)
  */
 class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_File_Storage_Database_Abstract
 {
@@ -46,12 +35,12 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
      *
      * @var array
      */
-    protected $_errors = array();
+    protected $_errors = [];
 
     /**
      * Class construct
      *
-     * @param string $databaseConnection
+     * @param string $connectionName
      */
     public function __construct($connectionName = null)
     {
@@ -64,7 +53,7 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
      * Load object data by path
      *
      * @param  string $path
-     * @return Mage_Core_Model_File_Storage_Directory_Database
+     * @return $this
      */
     public function loadByPath($path)
     {
@@ -73,13 +62,13 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
          * addData() is used because it's needed to clear only db storaged data
          */
         $this->addData(
-            array(
+            [
                 'directory_id'  => null,
                 'name'          => null,
                 'path'          => null,
                 'upload_time'   => null,
-                'parent_id'     => null
-            )
+                'parent_id'     => null,
+            ],
         );
 
         $this->_getResource()->loadByPath($this, $path);
@@ -93,17 +82,18 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
      */
     public function hasErrors()
     {
-        return !empty($this->_errors);
+        return $this->_errors !== [];
     }
 
     /**
      * Retrieve directory parent id
      *
-     * @return int
+     * @return null|string
      */
     public function getParentId()
     {
-        if (!$this->getData('parent_id')) {
+        $parentId = null;
+        if (!$this->getDataByKey('parent_id')) {
             $parentId = $this->_getResource()->getParentId($this->getPath());
             if (empty($parentId)) {
                 $parentId = null;
@@ -118,7 +108,7 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
     /**
      * Create directories recursively
      *
-     * @param  string $path
+     * @param  string                                          $path
      * @return Mage_Core_Model_File_Storage_Directory_Database
      */
     public function createRecursive($path)
@@ -149,18 +139,18 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
     /**
      * Export directories from storage
      *
-     * @param  int $offset
-     * @param  int $count
-     * @return bool
+     * @param  int         $offset
+     * @param  int         $count
+     * @return array|false
      */
     public function exportDirectories($offset = 0, $count = 100)
     {
-        $offset = ((int) $offset >= 0) ? (int) $offset : 0;
-        $count  = ((int) $count >= 1) ? (int) $count : 1;
+        $offset = max((int) $offset, 0);
+        $count  = max((int) $count, 1);
 
         $result = $this->_getResource()->exportDirectories($offset, $count);
 
-        if (empty($result)) {
+        if ($result === []) {
             return false;
         }
 
@@ -171,7 +161,7 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
      * Import directories to storage
      *
      * @param  array $dirs
-     * @return Mage_Core_Model_File_Storage_Directory_Database
+     * @return $this
      */
     public function importDirectories($dirs)
     {
@@ -181,14 +171,22 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
 
         $dateSingleton = Mage::getSingleton('core/date');
         foreach ($dirs as $dir) {
-            if (!is_array($dir) || !isset($dir['name']) || !strlen($dir['name'])) {
+            if (!is_array($dir)) {
+                continue;
+            }
+
+            if (!isset($dir['name'])) {
+                continue;
+            }
+
+            if (!strlen($dir['name'])) {
                 continue;
             }
 
             try {
                 $directory = Mage::getModel(
                     'core/file_storage_directory_database',
-                    array('connection' => $this->getConnectionName())
+                    ['connection' => $this->getConnectionName()],
                 );
                 $directory->setPath($dir['path']);
 
@@ -200,8 +198,8 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
                 } else {
                     Mage::throwException(Mage::helper('core')->__('Parent directory does not exist: %s', $dir['path']));
                 }
-            } catch (Exception $e) {
-                Mage::logException($e);
+            } catch (Exception $exception) {
+                Mage::logException($exception);
             }
         }
 
@@ -211,7 +209,7 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
     /**
      * Clean directories at storage
      *
-     * @return Mage_Core_Model_File_Storage_Directory_Database
+     * @return $this
      */
     public function clearDirectories()
     {
@@ -222,8 +220,8 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
     /**
      * Return subdirectories
      *
-     * @param string $directory
-     * @return mixed
+     * @param  string $directory
+     * @return array
      */
     public function getSubdirectories($directory)
     {
@@ -235,8 +233,8 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
     /**
      * Delete directory from database
      *
-     * @param string $path
-     * @return Mage_Core_Model_File_Storage_Directory_Database
+     * @param  string $dirPath
+     * @return $this
      */
     public function deleteDirectory($dirPath)
     {
@@ -244,7 +242,7 @@ class Mage_Core_Model_File_Storage_Directory_Database extends Mage_Core_Model_Fi
         $name = basename($dirPath);
         $path = dirname($dirPath);
 
-        if ('.' == $path) {
+        if ($path == '.') {
             $path = '';
         }
 

@@ -1,52 +1,34 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api
  */
 
 /**
- * Enter description here ...
+ * @package    Mage_Api
  *
- * @method Mage_Api_Model_Resource_Roles _getResource()
- * @method Mage_Api_Model_Resource_Roles getResource()
- * @method int getParentId()
- * @method Mage_Api_Model_Roles setParentId(int $value)
- * @method int getTreeLevel()
- * @method Mage_Api_Model_Roles setTreeLevel(int $value)
- * @method int getSortOrder()
- * @method Mage_Api_Model_Roles setSortOrder(int $value)
- * @method string getRoleType()
- * @method Mage_Api_Model_Roles setRoleType(string $value)
- * @method int getUserId()
- * @method Mage_Api_Model_Roles setUserId(int $value)
- * @method string getRoleName()
- * @method Mage_Api_Model_Roles setRoleName(string $value)
- * @method string getName()
- * @method Mage_Api_Model_Role setName() setName(string $name)
- *
- * @category    Mage
- * @package     Mage_Api
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Api_Model_Resource_Roles            _getResource()
+ * @method Mage_Api_Model_Resource_Roles_Collection getCollection()
+ * @method string                                   getName()
+ * @method int                                      getParentId()
+ * @method int                                      getPid()
+ * @method Mage_Api_Model_Resource_Roles            getResource()
+ * @method Mage_Api_Model_Resource_Roles_Collection getResourceCollection()
+ * @method string                                   getRoleName()
+ * @method string                                   getRoleType()
+ * @method int                                      getSortOrder()
+ * @method int                                      getTreeLevel()
+ * @method int                                      getUserId()
+ * @method $this                                    setName(string $name)
+ * @method $this                                    setParentId(int $value)
+ * @method $this                                    setRoleName(string $value)
+ * @method $this                                    setRoleType(string $value)
+ * @method $this                                    setSortOrder(int $value)
+ * @method $this                                    setTreeLevel(int $value)
+ * @method $this                                    setUserId(int $value)
  */
 class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
 {
@@ -57,46 +39,78 @@ class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
      */
     protected $_filters;
 
-
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('api/roles');
     }
 
+    /**
+     * @return $this
+     */
     public function update()
     {
         $this->getResource()->update($this);
         return $this;
     }
 
+    /**
+     * @return Mage_Api_Model_Resource_Roles_User_Collection
+     */
     public function getUsersCollection()
     {
         return Mage::getResourceModel('api/roles_user_collection');
     }
 
+    /**
+     * @return array|false|Varien_Simplexml_Element
+     */
     public function getResourcesTree()
     {
-        return $this->_buildResourcesArray(null, null, null, null, true);
+        return $this->_buildResourcesArray(null, null, 0, null, true);
     }
 
+    /**
+     * @return array|false|Varien_Simplexml_Element
+     */
     public function getResourcesList()
     {
         return $this->_buildResourcesArray();
     }
 
+    /**
+     * @return array|false|Varien_Simplexml_Element
+     */
     public function getResourcesList2D()
     {
-        return $this->_buildResourcesArray(null, null, null, true);
+        return $this->_buildResourcesArray(null, null, 0, true);
     }
 
+    /**
+     * @return array
+     */
     public function getRoleUsers()
     {
         return $this->getResource()->getRoleUsers($this);
     }
 
+    /**
+     * @param  null|string                          $parentName
+     * @param  int                                  $level
+     * @param  null|bool                            $represent2Darray
+     * @param  bool                                 $rawNodes
+     * @param  string                               $module
+     * @return array|false|Varien_Simplexml_Element
+     */
     protected function _buildResourcesArray(
-        Varien_Simplexml_Element $resource = null, $parentName = null, $level = 0, $represent2Darray = null,
-        $rawNodes = false, $module = 'adminhtml'
+        ?Varien_Simplexml_Element $resource = null,
+        $parentName = null,
+        $level = 0,
+        $represent2Darray = null,
+        $rawNodes = false,
+        $module = 'adminhtml'
     ) {
         static $result;
 
@@ -106,24 +120,23 @@ class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
             $level = -1;
         } else {
             $resourceName = $parentName;
-            if ($resource->getName()!='title' && $resource->getName()!='sort_order'
-                && $resource->getName() != 'children'
+            if (!in_array($resource->getName(), ['title', 'sort_order', 'children'])
             ) {
-                $resourceName = (is_null($parentName) ? '' : $parentName.'/').$resource->getName();
+                $resourceName = (is_null($parentName) ? '' : $parentName . '/') . $resource->getName();
 
                 //assigning module for its' children nodes
                 if ($resource->getAttribute('module')) {
-                    $module = (string)$resource->getAttribute('module');
+                    $module = (string) $resource->getAttribute('module');
                 }
 
                 if ($rawNodes) {
-                    $resource->addAttribute("aclpath", $resourceName);
+                    $resource->addAttribute('aclpath', $resourceName);
                 }
 
-                $resource->title = Mage::helper($module)->__((string)$resource->title);
+                $resource->title = Mage::helper($module)->__((string) $resource->title);
 
-                if ( is_null($represent2Darray) ) {
-                    $result[$resourceName]['name']  = (string)$resource->title;
+                if (is_null($represent2Darray)) {
+                    $result[$resourceName]['name']  = (string) $resource->title;
                     $result[$resourceName]['level'] = $level;
                 } else {
                     $result[] = $resourceName;
@@ -135,25 +148,28 @@ class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
         if (empty($children)) {
             if ($rawNodes) {
                 return $resource;
-            } else {
-                return $result;
             }
-        }
-        foreach ($children as $child) {
-            $this->_buildResourcesArray($child, $resourceName, $level+1, $represent2Darray, $rawNodes, $module);
-        }
-        if ($rawNodes) {
-            return $resource;
-        } else {
+
             return $result;
         }
+
+        foreach ($children as $child) {
+            $this->_buildResourcesArray($child, $resourceName, $level + 1, $represent2Darray, $rawNodes, $module);
+        }
+
+        if ($rawNodes) {
+            return $resource;
+        }
+
+        return $result;
     }
 
     /**
      * Filter data before save
      *
-     * @return Mage_Api_Model_Roles
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         $this->filter();
@@ -164,7 +180,7 @@ class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
     /**
      * Filter set data
      *
-     * @return Mage_Api_Model_Roles
+     * @return $this
      */
     public function filter()
     {
@@ -172,7 +188,8 @@ class Mage_Api_Model_Roles extends Mage_Core_Model_Abstract
         if (!$this->_filters || !$data) {
             return $this;
         }
-        /** @var $filter Mage_Core_Model_Input_Filter */
+
+        /** @var Mage_Core_Model_Input_Filter $filter */
         $filter = Mage::getModel('core/input_filter');
         $filter->setFilters($this->_filters);
         $this->setData($filter->filter($data));

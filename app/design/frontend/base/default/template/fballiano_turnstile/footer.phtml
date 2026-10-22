@@ -1,0 +1,33 @@
+<?php
+$helper = Mage::helper('fballiano_turnstile');
+if (!$helper->isEnabled()) return;
+?><script>
+    let turnstileRenderedElements = [];
+    function fballianoTurnstileInject(element) {
+        if (turnstileRenderedElements.includes(element.id)) return;
+        turnstileRenderedElements.push(element.id);
+
+        if (turnstileRenderedElements.length <= 1) {
+            let script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=fballianoTurnstileRender';
+            document.head.appendChild(script);
+        } else {
+            fballianoTurnstileRender();
+        }
+    }
+    function fballianoTurnstileRender() {
+        let element = document.getElementById(turnstileRenderedElements[turnstileRenderedElements.length - 1]);
+        turnstile.render(element, {sitekey: '<?= $helper->getSiteKey() ?>'});
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('<?= $helper->getFrontendSelectors() ?>').forEach(function (element) {
+            if (element.matches(':focus-within')) {
+                fballianoTurnstileInject(element);
+                return;
+            }
+            element.addEventListener('focusin', function (event) {
+                fballianoTurnstileInject(element);
+            });
+        });
+    });
+</script>

@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
+ */
 
 /**
  * Resource Model for Checkout Agreement
  *
- * @category    Mage
- * @package     Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Checkout
  */
 class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Model initialization
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -46,9 +25,9 @@ class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db
     /**
      * Method to run before save
      *
-     * @param Mage_Core_Model_Abstract $object
      * @return Mage_Core_Model_Resource_Db_Abstract
      */
+    #[Override]
     protected function _beforeSave(Mage_Core_Model_Abstract $object)
     {
         // format height
@@ -57,9 +36,11 @@ class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db
         if (!$height) {
             $height = '';
         }
-        if ($height && preg_match('/[0-9]$/', $height)) {
+
+        if ($height && preg_match('/\d$/', $height)) {
             $height .= 'px';
         }
+
         $object->setContentHeight($height);
         return parent::_beforeSave($object);
     }
@@ -67,16 +48,16 @@ class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db
     /**
      * Method to run after save
      *
-     * @param Mage_Core_Model_Abstract $object
      * @return Mage_Core_Model_Resource_Db_Abstract
      */
+    #[Override]
     protected function _afterSave(Mage_Core_Model_Abstract $object)
     {
-        $condition = array('agreement_id = ?' => $object->getId());
+        $condition = ['agreement_id = ?' => $object->getId()];
         $this->_getWriteAdapter()->delete($this->getTable('checkout/agreement_store'), $condition);
 
-        foreach ((array)$object->getData('stores') as $store) {
-            $storeArray = array();
+        foreach ((array) $object->getDataByKey('stores') as $store) {
+            $storeArray = [];
             $storeArray['agreement_id'] = $object->getId();
             $storeArray['store_id'] = $store;
             $this->_getWriteAdapter()->insert($this->getTable('checkout/agreement_store'), $storeArray);
@@ -88,16 +69,16 @@ class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db
     /**
      * Method to run after load
      *
-     * @param Mage_Core_Model_Abstract $object
      * @return Mage_Core_Model_Resource_Db_Abstract
      */
+    #[Override]
     protected function _afterLoad(Mage_Core_Model_Abstract $object)
     {
         $select = $this->_getReadAdapter()->select()
-            ->from($this->getTable('checkout/agreement_store'), array('store_id'))
+            ->from($this->getTable('checkout/agreement_store'), ['store_id'])
             ->where('agreement_id = :agreement_id');
 
-        if ($stores = $this->_getReadAdapter()->fetchCol($select, array(':agreement_id' => $object->getId()))) {
+        if ($stores = $this->_getReadAdapter()->fetchCol($select, [':agreement_id' => $object->getId()])) {
             $object->setData('store_id', $stores);
         }
 
@@ -107,24 +88,26 @@ class Mage_Checkout_Model_Resource_Agreement extends Mage_Core_Model_Resource_Db
     /**
      * Get load select
      *
-     * @param string $field
-     * @param value $value
-     * @param Varien_Object $object
+     * @param  string                                                 $field
+     * @param  mixed                                                  $value
+     * @param  Mage_Checkout_Model_Agreement|Mage_Core_Model_Abstract $object
      * @return Varien_Db_Select
      */
+    #[Override]
     protected function _getLoadSelect($field, $value, $object)
     {
         $select = parent::_getLoadSelect($field, $value, $object);
         if ($object->getStoreId()) {
             $select->join(
-                array('cps' => $this->getTable('checkout/agreement_store')),
-                $this->getMainTable() . '.agreement_id = cps.agreement_id'
+                ['cps' => $this->getTable('checkout/agreement_store')],
+                $this->getMainTable() . '.agreement_id = cps.agreement_id',
             )
             ->where('is_active=1')
             ->where('cps.store_id IN (0, ?)', $object->getStoreId())
             ->order('store_id DESC')
             ->limit(1);
         }
+
         return $select;
     }
 }

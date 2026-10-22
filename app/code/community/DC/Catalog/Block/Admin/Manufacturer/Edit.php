@@ -51,7 +51,70 @@ class DC_Catalog_Block_Admin_Manufacturer_Edit extends Mage_Adminhtml_Block_Widg
             function saveAndContinueEdit(){
                 editForm.submit($('edit_form').action+'back/edit/');
             }
+
+            /**
+             * Toggle the \"Use Default Value\" state for a store-scoped field.
+             *
+             * @param {string} fieldId   - the Varien form element ID (e.g. 'page_description')
+             * @param {Element} checkbox - the checkbox element that was clicked
+             */
+            function dcToggleUseDefault(fieldId, checkbox) {
+                var useDefault = checkbox.checked;
+
+                // 1. Handle plain <input> / <textarea> (WYSIWYG off)
+                var el = \$(fieldId);
+                if (el) {
+                    el.disabled = useDefault;
+                    if (useDefault) {
+                        el.addClassName('dc-field-disabled');
+                    } else {
+                        el.removeClassName('dc-field-disabled');
+                    }
+                }
+
+                // 2. Handle TinyMCE 3.x (Magento 1 default):
+                //    The editor wrapper table has id fieldId + '_tbl'
+                var mceTbl = \$(fieldId + '_tbl');
+                if (mceTbl) {
+                    mceTbl.style.opacity       = useDefault ? '0.4' : '';
+                    mceTbl.style.pointerEvents = useDefault ? 'none' : '';
+                }
+
+                // Also try the TinyMCE 4 / newer container suffix
+                var mceWrap = \$(fieldId + '-tbl') || \$(fieldId + '_ifr');
+                if (mceWrap) {
+                    var wrap = mceWrap.up('.mce-tinymce') || mceWrap.up('.mceEditor');
+                    if (wrap) {
+                        wrap.style.opacity       = useDefault ? '0.4' : '';
+                        wrap.style.pointerEvents = useDefault ? 'none' : '';
+                    }
+                }
+            }
+
+            // On DOM ready, apply the initial disabled state for any pre-checked boxes.
+            document.observe('dom:loaded', function() {
+                \$\$('.dc-use-default-row input[type=checkbox]').each(function(cb) {
+                    if (cb.checked) {
+                        var fieldId = cb.getAttribute('onclick').replace(/.*'([^']+)'.*/, '\$1');
+                        dcToggleUseDefault(fieldId, cb);
+                    }
+                });
+            });
         ";
+    }
+
+    /**
+     * Append a small CSS block for the "Use Default Value" scope UI.
+     */
+    protected function _toHtml()
+    {
+        $css = '<style type="text/css">
+            .dc-use-default-row { margin-top: 4px; }
+            .dc-use-default-row label { cursor: pointer; color: #444; }
+            .dc-scope-hint { color: #888; font-style: italic; font-size: 11px; }
+            .dc-field-disabled { background: #f5f5f5 !important; color: #aaa !important; }
+        </style>';
+        return $css . parent::_toHtml();
     }
 
     public function getHeaderText()

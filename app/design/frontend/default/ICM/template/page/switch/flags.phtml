@@ -33,7 +33,7 @@
         <?php $_selected = ($_lang->getId() == $this->getCurrentStoreId()) ? 'selected' : '' ?>
 		<li>
         <a class="<?php echo $_selected ?>" onclick="document.location.href='<?php echo $_lang->getCurrentUrl() ?>'" href="<?php echo $_lang->getCurrentUrl() ?>">
-        <img width="13px" src="<?php echo $this->getSkinUrl('images/flag_'.$_lang->getCode().'.png') ?>" alt="<?php echo $this->htmlEscape($_lang->getName()) ?>"><?php echo $this->htmlEscape($_lang->getName()) ?></a>
+        <img width="13px" src="<?php echo $this->getSkinUrl('images/flag_'.$_lang->getCode().'.png') ?>" alt="<?php echo $this->escapeHtml($_lang->getName()) ?>"><?php echo $this->escapeHtml($_lang->getName()) ?></a>
         </li><?php endforeach; ?>
 	</ul>
 </div>

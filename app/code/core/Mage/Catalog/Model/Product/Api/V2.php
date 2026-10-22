@@ -1,47 +1,29 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog product api V2
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
 {
     /**
      * Retrieve product info
      *
-     * @param int|string $productId
-     * @param string|int $store
-     * @param stdClass   $attributes
-     * @param string     $identifierType
+     * @param  int|string $productId
+     * @param  int|string $store
+     * @param  stdClass   $attributes
+     * @param  string     $identifierType
      * @return array
      */
+    #[Override]
     public function info($productId, $store = null, $attributes = null, $identifierType = null)
     {
         // make sku flag case-insensitive
@@ -51,16 +33,16 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
 
         $product = $this->_getProduct($productId, $store, $identifierType);
 
-        $result = array( // Basic product data
+        $result = [ // Basic product data
             'product_id' => $product->getId(),
             'sku'        => $product->getSku(),
             'set'        => $product->getAttributeSetId(),
             'type'       => $product->getTypeId(),
             'categories' => $product->getCategoryIds(),
-            'websites'   => $product->getWebsiteIds()
-        );
+            'websites'   => $product->getWebsiteIds(),
+        ];
 
-        $allAttributes = array();
+        $allAttributes = [];
         if (!empty($attributes->attributes)) {
             $allAttributes = array_merge($allAttributes, $attributes->attributes);
         } else {
@@ -71,11 +53,11 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
             }
         }
 
-        $_additionalAttributeCodes = array();
+        $_additionalAttributeCodes = [];
         if (!empty($attributes->additional_attributes)) {
-            foreach ($attributes->additional_attributes as $k => $_attributeCode) {
-                $allAttributes[] = $_attributeCode;
-                $_additionalAttributeCodes[] = $_attributeCode;
+            foreach ($attributes->additional_attributes as $attributeCode) {
+                $allAttributes[] = $attributeCode;
+                $_additionalAttributeCodes[] = $attributeCode;
             }
         }
 
@@ -99,13 +81,14 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
     /**
      * Create new product.
      *
-     * @param string $type
-     * @param int $set
-     * @param string $sku
-     * @param array $productData
-     * @param string $store
+     * @param  string         $type
+     * @param  int            $set
+     * @param  string         $sku
+     * @param  array|stdClass $productData
+     * @param  string         $store
      * @return int
      */
+    #[Override]
     public function create($type, $set, $sku, $productData, $store = null)
     {
         if (!$type || !$set || !$sku || !is_object($productData)) {
@@ -115,7 +98,7 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
         $this->_checkProductTypeExists($type);
         $this->_checkProductAttributeSet($set);
 
-        /** @var $product Mage_Catalog_Model_Product */
+        /** @var Mage_Catalog_Model_Product $product */
         $product = Mage::getModel('catalog/product');
         $product->setStoreId($this->_getStoreId($store))
             ->setAttributeSetId($set)
@@ -124,8 +107,8 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
 
         if (!property_exists($productData, 'stock_data')) {
             //Set default stock_data if not exist in product data
-            $_stockData = array('use_config_manage_stock' => 0);
-            $product->setStockData($_stockData);
+            $stockData = ['use_config_manage_stock' => 0];
+            $product->setStockData($stockData);
         }
 
         foreach ($product->getMediaAttributes() as $mediaAttribute) {
@@ -141,19 +124,21 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
              * @todo see Mage_Catalog_Model_Product::validate()
              */
             if (is_array($errors = $product->validate())) {
-                $strErrors = array();
-                foreach($errors as $code => $error) {
+                $strErrors = [];
+                foreach ($errors as $code => $error) {
                     if ($error === true) {
                         $error = Mage::helper('catalog')->__('Attribute "%s" is invalid.', $code);
                     }
+
                     $strErrors[] = $error;
                 }
+
                 $this->_fault('data_invalid', implode("\n", $strErrors));
             }
 
             $product->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('data_invalid', $mageCoreException->getMessage());
         }
 
         return $product->getId();
@@ -162,11 +147,15 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
     /**
      * Update product data
      *
-     * @param int|string $productId
-     * @param array $productData
-     * @param string|int $store
-     * @return boolean
+     * @param  int|string                      $productId
+     * @param  array|stdClass                  $productData
+     * @param  int|string                      $store
+     * @param  null|string                     $identifierType
+     * @return bool
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
+    #[Override]
     public function update($productId, $productData, $store = null, $identifierType = null)
     {
         $product = $this->_getProduct($productId, $store, $identifierType);
@@ -179,21 +168,23 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
              * @todo see Mage_Catalog_Model_Product::validate()
              */
             if (is_array($errors = $product->validate())) {
-                $strErrors = array();
-                foreach($errors as $code => $error) {
+                $strErrors = [];
+                foreach ($errors as $code => $error) {
                     if ($error === true) {
                         $error = Mage::helper('catalog')->__('Value for "%s" is invalid.', $code);
                     } else {
                         $error = Mage::helper('catalog')->__('Value for "%s" is invalid: %s', $code, $error);
                     }
+
                     $strErrors[] = $error;
                 }
+
                 $this->_fault('data_invalid', implode("\n", $strErrors));
             }
 
             $product->save();
-        } catch (Mage_Core_Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Mage_Core_Exception $mageCoreException) {
+            $this->_fault('data_invalid', $mageCoreException->getMessage());
         }
 
         return true;
@@ -202,11 +193,11 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
     /**
      * Update multiple products information at once
      *
-     * @param array      $productIds
-     * @param array      $productData
-     * @param string|int $store
-     * @param string     $identifierType
-     * @return boolean
+     * @param  array      $productIds
+     * @param  array      $productData
+     * @param  int|string $store
+     * @param  string     $identifierType
+     * @return true|void
      */
     public function multiUpdate($productIds, $productData, $store = null, $identifierType = null)
     {
@@ -214,38 +205,39 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
             $this->_fault('multi_update_not_match');
         }
 
-        $productData = (array)$productData;
-        $failMessages = array();
+        $productData = (array) $productData;
+        $failMessages = [];
 
         foreach ($productIds as $index => $productId) {
             try {
                 $this->update($productId, $productData[$index], $store, $identifierType);
-            } catch (Mage_Api_Exception $e) {
-                $failMessages[] = sprintf("Product ID %d:\n %s", $productId, $e->getMessage());
+            } catch (Mage_Api_Exception $mageApiException) {
+                $failMessages[] = sprintf("Product ID %d:\n %s", $productId, $mageApiException->getMessage());
             }
         }
 
-        if (empty($failMessages)) {
+        if ($failMessages === []) {
             return true;
-        } else {
-            $this->_fault('partially_updated', implode("\n", $failMessages));
         }
 
-        return false;
+        $this->_fault('partially_updated', implode("\n", $failMessages));
     }
 
     /**
      *  Set additional data before product saved
      *
-     *  @param    Mage_Catalog_Model_Product $product
-     *  @param    array $productData
-     *  @return   object
+     * @param  Mage_Catalog_Model_Product      $product
+     * @param  array|stdClass                  $productData
+     * @throws Mage_Api_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
-    protected function _prepareDataForSave ($product, $productData)
+    #[Override]
+    protected function _prepareDataForSave($product, $productData)
     {
         if (!is_object($productData)) {
             $this->_fault('data_invalid');
         }
+
         if (property_exists($productData, 'website_ids') && is_array($productData->website_ids)) {
             $product->setWebsiteIds($productData->website_ids);
         }
@@ -253,34 +245,40 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
         if (property_exists($productData, 'additional_attributes')) {
             if (property_exists($productData->additional_attributes, 'single_data')) {
                 foreach ($productData->additional_attributes->single_data as $_attribute) {
-                    $_attrCode = $_attribute->key;
-                    $productData->$_attrCode = $_attribute->value;
+                    /** @var string $attributeCode */
+                    $attributeCode = $_attribute->key;
+                    $productData->$attributeCode = $_attribute->value;
                 }
             }
+
             if (property_exists($productData->additional_attributes, 'multi_data')) {
                 foreach ($productData->additional_attributes->multi_data as $_attribute) {
-                    $_attrCode = $_attribute->key;
-                    $productData->$_attrCode = $_attribute->value;
+                    /** @var string $attributeCode */
+                    $attributeCode = $_attribute->key;
+                    $productData->$attributeCode = $_attribute->value;
                 }
             }
+
             unset($productData->additional_attributes);
         }
 
+        // phpcs:ignore: Ecg.Performance.Loop.DataLoad
         foreach ($product->getTypeInstance(true)->getEditableAttributes($product) as $attribute) {
-            $_attrCode = $attribute->getAttributeCode();
+            /** @var string $attributeCode */
+            $attributeCode = $attribute->getAttributeCode();
 
             //Unset data if object attribute has no value in current store
             if (Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID !== (int) $product->getStoreId()
-                && !$product->getExistsStoreValueFlag($_attrCode)
+                && !$product->getExistsStoreValueFlag($attributeCode)
                 && !$attribute->isScopeGlobal()
             ) {
-                $product->setData($_attrCode, false);
+                $product->setData($attributeCode, false);
             }
 
-            if ($this->_isAllowedAttribute($attribute) && (isset($productData->$_attrCode))) {
+            if ($this->_isAllowedAttribute($attribute) && (isset($productData->$attributeCode))) {
                 $product->setData(
-                    $_attrCode,
-                    $productData->$_attrCode
+                    $attributeCode,
+                    $productData->$attributeCode,
                 );
             }
         }
@@ -294,44 +292,53 @@ class Mage_Catalog_Model_Product_Api_V2 extends Mage_Catalog_Model_Product_Api
                 if (is_string($website)) {
                     try {
                         $website = Mage::app()->getWebsite($website)->getId();
-                    } catch (Exception $e) { }
+                    } catch (Exception) {
+                    }
                 }
             }
+
             $product->setWebsiteIds($productData->websites);
         }
 
         if (Mage::app()->isSingleStoreMode()) {
-            $product->setWebsiteIds(array(Mage::app()->getStore(true)->getWebsite()->getId()));
+            $product->setWebsiteIds([Mage::app()->getStore(true)->getWebsite()->getId()]);
         }
 
         if (property_exists($productData, 'stock_data')) {
-            $_stockData = array();
+            $_stockData = [];
             foreach ($productData->stock_data as $key => $value) {
                 $_stockData[$key] = $value;
             }
+
             $product->setStockData($_stockData);
         }
 
         if (property_exists($productData, 'tier_price')) {
-             $tierPrices = Mage::getModel('catalog/product_attribute_tierprice_api_V2')
+            $tierPrices = Mage::getModel('catalog/product_attribute_tierprice_api_V2')
                  ->prepareTierPrices($product, $productData->tier_price);
-             $product->setData(Mage_Catalog_Model_Product_Attribute_Tierprice_Api_V2::ATTRIBUTE_CODE, $tierPrices);
+            $product->setData(Mage_Catalog_Model_Product_Attribute_Tierprice_Api_V2::ATTRIBUTE_CODE, $tierPrices);
         }
     }
 
     /**
      * Update product special priceim
      *
-     * @param int|string $productId
-     * @param float $specialPrice
-     * @param string $fromDate
-     * @param string $toDate
-     * @param string|int $store
-     * @param string $identifierType OPTIONAL If 'sku' - search product by SKU, if any except for NULL - search by ID,
-     *                                        otherwise - try to determine identifier type automatically
-     * @return boolean
+     * @param  int|string $productId
+     * @param  float      $specialPrice
+     * @param  string     $fromDate
+     * @param  string     $toDate
+     * @param  int|string $store
+     * @param  string     $identifierType OPTIONAL If 'sku' - search product by SKU, if any except for NULL - search by ID,
+     *                                    otherwise - try to determine identifier type automatically
+     * @return bool
      */
-    public function setSpecialPrice($productId, $specialPrice = null, $fromDate = null, $toDate = null, $store = null,
+    #[Override]
+    public function setSpecialPrice(
+        $productId,
+        $specialPrice = null,
+        $fromDate = null,
+        $toDate = null,
+        $store = null,
         $identifierType = null
     ) {
         $obj = new stdClass();

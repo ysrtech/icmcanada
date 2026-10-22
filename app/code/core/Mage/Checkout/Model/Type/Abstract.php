@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
- * Cehckout type abstract class
+ * Checkout type abstract class
  *
- * @category   Mage
  * @package    Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
 {
@@ -40,11 +21,12 @@ abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
      */
     public function getCheckoutSession()
     {
-        $checkout = $this->getData('checkout_session');
+        $checkout = $this->getDataByKey('checkout_session');
         if (is_null($checkout)) {
             $checkout = Mage::getSingleton('checkout/session');
             $this->setData('checkout_session', $checkout);
         }
+
         return $checkout;
     }
 
@@ -61,7 +43,7 @@ abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
     /**
      * Retrieve quote items
      *
-     * @return array
+     * @return Mage_Sales_Model_Quote_Item[]
      */
     public function getQuoteItems()
     {
@@ -69,17 +51,18 @@ abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
     }
 
     /**
-     * Retrieve customer session vodel
+     * Retrieve customer session model
      *
      * @return Mage_Customer_Model_Session
      */
     public function getCustomerSession()
     {
-        $customer = $this->getData('customer_session');
+        $customer = $this->getDataByKey('customer_session');
         if (is_null($customer)) {
             $customer = Mage::getSingleton('customer/session');
             $this->setData('customer_session', $customer);
         }
+
         return $customer;
     }
 
@@ -96,50 +79,58 @@ abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
     /**
      * Retrieve customer default shipping address
      *
-     * @return Mage_Customer_Model_Address || false
+     * @return false|Mage_Customer_Model_Address
      */
     public function getCustomerDefaultShippingAddress()
     {
-        $address = $this->getData('customer_default_shipping_address');
+        $address = $this->getDataByKey('customer_default_shipping_address');
         if (is_null($address)) {
             $address = $this->getCustomer()->getDefaultShippingAddress();
             if (!$address) {
                 foreach ($this->getCustomer()->getAddresses() as $address) {
-                    if($address){
+                    if ($address) {
                         break;
                     }
                 }
             }
+
             $this->setData('customer_default_shipping_address', $address);
         }
+
         return $address;
     }
 
     /**
      * Retrieve customer default billing address
      *
-     * @return Mage_Customer_Model_Address || false
+     * @return false|Mage_Customer_Model_Address
      */
     public function getCustomerDefaultBillingAddress()
     {
-        $address = $this->getData('customer_default_billing_address');
+        $address = $this->getDataByKey('customer_default_billing_address');
         if (is_null($address)) {
             $address = $this->getCustomer()->getDefaultBillingAddress();
             if (!$address) {
                 foreach ($this->getCustomer()->getAddresses() as $address) {
-                    if($address){
+                    if ($address) {
                         break;
                     }
                 }
             }
+
             $this->setData('customer_default_billing_address', $address);
         }
+
         return $address;
     }
 
+    /**
+     * @param  Mage_Sales_Model_Quote_Address $address
+     * @return Mage_Sales_Model_Order
+     */
     protected function _createOrderFromAddress($address)
     {
-        $order = Mage::getModel('sales/order')->createFromQuoteAddress($address)
+        return Mage::getModel('sales/order')->createFromQuoteAddress($address)
             ->setCustomerId($this->getCustomer()->getId())
             ->setGlobalCurrencyCode('USD')
             ->setBaseCurrencyCode('USD')
@@ -147,15 +138,17 @@ abstract class Mage_Checkout_Model_Type_Abstract extends Varien_Object
             ->setOrderCurrencyCode('USD')
             ->setStoreToBaseRate(1)
             ->setStoreToOrderRate(1);
-        return $order;
     }
 
     /**
+     * @param array|string           $email
+     * @param string                 $name
+     * @param Mage_Sales_Model_Order $order
      * @deprecated after 1.4.0.0-rc1
      */
     protected function _emailOrderConfirmation($email, $name, $order)
     {
-        $mailer = Mage::getModel('core/email')
+        Mage::getModel('core/email')
             ->setTemplate('email/order.phtml')
             ->setType('html')
             ->setTemplateVar('order', $order)

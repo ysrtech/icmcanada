@@ -1,35 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tax
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Tax
  */
 
-
+/**
+ * Class Mage_Tax_Model_Class_Source_Product
+ *
+ * @package    Mage_Tax
+ */
 class Mage_Tax_Model_Class_Source_Product extends Mage_Eav_Model_Entity_Attribute_Source_Abstract
 {
     /**
-     * Get all options
-     *
+     * @param  bool  $withEmpty
      * @return array
      */
     public function getAllOptions($withEmpty = false)
@@ -42,19 +28,21 @@ class Mage_Tax_Model_Class_Source_Product extends Mage_Eav_Model_Entity_Attribut
         }
 
         $options = $this->_options;
-        array_unshift($options, array('value'=>'0', 'label'=>Mage::helper('tax')->__('None')));
+        array_unshift($options, ['value' => '0', 'label' => Mage::helper('tax')->__('None')]);
         if ($withEmpty) {
-            array_unshift($options, array('value'=>'', 'label'=>Mage::helper('tax')->__('-- Please Select --')));
+            array_unshift($options, ['value' => '', 'label' => Mage::helper('tax')->__('-- Please Select --')]);
         }
+
         return $options;
     }
 
     /**
      * Get a text for option value
      *
-     * @param string|integer $value
-     * @return string
+     * @param  int|string   $value
+     * @return false|string
      */
+    #[Override]
     public function getOptionText($value)
     {
         $options = $this->getAllOptions(false);
@@ -64,6 +52,7 @@ class Mage_Tax_Model_Class_Source_Product extends Mage_Eav_Model_Entity_Attribut
                 return $item['label'];
             }
         }
+
         return false;
     }
 
@@ -78,18 +67,17 @@ class Mage_Tax_Model_Class_Source_Product extends Mage_Eav_Model_Entity_Attribut
     }
 
     /**
-     * Retrieve flat column definition
-     *
-     * @return array
+     * @inheritDoc
      */
+    #[Override]
     public function getFlatColums()
     {
         $attributeCode = $this->getAttribute()->getAttributeCode();
-        $column = array(
+        $column = [
             'unsigned'  => true,
             'default'   => null,
-            'extra'     => null
-        );
+            'extra'     => null,
+        ];
 
         if (Mage::helper('core')->useDbCompatibleMode()) {
             $column['type']     = 'int';
@@ -100,14 +88,14 @@ class Mage_Tax_Model_Class_Source_Product extends Mage_Eav_Model_Entity_Attribut
             $column['comment']  = $attributeCode . ' tax column';
         }
 
-        return array($attributeCode => $column);
-   }
+        return [$attributeCode => $column];
+    }
 
     /**
      * Retrieve Select for update attribute value in flat table
      *
-     * @param   int $store
-     * @return  Varien_Db_Select|null
+     * @param  int                   $store
+     * @return null|Varien_Db_Select
      */
     public function getFlatUpdateSelect($store)
     {

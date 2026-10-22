@@ -1,43 +1,32 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogIndex
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogIndex
  */
 
 /**
- * Grouped product data retreiver
+ * Grouped product data retriever
  *
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_CatalogIndex
  */
 class Mage_CatalogIndex_Model_Data_Grouped extends Mage_CatalogIndex_Model_Data_Abstract
 {
     /**
      * Defines when product type has parents
      *
-     * @var boolean
+     * @var bool
      */
     protected $_haveParents = false;
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _construct()
     {
         $this->_init('catalogindex/data_grouped');
@@ -46,21 +35,23 @@ class Mage_CatalogIndex_Model_Data_Grouped extends Mage_CatalogIndex_Model_Data_
     /**
      * Fetch final price for product
      *
-     * @param int $product
-     * @param Mage_Core_Model_Store $store
-     * @param Mage_Customer_Model_Group $group
-     * @return float
+     * @param  array                     $product
+     * @param  Mage_Core_Model_Store     $store
+     * @param  Mage_Customer_Model_Group $group
+     * @return false
      */
+    #[Override]
     public function getFinalPrice($product, $store, $group)
     {
         return false;
     }
 
     /**
-     * Retreive product type code
+     * Retrieve product type code
      *
      * @return string
      */
+    #[Override]
     public function getTypeCode()
     {
         return Mage_Catalog_Model_Product_Type::TYPE_GROUPED;
@@ -69,15 +60,16 @@ class Mage_CatalogIndex_Model_Data_Grouped extends Mage_CatalogIndex_Model_Data_
     /**
      * Get child link table and field settings
      *
-     * @return mixed
+     * @return array<string, array<string, int>|string>
      */
+    #[Override]
     protected function _getLinkSettings()
     {
-        return array(
-                    'table'=>'catalog/product_link',
-                    'parent_field'=>'product_id',
-                    'child_field'=>'linked_product_id',
-                    'additional'=>array('link_type_id'=>Mage_Catalog_Model_Product_Link::LINK_TYPE_GROUPED)
-                    );
+        return [
+            'table' => 'catalog/product_link',
+            'parent_field' => 'product_id',
+            'child_field' => 'linked_product_id',
+            'additional' => ['link_type_id' => Mage_Catalog_Model_Product_Link::LINK_TYPE_GROUPED],
+        ];
     }
 }

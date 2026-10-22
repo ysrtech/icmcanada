@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Magento
- * @package     Magento_Profiler
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Magento_Profiler
  */
 
 /**
@@ -32,69 +15,73 @@ class Magento_Profiler
     /**
      * Separator literal to assemble timer identifier from timer names
      */
-    const NESTING_SEPARATOR = '->';
+    public const NESTING_SEPARATOR = '->';
 
     /**
      * FETCH_* constants represent keys to retrieve profiling results
      */
-    const FETCH_TIME    = 'sum';
-    const FETCH_COUNT   = 'count';
-    const FETCH_AVG     = 'avg';
-    const FETCH_REALMEM = 'realmem';
-    const FETCH_EMALLOC = 'emalloc';
+    public const FETCH_TIME    = 'sum';
+
+    public const FETCH_COUNT   = 'count';
+
+    public const FETCH_AVG     = 'avg';
+
+    public const FETCH_REALMEM = 'realmem';
+
+    public const FETCH_EMALLOC = 'emalloc';
 
     /**
      * Storage for timers statistics
      *
      * @var array
      */
-    static private $_timers = array();
+    private static $_timers = [];
 
     /**
      * Whether profiling is active or not
      *
      * @var bool
      */
-    static private $_enabled = false;
+    private static $_enabled = false;
 
     /**
      * Nesting path that represents namespace to resolve timer names
      *
      * @var array
      */
-    static private $_currentPath = array();
+    private static $_currentPath = [];
 
     /**
      * Collection of profiler outputs
      *
      * @var array
      */
-    static private $_outputs = array();
+    private static $_outputs = [];
 
     /**
      * Whether an initialization is done or not
      *
      * @var bool
      */
-    static private $_isInitialized = false;
+    private static $_isInitialized = false;
 
     /**
      * Supported timer statistics keys
      *
      * @var array
      */
-    private static $_supportedFetchKeys = array(
+    private static $_supportedFetchKeys = [
         self::FETCH_TIME,
         self::FETCH_AVG,
         self::FETCH_COUNT,
         self::FETCH_EMALLOC,
         self::FETCH_REALMEM,
-    );
+    ];
 
     /**
      * Retrieve unique identifier among all timers
      *
-     * @param string|null $timerName Timer name
+     * @param  null|string $timerName Timer name
      * @return string
      */
     private static function _getTimerId($timerName = null)
@@ -103,6 +90,7 @@ class Magento_Profiler
         if ($timerName) {
             $currentPath[] = $timerName;
         }
+
         return implode(self::NESTING_SEPARATOR, $currentPath);
     }
 
@@ -113,9 +101,10 @@ class Magento_Profiler
     public static function enable()
     {
         if (!self::$_isInitialized) {
-            register_shutdown_function(array(__CLASS__, 'display'));
+            register_shutdown_function([self::class, 'display']);
             self::$_isInitialized = true;
         }
+
         self::$_enabled = true;
     }
 
@@ -131,29 +120,30 @@ class Magento_Profiler
     /**
      * Reset collected statistics for specified timer or for whole profiler if timer name is omitted
      *
-     * @param string|null $timerName
+     * @param null|string $timerName
      */
     public static function reset($timerName = null)
     {
         if ($timerName === null) {
-            self::$_timers = array();
-            self::$_currentPath = array();
+            self::$_timers = [];
+            self::$_currentPath = [];
             return;
         }
+
         $timerId = self::_getTimerId($timerName);
-        self::$_timers[$timerId] = array(
+        self::$_timers[$timerId] = [
             'start'             => false,
             self::FETCH_TIME    => 0,
             self::FETCH_COUNT   => 0,
             self::FETCH_REALMEM => 0,
             self::FETCH_EMALLOC => 0,
-        );
+        ];
     }
 
     /**
      * Start collecting statistics for specified timer
      *
-     * @param string $timerName
+     * @param  string           $timerName
      * @throws Varien_Exception
      */
     public static function start($timerName)
@@ -162,7 +152,7 @@ class Magento_Profiler
             return;
         }
 
-        if (strpos($timerName, self::NESTING_SEPARATOR) !== false) {
+        if (str_contains($timerName, self::NESTING_SEPARATOR)) {
             throw new Varien_Exception('Timer name must not contain a nesting separator.');
         }
 
@@ -186,7 +176,7 @@ class Magento_Profiler
      * Call with no arguments to stop the recently started timer.
      * Only the latest started timer can be stopped.
      *
-     * @param  string|null $timerName
+     * @param  null|string      $timerName
      * @throws Varien_Exception
      */
     public static function stop($timerName = null)
@@ -205,6 +195,7 @@ class Magento_Profiler
             } else {
                 $exceptionMsg = sprintf('Timer "%s" has not been started.', $timerName);
             }
+
             throw new Varien_Exception($exceptionMsg);
         }
 
@@ -224,9 +215,9 @@ class Magento_Profiler
     /**
      * Retrieve statistics on specified timer
      *
-     * @param  string $timerId
-     * @param  string $key Information to return
-     * @return int|float
+     * @param  string           $timerId
+     * @param  self::FETCH_*    $key     Information to return
+     * @return float|int
      * @throws Varien_Exception
      */
     public static function fetch($timerId, $key = self::FETCH_TIME)
@@ -234,21 +225,26 @@ class Magento_Profiler
         if (empty(self::$_timers[$timerId])) {
             throw new Varien_Exception(sprintf('Timer "%s" does not exist.', $timerId));
         }
+
         if (!in_array($key, self::$_supportedFetchKeys)) {
             throw new Varien_Exception(sprintf('Requested key "%s" is not supported.', $key));
         }
+
         /* FETCH_AVG = FETCH_TIME / FETCH_COUNT */
         $isAvg = ($key == self::FETCH_AVG);
         if ($isAvg) {
             $key = self::FETCH_TIME;
         }
+
         $result = self::$_timers[$timerId][$key];
         if ($key == self::FETCH_TIME && self::$_timers[$timerId]['start'] !== false) {
             $result += (microtime(true) - self::$_timers[$timerId]['start']);
         }
+
         if ($isAvg) {
             $result /= self::$_timers[$timerId][self::FETCH_COUNT];
         }
+
         return $result;
     }
 
@@ -264,8 +260,6 @@ class Magento_Profiler
 
     /**
      * Register profiler output instance to display profiling result at the end of execution
-     *
-     * @param Magento_Profiler_OutputAbstract $output
      */
     public static function registerOutput(Magento_Profiler_OutputAbstract $output)
     {
@@ -281,7 +275,8 @@ class Magento_Profiler
         if (!self::$_enabled) {
             return;
         }
-        /** @var $output Magento_Profiler_OutputAbstract */
+
+        /** @var Magento_Profiler_OutputAbstract $output */
         foreach (self::$_outputs as $output) {
             $output->display();
         }

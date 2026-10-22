@@ -103,7 +103,7 @@ class VladimirPopov_WebForms_Block_Adminhtml_Webforms_Edit
 
 	public function getHeaderText()
 	{
-		if (Mage::registry('webforms_data') && Mage::registry('webforms_data')->getId()) { return Mage::helper('webforms')->__("Edit '%s' Form", $this->htmlEscape(Mage::registry('webforms_data')->getName())); }
+		if (Mage::registry('webforms_data') && Mage::registry('webforms_data')->getId()) { return Mage::helper('webforms')->__("Edit '%s' Form", $this->escapeHtml(Mage::registry('webforms_data')->getName())); }
 		else { return Mage::helper('webforms')->__('Add Form'); }
 	}
 }

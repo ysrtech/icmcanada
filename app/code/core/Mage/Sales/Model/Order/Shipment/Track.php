@@ -1,70 +1,53 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
 /**
- * Enter description here ...
+ * Class Mage_Sales_Model_Order_Shipment_Track
  *
- * @method Mage_Sales_Model_Resource_Order_Shipment_Track _getResource()
- * @method Mage_Sales_Model_Resource_Order_Shipment_Track getResource()
- * @method int getParentId()
- * @method Mage_Sales_Model_Order_Shipment_Track setParentId(int $value)
- * @method float getWeight()
- * @method Mage_Sales_Model_Order_Shipment_Track setWeight(float $value)
- * @method float getQty()
- * @method Mage_Sales_Model_Order_Shipment_Track setQty(float $value)
- * @method int getOrderId()
- * @method Mage_Sales_Model_Order_Shipment_Track setOrderId(int $value)
- * @method Mage_Sales_Model_Order_Shipment_Track setNumber(string $value)
- * @method string getDescription()
- * @method Mage_Sales_Model_Order_Shipment_Track setDescription(string $value)
- * @method string getTitle()
- * @method Mage_Sales_Model_Order_Shipment_Track setTitle(string $value)
- * @method string getCarrierCode()
- * @method Mage_Sales_Model_Order_Shipment_Track setCarrierCode(string $value)
- * @method string getCreatedAt()
- * @method Mage_Sales_Model_Order_Shipment_Track setCreatedAt(string $value)
- * @method string getUpdatedAt()
- * @method Mage_Sales_Model_Order_Shipment_Track setUpdatedAt(string $value)
+ * @package    Mage_Sales
  *
- * @category    Mage
- * @package     Mage_Sales
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Track            _getResource()
+ * @method string                                                    getCarrierCode()
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Track_Collection getCollection()
+ * @method string                                                    getDescription()
+ * @method int                                                       getOrderId()
+ * @method int                                                       getParentId()
+ * @method float                                                     getQty()
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Track            getResource()
+ * @method Mage_Sales_Model_Resource_Order_Shipment_Track_Collection getResourceCollection()
+ * @method string                                                    getTitle()
+ * @method string                                                    getTrackNumber()
+ * @method float                                                     getWeight()
+ * @method $this                                                     setCarrierCode(string $value)
+ * @method $this                                                     setDescription(string $value)
+ * @method $this                                                     setNumber(string $value)
+ * @method $this                                                     setOrderId(int $value)
+ * @method $this                                                     setParentId(int $value)
+ * @method $this                                                     setQty(float $value)
+ * @method $this                                                     setStoreId(int $value)
+ * @method $this                                                     setTitle(string $value)
+ * @method $this                                                     setWeight(float $value)
  */
 class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
 {
-    const CUSTOM_CARRIER_CODE   = 'custom';
+    public const CUSTOM_CARRIER_CODE   = 'custom';
+
     protected $_shipment = null;
 
     protected $_eventPrefix = 'sales_order_shipment_track';
+
     protected $_eventObject = 'track';
 
     /**
      * Initialize resource model
      */
-    function _construct()
+    protected function _construct()
     {
         $this->_init('sales/order_shipment_track');
     }
@@ -73,13 +56,13 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
      * Init mapping array of short fields to
      * its full names
      *
-     * @resturn Varien_Object
+     * @return void
      */
     protected function _initOldFieldsMap()
     {
-        $this->_oldFieldsMap = array(
-            'number' => 'track_number'
-        );
+        $this->_oldFieldsMap = [
+            'number' => 'track_number',
+        ];
     }
 
     /**
@@ -89,14 +72,13 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
      */
     public function getNumber()
     {
-        return $this->getData('track_number');
+        return $this->getDataByKey('track_number');
     }
 
     /**
      * Declare Shipment instance
      *
-     * @param   Mage_Sales_Model_Order_Shipment $shipment
-     * @return  Mage_Sales_Model_Order_Shipment_Item
+     * @return $this
      */
     public function setShipment(Mage_Sales_Model_Order_Shipment $shipment)
     {
@@ -118,6 +100,9 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
         return $this->_shipment;
     }
 
+    /**
+     * @return bool
+     */
     public function isCustom()
     {
         return $this->getCarrierCode() == self::CUSTOM_CARRIER_CODE;
@@ -130,25 +115,25 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
      */
     public function getProtectCode()
     {
-        return (string)$this->getShipment()->getProtectCode();
+        return (string) $this->getShipment()->getProtectCode();
     }
 
     /**
      * Retrieve detail for shipment track
      *
-     * @return string
+     * @return array|string
      */
     public function getNumberDetail()
     {
         $carrierInstance = Mage::getSingleton('shipping/config')->getCarrierInstance($this->getCarrierCode());
         if (!$carrierInstance) {
-            $custom = array();
-            $custom['title'] = $this->getTitle();
-            $custom['number'] = $this->getTrackNumber();
-            return $custom;
-        } else {
-            $carrierInstance->setStore($this->getStore());
+            return [
+                'title' => $this->getTitle(),
+                'number' => $this->getTrackNumber(),
+            ];
         }
+
+        $carrierInstance->setStore($this->getStore());
 
         if (!$trackingInfo = $carrierInstance->getTrackingInfo($this->getNumber())) {
             return Mage::helper('sales')->__('No detail for number "%s"', $this->getNumber());
@@ -167,6 +152,7 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
         if ($this->getShipment()) {
             return $this->getShipment()->getStore();
         }
+
         return Mage::app()->getStore();
     }
 
@@ -183,8 +169,9 @@ class Mage_Sales_Model_Order_Shipment_Track extends Mage_Sales_Model_Abstract
     /**
      * Before object save
      *
-     * @return Mage_Sales_Model_Order_Shipment_Track
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         parent::_beforeSave();

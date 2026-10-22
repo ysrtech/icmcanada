@@ -1,52 +1,34 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog super product configurable part block
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method bool hasAllowProducts()
  */
 class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Block_Product_View_Abstract
 {
     /**
      * Prices
-     *
+     * @deprecated
      * @var array
      */
-    protected $_prices      = array();
+    protected $_prices      = [];
 
     /**
      * Prepared prices
-     *
+     * @deprecated
      * @var array
      */
-    protected $_resPrices   = array();
+    protected $_resPrices   = [];
 
     /**
      * Get helper for calculation purposes
@@ -65,8 +47,9 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
      */
     public function getAllowAttributes()
     {
-        return $this->getProduct()->getTypeInstance(true)
-            ->getConfigurableAttributes($this->getProduct());
+        /** @var Mage_Catalog_Model_Product_Type_Configurable $productType */
+        $productType = $this->getProduct()->getTypeInstance(true);
+        return $productType->getConfigurableAttributes($this->getProduct());
     }
 
     /**
@@ -80,11 +63,12 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
         if (count($attributes)) {
             foreach ($attributes as $attribute) {
                 /** @var Mage_Catalog_Model_Product_Type_Configurable_Attribute $attribute */
-                if ($attribute->getData('prices')) {
+                if ($attribute->getDataByKey('prices')) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
@@ -96,28 +80,32 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     public function getAllowProducts()
     {
         if (!$this->hasAllowProducts()) {
-            $products = array();
+            $products = [];
             $skipSaleableCheck = Mage::helper('catalog/product')->getSkipSaleableCheck();
-            $allProducts = $this->getProduct()->getTypeInstance(true)
-                ->getUsedProducts(null, $this->getProduct());
+            /** @var Mage_Catalog_Model_Product_Type_Configurable $productType */
+            $productType = $this->getProduct()->getTypeInstance(true);
+            $allProducts = $productType->getUsedProducts(null, $this->getProduct());
             foreach ($allProducts as $product) {
                 if ($product->isSaleable()
                     || $skipSaleableCheck
                     || (!$product->getStockItem()->getIsInStock()
-                        && Mage::helper('cataloginventory')->isShowOutOfStock())) {
+                        && Mage::helper('cataloginventory')->isShowOutOfStock())
+                ) {
                     $products[] = $product;
                 }
             }
+
             $this->setAllowProducts($products);
         }
-        return $this->getData('allow_products');
+
+        return $this->getDataByKey('allow_products');
     }
 
     /**
      * retrieve current store
      *
-     * @deprecated
      * @return Mage_Core_Model_Store
+     * @deprecated
      */
     public function getCurrentStore()
     {
@@ -125,13 +113,13 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     }
 
     /**
-     * Returns additional values for js config, con be overriden by descedants
+     * Returns additional values for js config, con be overridden by descendants
      *
-     * @return array
+     * @return array<string,bool>|array<void>
      */
     protected function _getAdditionalConfig()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -141,18 +129,19 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
      */
     public function getJsonConfig()
     {
-        $attributes = array();
-        $options    = array();
-        $store      = $this->getCurrentStore();
-        $taxHelper  = Mage::helper('tax');
+        $attributes     = [];
+        $options        = [];
+        $store          = $this->getCurrentStore();
+        $taxHelper      = Mage::helper('tax');
         $currentProduct = $this->getProduct();
+        $defaultValues  = [];
 
         $preconfiguredFlag = $currentProduct->hasPreconfiguredValues();
         if ($preconfiguredFlag) {
             $preconfiguredValues = $currentProduct->getPreconfiguredValues();
-            $defaultValues       = array();
         }
-        $productStock = array();
+
+        $productStock = [];
         foreach ($this->getAllowProducts() as $product) {
             $productId  = $product->getId();
             $productStock[$productId] = $product->getStockItem()->getIsInStock();
@@ -161,79 +150,74 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
                 $productAttributeId = $productAttribute->getId();
                 $attributeValue     = $product->getData($productAttribute->getAttributeCode());
                 if (!isset($options[$productAttributeId])) {
-                    $options[$productAttributeId] = array();
+                    $options[$productAttributeId] = [];
                 }
 
                 if (!isset($options[$productAttributeId][$attributeValue])) {
-                    $options[$productAttributeId][$attributeValue] = array();
+                    $options[$productAttributeId][$attributeValue] = [];
                 }
+
                 $options[$productAttributeId][$attributeValue][] = $productId;
             }
         }
 
-        $this->_resPrices = array(
-            $this->_preparePrice($currentProduct->getFinalPrice())
-        );
+        $this->_resPrices = [
+            $this->_preparePrice($currentProduct->getFinalPrice()),
+        ];
 
         foreach ($this->getAllowAttributes() as $attribute) {
             $productAttribute = $attribute->getProductAttribute();
             $attributeId = $productAttribute->getId();
-            $info = array(
-               'id'        => $productAttribute->getId(),
-               'code'      => $productAttribute->getAttributeCode(),
-               'label'     => $attribute->getLabel(),
-               'options'   => array()
-            );
+            $info = [
+                'id'        => $productAttribute->getId(),
+                'code'      => $productAttribute->getAttributeCode(),
+                'label'     => $attribute->getLabel(),
+                'options'   => [],
+            ];
 
-            $optionPrices = array();
+            $optionPrices = [];
             $prices = $attribute->getPrices();
             if (is_array($prices)) {
                 foreach ($prices as $value) {
-                    if(!$this->_validateAttributeValue($attributeId, $value, $options)) {
+                    if (!$this->_validateAttributeValue($attributeId, $value, $options)) {
                         continue;
                     }
+
                     $currentProduct->setConfigurablePrice(
-                        $this->_preparePrice($value['pricing_value'], $value['is_percent'])
+                        $this->_preparePrice($value['pricing_value'], $value['is_percent']),
                     );
                     $currentProduct->setParentId(true);
                     Mage::dispatchEvent(
                         'catalog_product_type_configurable_price',
-                        array('product' => $currentProduct)
+                        ['product' => $currentProduct],
                     );
                     $configurablePrice = $currentProduct->getConfigurablePrice();
 
                     if (isset($options[$attributeId][$value['value_index']])) {
                         $productsIndexOptions = $options[$attributeId][$value['value_index']];
-                        $productsIndex = array();
+                        $productsIndex = [];
                         foreach ($productsIndexOptions as $productIndex) {
                             if ($productStock[$productIndex]) {
                                 $productsIndex[] = $productIndex;
                             }
                         }
                     } else {
-                        $productsIndex = array();
+                        $productsIndex = [];
                     }
 
-                    $info['options'][] = array(
+                    $info['options'][] = [
                         'id'        => $value['value_index'],
                         'label'     => $value['label'],
                         'price'     => $configurablePrice,
                         'oldPrice'  => $this->_prepareOldPrice($value['pricing_value'], $value['is_percent']),
                         'products'  => $productsIndex,
-                    );
+                    ];
                     $optionPrices[] = $configurablePrice;
                 }
             }
-            /**
-             * Prepare formated values for options choose
-             */
-            foreach ($optionPrices as $optionPrice) {
-                foreach ($optionPrices as $additional) {
-                    $this->_preparePrice(abs($additional-$optionPrice));
-                }
-            }
-            if($this->_validateAttributeInfo($info)) {
-               $attributes[$attributeId] = $info;
+
+            if ($this->_validateAttributeInfo($info)) {
+                $attributes[$attributeId] = $info;
             }
 
             // Add attribute default value (if set)
@@ -252,32 +236,34 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
 
         $_request = $taxCalculation->getDefaultRateRequest();
         $_request->setProductClassId($currentProduct->getTaxClassId());
+
         $defaultTax = $taxCalculation->getRate($_request);
 
         $_request = $taxCalculation->getRateRequest();
         $_request->setProductClassId($currentProduct->getTaxClassId());
+
         $currentTax = $taxCalculation->getRate($_request);
 
-        $taxConfig = array(
+        $taxConfig = [
             'includeTax'        => $taxHelper->priceIncludesTax(),
             'showIncludeTax'    => $taxHelper->displayPriceIncludingTax(),
             'showBothPrices'    => $taxHelper->displayBothPrices(),
             'defaultTax'        => $defaultTax,
             'currentTax'        => $currentTax,
-            'inclTaxTitle'      => Mage::helper('catalog')->__('Incl. Tax')
-        );
+            'inclTaxTitle'      => Mage::helper('catalog')->__('Incl. Tax'),
+        ];
 
-        $config = array(
+        $config = [
             'attributes'        => $attributes,
             'template'          => str_replace('%s', '#{price}', $store->getCurrentCurrency()->getOutputFormat()),
             'basePrice'         => $this->_registerJsPrice($this->_convertPrice($currentProduct->getFinalPrice())),
             'oldPrice'          => $this->_registerJsPrice($this->_convertPrice($currentProduct->getPrice())),
             'productId'         => $currentProduct->getId(),
             'chooseText'        => Mage::helper('catalog')->__('Choose an Option...'),
-            'taxConfig'         => $taxConfig
-        );
+            'taxConfig'         => $taxConfig,
+        ];
 
-        if ($preconfiguredFlag && !empty($defaultValues)) {
+        if ($preconfiguredFlag && $defaultValues !== []) {
             $config['defaultValues'] = $defaultValues;
         }
 
@@ -289,41 +275,34 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     /**
      * Validating of super product option value
      *
-     * @param array $attributeId
-     * @param array $value
-     * @param array $options
-     * @return boolean
+     * @param  string $attributeId
+     * @param  array  $value
+     * @param  array  $options
+     * @return bool
      */
     protected function _validateAttributeValue($attributeId, &$value, &$options)
     {
-        if(isset($options[$attributeId][$value['value_index']])) {
-            return true;
-        }
-
-        return false;
+        return isset($options[$attributeId][$value['value_index']]);
     }
 
     /**
      * Validation of super product option
      *
-     * @param array $info
-     * @return boolean
+     * @param  array $info
+     * @return bool
      */
     protected function _validateAttributeInfo(&$info)
     {
-        if(count($info['options']) > 0) {
-            return true;
-        }
-        return false;
+        return count($info['options']) > 0;
     }
 
     /**
      * Calculation real price
      *
+     * @param  float  $price
+     * @param  bool   $isPercent
+     * @return string
      * @deprecated
-     * @param float $price
-     * @param bool $isPercent
-     * @return mixed
      */
     protected function _preparePrice($price, $isPercent = false)
     {
@@ -333,10 +312,10 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     /**
      * Calculation price before special price
      *
+     * @param  float  $price
+     * @param  bool   $isPercent
+     * @return string
      * @deprecated
-     * @param float $price
-     * @param bool $isPercent
-     * @return mixed
      */
     protected function _prepareOldPrice($price, $isPercent = false)
     {
@@ -346,9 +325,9 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     /**
      * Replace ',' on '.' for js
      *
-     * @deprecated
-     * @param float $price
+     * @param  float  $price
      * @return string
+     * @deprecated
      */
     protected function _registerJsPrice($price)
     {
@@ -358,10 +337,10 @@ class Mage_Catalog_Block_Product_View_Type_Configurable extends Mage_Catalog_Blo
     /**
      * Convert price from default currency to current currency
      *
-     * @deprecated
-     * @param float $price
-     * @param boolean $round
+     * @param  float $price
+     * @param  bool  $round
      * @return float
+     * @deprecated
      */
     protected function _convertPrice($price, $round = false)
     {

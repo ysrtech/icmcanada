@@ -1,52 +1,39 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
 
 /**
  * Custom variable model
  *
- * @method Mage_Core_Model_Resource_Variable _getResource()
- * @method Mage_Core_Model_Resource_Variable getResource()
- * @method string getCode()
- * @method Mage_Core_Model_Variable setCode(string $value)
- * @method string getName()
- * @method Mage_Core_Model_Variable setName(string $value)
+ * @package    Mage_Core
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Core_Model_Resource_Variable            _getResource()
+ * @method string                                       getCode()
+ * @method Mage_Core_Model_Resource_Variable_Collection getCollection()
+ * @method string                                       getHtmlValue()
+ * @method string                                       getName()
+ * @method string                                       getPlainValue()
+ * @method Mage_Core_Model_Resource_Variable            getResource()
+ * @method Mage_Core_Model_Resource_Variable_Collection getResourceCollection()
+ * @method bool                                         getUseDefaultValue()
+ * @method $this                                        setCode(string $value)
+ * @method $this                                        setName(string $value)
  */
 class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
 {
-    const TYPE_TEXT = 'text';
-    const TYPE_HTML = 'html';
+    public const TYPE_TEXT = 'text';
+
+    public const TYPE_HTML = 'html';
 
     protected $_storeId = 0;
 
     /**
-     * Internal Constructor
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -57,8 +44,8 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
     /**
      * Setter
      *
-     * @param integer $storeId
-     * @return Mage_Core_Model_Variable
+     * @param  int   $storeId
+     * @return $this
      */
     public function setStoreId($storeId)
     {
@@ -69,7 +56,7 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
     /**
      * Getter
      *
-     * @return integer
+     * @return int
      */
     public function getStoreId()
     {
@@ -79,8 +66,8 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
     /**
      * Load variable by code
      *
-     * @param string $code
-     * @return Mage_Core_Model_Variable
+     * @param  string $code
+     * @return $this
      */
     public function loadByCode($code)
     {
@@ -91,7 +78,7 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
     /**
      * Return variable value depend on given type
      *
-     * @param string $type
+     * @param  string $type
      * @return string
      */
     public function getValue($type = null)
@@ -99,21 +86,24 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
         if ($type === null) {
             $type = self::TYPE_HTML;
         }
-        if ($type == self::TYPE_TEXT || !(strlen((string)$this->getData('html_value')))) {
-            $value = $this->getData('plain_value');
+
+        if ($type == self::TYPE_TEXT || !(strlen((string) $this->getDataByKey('html_value')))) {
+            $value = $this->getDataByKey('plain_value');
             //escape html if type is html, but html value is not defined
             if ($type == self::TYPE_HTML) {
-                $value = nl2br(Mage::helper('core')->escapeHtml($value));
+                return nl2br(Mage::helper('core')->escapeHtml($value));
             }
+
             return $value;
         }
-        return $this->getData('html_value');
+
+        return $this->getDataByKey('html_value');
     }
 
     /**
      * Validation of object data. Checking for unique variable code
      *
-     * @return boolean | string
+     * @return string|true
      */
     public function validate()
     {
@@ -122,38 +112,40 @@ class Mage_Core_Model_Variable extends Mage_Core_Model_Abstract
             if (!empty($variable) && $variable['variable_id'] != $this->getId()) {
                 return Mage::helper('core')->__('Variable Code must be unique.');
             }
+
             return true;
         }
+
         return Mage::helper('core')->__('Validation has failed.');
     }
 
     /**
      * Retrieve variables option array
      *
-     * @param boolean $withValues
+     * @param  bool  $withGroup
      * @return array
      */
     public function getVariablesOptionArray($withGroup = false)
     {
-        /* @var $collection Mage_Core_Model_Mysql4_Variable_Collection */
         $collection = $this->getCollection();
-        $variables = array();
+        $variables = [];
         foreach ($collection->toOptionArray() as $variable) {
-            $variables[] = array(
+            $variables[] = [
                 'value' => '{{customVar code=' . $variable['value'] . '}}',
                 'label' => Mage::helper('core')->__(
                     '%s',
-                    Mage::helper('core')->escapeHtml($variable['label']
-                    ))
-            );
+                    Mage::helper('core')->escapeHtml($variable['label']),
+                ),
+            ];
         }
+
         if ($withGroup && $variables) {
-            $variables = array(
+            return [
                 'label' => Mage::helper('core')->__('Custom Variables'),
-                'value' => $variables
-            );
+                'value' => $variables,
+            ];
         }
+
         return $variables;
     }
-
 }

@@ -51,8 +51,8 @@
 		$_imgHtml = '<img
 			width="'.($thumbnail_width ? $thumbnail_width : $width) .'"
 	        src="'.$_imgUrl.'"
-	        alt="'.$this->htmlEscape($item->getValue()).'"
-	        title="'.$this->htmlEscape($item->getValue()).'"
+	        alt="'.$this->escapeHtml($item->getValue()).'"
+	        title="'.$this->escapeHtml($item->getValue()).'"
 	        class="attribute-values-logo" />';
 	}
 
@@ -67,7 +67,7 @@
 		?>
 		<a
 				href="<?php echo $this->getUrl('/').$item->getAttributeCode().'/'.$item->getIdentifier(); ?>"
-				title="<?php echo $this->htmlEscape($item->getPageTitle())?>"><?php
+				title="<?php echo $this->escapeHtml($item->getPageTitle())?>"><?php
 					echo $item->getValue();
 		?></a>
 		<?php

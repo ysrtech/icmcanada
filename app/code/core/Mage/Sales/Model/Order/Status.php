@@ -1,33 +1,30 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
-
+/**
+ * Class Mage_Sales_Model_Order_Status
+ *
+ * @package    Mage_Sales
+ *
+ * @method Mage_Sales_Model_Resource_Order_Status            _getResource()
+ * @method Mage_Sales_Model_Resource_Order_Status_Collection getCollection()
+ * @method string                                            getLabel()
+ * @method Mage_Sales_Model_Resource_Order_Status            getResource()
+ * @method Mage_Sales_Model_Resource_Order_Status_Collection getResourceCollection()
+ * @method string                                            getStatus()
+ * @method bool                                              hasStoreLabels()
+ */
 class Mage_Sales_Model_Order_Status extends Mage_Core_Model_Abstract
 {
-
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         $this->_init('sales/order_status');
@@ -36,28 +33,29 @@ class Mage_Sales_Model_Order_Status extends Mage_Core_Model_Abstract
     /**
      * Assign order status to particular state
      *
-     * @param string  $state
-     * @param boolean $isDefault make the status as default one for state
-     * @return Mage_Sales_Model_Order_Status
+     * @param  string $state
+     * @param  bool   $isDefault make the status as default one for state
+     * @return $this
      */
-    public function assignState($state, $isDefault=false)
+    public function assignState($state, $isDefault = false)
     {
         $this->_getResource()->beginTransaction();
         try {
             $this->_getResource()->assignState($this->getStatus(), $state, $isDefault);
             $this->_getResource()->commit();
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->_getResource()->rollBack();
-            throw $e;
+            throw $exception;
         }
+
         return $this;
     }
 
     /**
      * Unassigns order status from particular state
      *
-     * @param string  $state
-     * @return Mage_Sales_Model_Order_Status
+     * @param  string $state
+     * @return $this
      */
     public function unassignState($state)
     {
@@ -65,10 +63,11 @@ class Mage_Sales_Model_Order_Status extends Mage_Core_Model_Abstract
         try {
             $this->_getResource()->unassignState($this->getStatus(), $state);
             $this->_getResource()->commit();
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             $this->_getResource()->rollBack();
-            throw $e;
+            throw $exception;
         }
+
         return $this;
     }
 
@@ -82,6 +81,7 @@ class Mage_Sales_Model_Order_Status extends Mage_Core_Model_Abstract
         if ($this->hasData('store_labels')) {
             return $this->_getData('store_labels');
         }
+
         $labels = $this->_getResource()->getStoreLabels($this);
         $this->setData('store_labels', $labels);
         return $labels;
@@ -90,26 +90,27 @@ class Mage_Sales_Model_Order_Status extends Mage_Core_Model_Abstract
     /**
      * Get status label by store
      *
-     * @param mixed $store
+     * @param  mixed  $store
      * @return string
      */
-    public function getStoreLabel($store=null)
+    public function getStoreLabel($store = null)
     {
         $store = Mage::app()->getStore($store);
-        $label = false;
         if (!$store->isAdmin()) {
             $labels = $this->getStoreLabels();
             if (isset($labels[$store->getId()])) {
                 return $labels[$store->getId()];
             }
         }
+
         return Mage::helper('sales')->__($this->getLabel());
     }
 
     /**
      * Load default status per state
      *
-     * @param string $state
+     * @param  string $state
+     * @return $this
      */
     public function loadDefaultByState($state)
     {

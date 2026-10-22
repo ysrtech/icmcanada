@@ -1,53 +1,36 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Bundle
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Bundle
  */
 
 /**
  * Bundle product attributes tab
  *
- * @category    Mage
- * @package     Mage_Bundle
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Bundle
+ *
+ * @method bool getCanEditPrice()
  */
-class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
-    extends Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Attributes
+class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes extends Mage_Adminhtml_Block_Catalog_Product_Edit_Tab_Attributes
 {
     /**
      * Prepare attributes form of bundle product
      *
-     * @return void
+     * @return $this
      */
+    #[Override]
     protected function _prepareForm()
     {
         parent::_prepareForm();
 
-        $special_price = $this->getForm()->getElement('special_price');
-        if ($special_price) {
-            $special_price->setRenderer(
+        $specialPrice = $this->getForm()->getElement('special_price');
+        if ($specialPrice) {
+            $specialPrice->setRenderer(
                 $this->getLayout()->createBlock('bundle/adminhtml_catalog_product_edit_tab_attributes_special')
-                    ->setDisableChild(false)
+                    ->setDisableChild(false),
             );
         }
 
@@ -55,15 +38,17 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
         if ($sku) {
             $sku->setRenderer(
                 $this->getLayout()->createBlock('bundle/adminhtml_catalog_product_edit_tab_attributes_extend')
-                    ->setDisableChild(false)
+                    ->setDisableChild(false),
             );
         }
 
         $price = $this->getForm()->getElement('price');
         if ($price) {
             $price->setRenderer(
-                $this->getLayout()->createBlock('bundle/adminhtml_catalog_product_edit_tab_attributes_extend',
-                    'adminhtml.catalog.product.bundle.edit.tab.attributes.price')->setDisableChild(true)
+                $this->getLayout()->createBlock(
+                    'bundle/adminhtml_catalog_product_edit_tab_attributes_extend',
+                    'adminhtml.catalog.product.bundle.edit.tab.attributes.price',
+                )->setDisableChild(true),
             );
         }
 
@@ -95,7 +80,7 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
                 });
                 //]]>
                 "
-                . '</script>'
+                . '</script>',
             );
         }
 
@@ -103,16 +88,16 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
         if ($weight) {
             $weight->setRenderer(
                 $this->getLayout()->createBlock('bundle/adminhtml_catalog_product_edit_tab_attributes_extend')
-                    ->setDisableChild(true)
+                    ->setDisableChild(true),
             );
         }
 
-        $tier_price = $this->getForm()->getElement('tier_price');
-        if ($tier_price) {
-            $tier_price->setRenderer(
+        $tierPrice = $this->getForm()->getElement('tier_price');
+        if ($tierPrice) {
+            $tierPrice->setRenderer(
                 $this->getLayout()->createBlock('adminhtml/catalog_product_edit_tab_price_tier')
                     ->setPriceColumnHeader(Mage::helper('bundle')->__('Percent Discount'))
-                    ->setPriceValidation('validate-greater-than-zero validate-percents')
+                    ->setPriceValidation('validate-greater-than-zero validate-percents'),
             );
         }
 
@@ -122,7 +107,7 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
                 $this->getLayout()->createBlock('adminhtml/catalog_product_edit_tab_price_group')
                     ->setPriceColumnHeader(Mage::helper('bundle')->__('Percent Discount'))
                     ->setIsPercent(true)
-                    ->setPriceValidation('validate-greater-than-zero validate-percents')
+                    ->setPriceValidation('validate-greater-than-zero validate-percents'),
             );
         }
 
@@ -154,9 +139,11 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
                     changePriceTypeMap();
                 });
                 "
-                . '</script>'
+                . '</script>',
             );
         }
+
+        return $this;
     }
 
     /**
@@ -166,9 +153,10 @@ class Mage_Bundle_Block_Adminhtml_Catalog_Product_Edit_Tab_Attributes
      */
     public function getProduct()
     {
-        if (!$this->getData('product')){
+        if (!$this->getDataByKey('product')) {
             $this->setData('product', Mage::registry('product'));
         }
-        return $this->getData('product');
+
+        return $this->getDataByKey('product');
     }
 }

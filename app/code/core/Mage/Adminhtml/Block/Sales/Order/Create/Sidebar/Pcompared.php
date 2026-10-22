@@ -1,39 +1,23 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml sales order create sidebar recently compared block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Abstract
 {
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -41,6 +25,9 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
         $this->setDataId('pcompared');
     }
 
+    /**
+     * @return string
+     */
     public function getHeaderText()
     {
         return Mage::helper('sales')->__('Recently Compared Products');
@@ -51,20 +38,21 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
      *
      * @return mixed
      */
+    #[Override]
     public function getItemCollection()
     {
-        $productCollection = $this->getData('item_collection');
+        $productCollection = $this->getDataByKey('item_collection');
         if (is_null($productCollection)) {
             // get products to skip
-            $skipProducts = array();
+            $skipProducts = [];
             if ($collection = $this->getCreateOrderModel()->getCustomerCompareList()) {
                 $collection = $collection->getItemCollection()
-                    ->useProductItem(true)
+                    ->useProductItem()
                     ->setStoreId($this->getStoreId())
                     ->setCustomerId($this->getCustomerId())
                     ->load();
-                foreach ($collection as $_item) {
-                    $skipProducts[] = $_item->getProductId();
+                foreach ($collection as $item) {
+                    $skipProducts[] = $item->getProductId();
                 }
             }
 
@@ -76,12 +64,17 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
                 ->addAttributeToSelect('price')
                 ->addAttributeToSelect('small_image');
             Mage::getResourceSingleton('reports/event')->applyLogToCollection(
-                $productCollection, Mage_Reports_Model_Event::EVENT_PRODUCT_COMPARE, $this->getCustomerId(), 0, $skipProducts
+                $productCollection,
+                Mage_Reports_Model_Event::EVENT_PRODUCT_COMPARE,
+                $this->getCustomerId(),
+                0,
+                $skipProducts,
             );
 
             $productCollection->load();
             $this->setData('item_collection', $productCollection);
         }
+
         return $productCollection;
     }
 
@@ -90,6 +83,7 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
      *
      * @return bool
      */
+    #[Override]
     public function canRemoveItems()
     {
         return false;
@@ -98,9 +92,10 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
     /**
      * Get product Id
      *
-     * @param Mage_Catalog_Model_Product $item
+     * @param  Mage_Catalog_Model_Product $item
      * @return int
      */
+    #[Override]
     public function getIdentifierId($item)
     {
         return $item->getId();
@@ -109,10 +104,12 @@ class Mage_Adminhtml_Block_Sales_Order_Create_Sidebar_Pcompared extends Mage_Adm
     /**
      * Retrieve product identifier of block item
      *
-     * @param   mixed $item
-     * @return  int
+     * @param  mixed $item
+     * @return int
      */
-    public function getProductId($item) {
+    #[Override]
+    public function getProductId($item)
+    {
         return $item->getId();
     }
 }

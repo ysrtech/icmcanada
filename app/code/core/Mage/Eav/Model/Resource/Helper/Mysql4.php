@@ -1,36 +1,16 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
+ */
 
 /**
  * Eav Mysql resource helper model
  *
- * @category    Mage
- * @package     Mage_Eav
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Eav
  */
 class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Helper_Mysql4
 {
@@ -39,7 +19,7 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
      *
      * @var array
      */
-    protected $_ddlColumnTypes      = array(
+    protected $_ddlColumnTypes      = [
         Varien_Db_Ddl_Table::TYPE_BOOLEAN       => 'bool',
         Varien_Db_Ddl_Table::TYPE_SMALLINT      => 'smallint',
         Varien_Db_Ddl_Table::TYPE_INTEGER       => 'int',
@@ -52,15 +32,15 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
         Varien_Db_Ddl_Table::TYPE_DATETIME      => 'datetime',
         Varien_Db_Ddl_Table::TYPE_TEXT          => 'text',
         Varien_Db_Ddl_Table::TYPE_BLOB          => 'blob',
-        Varien_Db_Ddl_Table::TYPE_VARBINARY     => 'blob'
-    );
+        Varien_Db_Ddl_Table::TYPE_VARBINARY     => 'blob',
+    ];
 
     /**
      * Returns columns for select
      *
-     * @param string $tableAlias
-     * @param string $eavType
-     * @return string|array
+     * @param  string $tableAlias
+     * @param  string $eavType
+     * @return string
      */
     public function attributeSelectFields($tableAlias, $eavType)
     {
@@ -70,7 +50,7 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
     /**
      * Returns DDL type by column type in database
      *
-     * @param string $columnType
+     * @param  string $columnType
      * @return string
      */
     public function getDdlTypeByColumnType($columnType)
@@ -83,6 +63,9 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
             case 'tinyint':
                 $columnType = 'smallint';
                 break;
+            case 'int unsigned':
+                $columnType = 'int';
+                break;
         }
 
         return array_search($columnType, $this->_ddlColumnTypes);
@@ -91,9 +74,9 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
     /**
      * Prepares value fields for unions depend on type
      *
-     * @param string $value
-     * @param string $eavType
-     * @return Zend_Db_Expr
+     * @param  string $value
+     * @param  string $eavType
+     * @return string
      */
     public function prepareEavAttributeValue($value, $eavType)
     {
@@ -103,26 +86,27 @@ class Mage_Eav_Model_Resource_Helper_Mysql4 extends Mage_Core_Model_Resource_Hel
     /**
      * Groups selects to separate unions depend on type
      *
-     * @param array $selects
+     * @param  array $selects
      * @return array
      */
     public function getLoadAttributesSelectGroups($selects)
     {
-        $mainGroup  = array();
-        foreach ($selects as $eavType => $selectGroup) {
+        $mainGroup  = [];
+        foreach ($selects as $selectGroup) {
             $mainGroup = array_merge($mainGroup, $selectGroup);
         }
-        return array($mainGroup);
+
+        return $mainGroup;
     }
 
     /**
      * Retrieve 'cast to int' expression
      *
-     * @param string|Zend_Db_Expr $expression
+     * @param  string|Zend_Db_Expr $expression
      * @return Zend_Db_Expr
      */
     public function getCastToIntExpression($expression)
     {
-        return new Zend_Db_Expr("CAST($expression AS SIGNED)");
+        return new Zend_Db_Expr("CAST({$expression} AS SIGNED)");
     }
 }

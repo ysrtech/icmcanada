@@ -1,37 +1,39 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_ConfigurableSwatches
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_ConfigurableSwatches
+ */
+
+/**
+ * @package    Mage_ConfigurableSwatches
  */
 class Mage_ConfigurableSwatches_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const CONFIG_PATH_BASE = 'configswatches';
-    const CONFIG_PATH_ENABLED = 'configswatches/general/enabled';
-    const CONFIG_PATH_SWATCH_ATTRIBUTES = 'configswatches/general/swatch_attributes';
-    const CONFIG_PATH_LIST_SWATCH_ATTRIBUTE = 'configswatches/general/product_list_attribute';
+    public const CONFIG_PATH_BASE = 'configswatches';
 
+    public const CONFIG_PATH_ENABLED = 'configswatches/general/enabled';
 
+    public const CONFIG_PATH_SWATCH_ATTRIBUTES = 'configswatches/general/swatch_attributes';
+
+    public const CONFIG_PATH_LIST_SWATCH_ATTRIBUTE = 'configswatches/general/product_list_attribute';
+
+    protected $_moduleName = 'Mage_ConfigurableSwatches';
+
+    /**
+     * Is the extension enabled
+     *
+     * @var null|bool
+     */
     protected $_enabled = null;
+
+    /**
+     * Swatch attribute IDs from config
+     *
+     * @var null|string[]
+     */
     protected $_configAttributeIds = null;
 
     /**
@@ -43,18 +45,20 @@ class Mage_ConfigurableSwatches_Helper_Data extends Mage_Core_Helper_Abstract
     {
         if (is_null($this->_enabled)) {
             $this->_enabled = (
-                (bool) Mage::getStoreConfig(self::CONFIG_PATH_ENABLED)
-                && Mage::helper('configurableswatches/productlist')->getSwatchAttribute()
+                Mage::getStoreConfigFlag(self::CONFIG_PATH_ENABLED)
+                && Mage::helper('configurableswatches/productlist')->getSwatchAttributeId()
             );
         }
+
         return $this->_enabled;
     }
 
     /**
      * Return the formatted hyphenated string
      *
-     * @param string $str
-     * @return string
+     * @param  string      $str
+     * @return null|string
+     * @SuppressWarnings("PHPMD.ErrorControlOperator")
      */
     public function getHyphenatedString($str)
     {
@@ -74,43 +78,60 @@ class Mage_ConfigurableSwatches_Helper_Data extends Mage_Core_Helper_Abstract
      * Trims and lower-cases strings used as array indexes in json and for string matching in a
      * multi-byte compatible way if the mbstring module is available.
      *
-     * @param $key
+     * @param  string $key
      * @return string
      */
-    public static function normalizeKey($key) {
+    public static function normalizeKey($key)
+    {
+        if ($key === null || $key === '') {
+            return '';
+        }
+
         if (function_exists('mb_strtolower')) {
             return trim(mb_strtolower($key, 'UTF-8'));
         }
+
         return trim(strtolower($key));
+    }
+
+    /**
+     * Wraps a key in a Normalized object that normalizes to lowercase but preserves original value
+     */
+    public static function normalizeKeyToObject(?string $key): Mage_ConfigurableSwatches_Model_String_Normalized
+    {
+        return new Mage_ConfigurableSwatches_Model_String_Normalized($key);
     }
 
     /**
      * Get list of attributes that should use swatches
      *
-     * @return array
+     * @return string[]
      */
     public function getSwatchAttributeIds()
     {
         if (is_null($this->_configAttributeIds)) {
-            $this->_configAttributeIds = array();
+            $this->_configAttributeIds = [];
             if (Mage::getStoreConfig(self::CONFIG_PATH_SWATCH_ATTRIBUTES)) {
                 $this->_configAttributeIds = explode(',', Mage::getStoreConfig(self::CONFIG_PATH_SWATCH_ATTRIBUTES));
             }
         }
+
         return $this->_configAttributeIds;
     }
 
     /**
      * Determine if an attribute should be a swatch
      *
-     * @param int|Mage_Eav_Model_Attribute $attr
+     * @param  int|Mage_Eav_Model_Attribute $attr
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function attrIsSwatchType($attr)
     {
         if ($attr instanceof Varien_Object) {
             $attr = $attr->getId();
         }
+
         $configAttrs = $this->getSwatchAttributeIds();
         return in_array($attr, $configAttrs);
     }
@@ -118,23 +139,24 @@ class Mage_ConfigurableSwatches_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Get swatches product javascript
      *
-     * @return string
+     * @return null|string
      */
     public function getSwatchesProductJs()
     {
-        /**
-         * @var $product Mage_Catalog_Model_Product
-         */
+        /** @var Mage_Catalog_Model_Product $product */
         $product = Mage::registry('current_product');
         if ($this->isEnabled() && $product) {
             $configAttrs = $this->getSwatchAttributeIds();
-            $configurableAttributes = $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product);
+            /** @var Mage_Catalog_Model_Product_Type_Configurable $productType */
+            $productType = $product->getTypeInstance(true);
+            $configurableAttributes = $productType->getConfigurableAttributesAsArray($product);
             foreach ($configurableAttributes as $configurableAttribute) {
                 if (in_array($configurableAttribute['attribute_id'], $configAttrs)) {
                     return 'js/configurableswatches/swatches-product.js';
                 }
             }
         }
-        return '';
+
+        return null;
     }
 }

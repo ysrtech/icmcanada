@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog product link api
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resource
 {
@@ -38,12 +19,12 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
      *
      * @var array
      */
-    protected $_typeMap = array(
+    protected $_typeMap = [
         'related'       => Mage_Catalog_Model_Product_Link::LINK_TYPE_RELATED,
         'up_sell'       => Mage_Catalog_Model_Product_Link::LINK_TYPE_UPSELL,
         'cross_sell'    => Mage_Catalog_Model_Product_Link::LINK_TYPE_CROSSSELL,
-        'grouped'       => Mage_Catalog_Model_Product_Link::LINK_TYPE_GROUPED
-    );
+        'grouped'       => Mage_Catalog_Model_Product_Link::LINK_TYPE_GROUPED,
+    ];
 
     public function __construct()
     {
@@ -53,9 +34,9 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Retrieve product link associations
      *
-     * @param string $type
-     * @param int|sku $productId
-     * @param  string $identifierType
+     * @param  string     $type
+     * @param  int|string $productId
+     * @param  string     $identifierType
      * @return array
      */
     public function items($type, $productId, $identifierType = null)
@@ -69,15 +50,15 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
         $collection = $this->_initCollection($link, $product);
 
-        $result = array();
+        $result = [];
 
         foreach ($collection as $linkedProduct) {
-            $row = array(
+            $row = [
                 'product_id' => $linkedProduct->getId(),
                 'type'       => $linkedProduct->getTypeId(),
                 'set'        => $linkedProduct->getAttributeSetId(),
-                'sku'        => $linkedProduct->getSku()
-            );
+                'sku'        => $linkedProduct->getSku(),
+            ];
 
             foreach ($link->getAttributes() as $attribute) {
                 $row[$attribute['code']] = $linkedProduct->getData($attribute['code']);
@@ -92,14 +73,14 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Add product link association
      *
-     * @param string $type
-     * @param int|string $productId
-     * @param int|string $linkedProductId
-     * @param array $data
-     * @param  string $identifierType
-     * @return boolean
+     * @param  string     $type
+     * @param  int|string $productId
+     * @param  int|string $linkedProductId
+     * @param  array      $data
+     * @param  string     $identifierType
+     * @return bool
      */
-    public function assign($type, $productId, $linkedProductId, $data = array(), $identifierType = null)
+    public function assign($type, $productId, $linkedProductId, $data = [], $identifierType = null)
     {
         $typeId = $this->_getTypeId($type);
 
@@ -116,11 +97,11 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
         $links = $this->_collectionToEditableArray($collection);
 
-        $links[(int)$linkedProductId] = array();
+        $links[(int) $linkedProductId] = [];
 
         foreach ($collection->getLinkModel()->getAttributes() as $attribute) {
             if (isset($data[$attribute['code']])) {
-                $links[(int)$linkedProductId][$attribute['code']] = $data[$attribute['code']];
+                $links[(int) $linkedProductId][$attribute['code']] = $data[$attribute['code']];
             }
         }
 
@@ -139,7 +120,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
             $indexerPrice = Mage::getResourceModel('catalog/product_indexer_price');
             $indexerPrice->reindexProductIds($productId);
-        } catch (Exception $e) {
+        } catch (Exception) {
             $this->_fault('data_invalid', Mage::helper('catalog')->__('Link product does not exist.'));
         }
 
@@ -149,14 +130,14 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Update product link association info
      *
-     * @param string $type
-     * @param int|string $productId
-     * @param int|string $linkedProductId
-     * @param array $data
-     * @param  string $identifierType
-     * @return boolean
+     * @param  string     $type
+     * @param  int|string $productId
+     * @param  int|string $linkedProductId
+     * @param  array      $data
+     * @param  string     $identifierType
+     * @return bool
      */
-    public function update($type, $productId, $linkedProductId, $data = array(), $identifierType = null)
+    public function update($type, $productId, $linkedProductId, $data = [], $identifierType = null)
     {
         $typeId = $this->_getTypeId($type);
 
@@ -176,7 +157,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
         foreach ($collection->getLinkModel()->getAttributes() as $attribute) {
             if (isset($data[$attribute['code']])) {
-                $links[(int)$linkedProductId][$attribute['code']] = $data[$attribute['code']];
+                $links[(int) $linkedProductId][$attribute['code']] = $data[$attribute['code']];
             }
         }
 
@@ -195,7 +176,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
             $indexerPrice = Mage::getResourceModel('catalog/product_indexer_price');
             $indexerPrice->reindexProductIds($productId);
-        } catch (Exception $e) {
+        } catch (Exception) {
             $this->_fault('data_invalid', Mage::helper('catalog')->__('Link product does not exist.'));
         }
 
@@ -205,11 +186,11 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Remove product link association
      *
-     * @param string $type
-     * @param int|string $productId
-     * @param int|string $linkedProductId
-     * @param  string $identifierType
-     * @return boolean
+     * @param  string     $type
+     * @param  int|string $productId
+     * @param  int|string $linkedProductId
+     * @param  string     $identifierType
+     * @return bool
      */
     public function remove($type, $productId, $linkedProductId, $identifierType = null)
     {
@@ -235,7 +216,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
         try {
             $link->getResource()->saveProductLinks($product, $links, $typeId);
-        } catch (Exception $e) {
+        } catch (Exception) {
             $this->_fault('not_removed');
         }
 
@@ -245,7 +226,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Retrieve attribute list for specified type
      *
-     * @param string $type
+     * @param  string $type
      * @return array
      */
     public function attributes($type)
@@ -255,13 +236,13 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
         $attributes = Mage::getModel('catalog/product_link')
             ->getAttributes($typeId);
 
-        $result = array();
+        $result = [];
 
         foreach ($attributes as $attribute) {
-            $result[] = array(
+            $result[] = [
                 'code'  => $attribute['code'],
-                'type'  => $attribute['type']
-            );
+                'type'  => $attribute['type'],
+            ];
         }
 
         return $result;
@@ -280,7 +261,7 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Retrieve link type id by code
      *
-     * @param string $type
+     * @param  string $type
      * @return int
      */
     protected function _getTypeId($type)
@@ -295,8 +276,8 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Initialize and return product model
      *
-     * @param int $productId
-     * @param  string $identifierType
+     * @param  int                        $productId
+     * @param  string                     $identifierType
      * @return Mage_Catalog_Model_Product
      */
     protected function _initProduct($productId, $identifierType = null)
@@ -312,32 +293,30 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
     /**
      * Initialize and return linked products collection
      *
-     * @param Mage_Catalog_Model_Product_Link $link
-     * @param Mage_Catalog_Model_Product $product
-     * @return Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Link_Product_Collection
+     * @param  Mage_Catalog_Model_Product_Link                             $link
+     * @param  Mage_Catalog_Model_Product                                  $product
+     * @return Mage_Catalog_Model_Resource_Product_Link_Product_Collection
      */
     protected function _initCollection($link, $product)
     {
-        $collection = $link
+        return $link
             ->getProductCollection()
             ->setIsStrongMode()
             ->setProduct($product);
-
-        return $collection;
     }
 
     /**
      * Export collection to editable array
      *
-     * @param Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Link_Product_Collection $collection
+     * @param  Mage_Catalog_Model_Resource_Product_Link_Product_Collection $collection
      * @return array
      */
     protected function _collectionToEditableArray($collection)
     {
-        $result = array();
+        $result = [];
 
         foreach ($collection as $linkedProduct) {
-            $result[$linkedProduct->getId()] = array();
+            $result[$linkedProduct->getId()] = [];
 
             foreach ($collection->getLinkModel()->getAttributes() as $attribute) {
                 $result[$linkedProduct->getId()][$attribute['code']] = $linkedProduct->getData($attribute['code']);
@@ -346,4 +325,4 @@ class Mage_Catalog_Model_Product_Link_Api extends Mage_Catalog_Model_Api_Resourc
 
         return $result;
     }
-} // Class Mage_Catalog_Model_Product_Link_Api End
+}

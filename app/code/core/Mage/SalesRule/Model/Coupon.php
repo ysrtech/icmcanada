@@ -1,55 +1,37 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_SalesRule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_SalesRule
+ */
 
 /**
  * SalesRule Coupon Model
  *
- * @method Mage_SalesRule_Model_Resource_Coupon _getResource()
- * @method Mage_SalesRule_Model_Resource_Coupon getResource()
- * @method int getRuleId()
- * @method Mage_SalesRule_Model_Coupon setRuleId(int $value)
- * @method string getCode()
- * @method Mage_SalesRule_Model_Coupon setCode(string $value)
- * @method int getUsageLimit()
- * @method Mage_SalesRule_Model_Coupon setUsageLimit(int $value)
- * @method int getUsagePerCustomer()
- * @method Mage_SalesRule_Model_Coupon setUsagePerCustomer(int $value)
- * @method int getTimesUsed()
- * @method Mage_SalesRule_Model_Coupon setTimesUsed(int $value)
- * @method string getExpirationDate()
- * @method Mage_SalesRule_Model_Coupon setExpirationDate(string $value)
- * @method int getIsPrimary()
- * @method Mage_SalesRule_Model_Coupon setIsPrimary(int $value)
- * @method int getType()
- * @method Mage_SalesRule_Model_Coupon setType(int $value)
+ * @package    Mage_SalesRule
  *
- * @category    Mage
- * @package     Mage_SalesRule
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_SalesRule_Model_Resource_Coupon            _getResource()
+ * @method string                                          getCode()
+ * @method Mage_SalesRule_Model_Resource_Coupon_Collection getCollection()
+ * @method string|Zend_Date                                getExpirationDate()
+ * @method int                                             getIsPrimary()
+ * @method Mage_SalesRule_Model_Resource_Coupon            getResource()
+ * @method Mage_SalesRule_Model_Resource_Coupon_Collection getResourceCollection()
+ * @method int                                             getRuleId()
+ * @method int                                             getTimesUsed()
+ * @method int                                             getType()
+ * @method int                                             getUsageLimit()
+ * @method int                                             getUsagePerCustomer()
+ * @method $this                                           setCode(string $value)
+ * @method $this                                           setExpirationDate(string|Zend_Date $value)
+ * @method $this                                           setIsPrimary(int $value)
+ * @method $this                                           setRuleId(int $value)
+ * @method $this                                           setTimesUsed(int $value)
+ * @method $this                                           setType(int $value)
+ * @method $this                                           setUsageLimit(int $value)
+ * @method $this                                           setUsagePerCustomer(int $value)
  */
 class Mage_SalesRule_Model_Coupon extends Mage_Core_Model_Abstract
 {
@@ -60,6 +42,9 @@ class Mage_SalesRule_Model_Coupon extends Mage_Core_Model_Abstract
      */
     protected $_rule;
 
+    /**
+     * @inheritDoc
+     */
     protected function _construct()
     {
         parent::_construct();
@@ -69,21 +54,23 @@ class Mage_SalesRule_Model_Coupon extends Mage_Core_Model_Abstract
     /**
      * Processing object before save data
      *
-     * @return Mage_Core_Model_Abstract
+     * @return $this
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     protected function _beforeSave()
     {
         if (!$this->getRuleId() && $this->_rule instanceof Mage_SalesRule_Model_Rule) {
             $this->setRuleId($this->_rule->getId());
         }
+
         return parent::_beforeSave();
     }
 
     /**
      * Set rule instance
      *
-     * @param  Mage_SalesRule_Model_Rule
-     * @return Mage_SalesRule_Model_Coupon
+     * @return $this
      */
     public function setRule(Mage_SalesRule_Model_Rule $rule)
     {
@@ -94,8 +81,9 @@ class Mage_SalesRule_Model_Coupon extends Mage_Core_Model_Abstract
     /**
      * Load primary coupon for specified rule
      *
-     * @param Mage_SalesRule_Model_Rule|int $rule
-     * @return Mage_SalesRule_Model_Coupon
+     * @param  int|Mage_SalesRule_Model_Rule $rule
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function loadPrimaryByRule($rule)
     {
@@ -106,8 +94,9 @@ class Mage_SalesRule_Model_Coupon extends Mage_Core_Model_Abstract
     /**
      * Load Shopping Cart Price Rule by coupon code
      *
-     * @param string $couponCode
-     * @return Mage_SalesRule_Model_Coupon
+     * @param  string              $couponCode
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function loadByCode($couponCode)
     {

@@ -1,33 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
+
+use Carbon\Carbon;
 
 /**
  * Create random order
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
  */
 class Mage_Adminhtml_Model_Sales_Order_Random
 {
@@ -44,11 +29,15 @@ class Mage_Adminhtml_Model_Sales_Order_Random
      * @var Mage_Sales_Model_Order
      */
     protected $_order;
+
     protected $_store;
+
     protected $_customer;
+
     protected $_productCollection;
 
     protected static $_storeCollection;
+
     protected static $_customerCollection;
 
     public function __construct()
@@ -63,6 +52,7 @@ class Mage_Adminhtml_Model_Sales_Order_Random
             self::$_storeCollection = Mage::getResourceModel('core/store_collection')
                 ->load();
         }
+
         return self::$_storeCollection->getItems();
     }
 
@@ -74,21 +64,25 @@ class Mage_Adminhtml_Model_Sales_Order_Random
                 ->joinAttribute('shipping_country_id', 'customer_address/country_id', 'default_shipping', null, 'inner')
                 ->load();
         }
+
         return self::$_customerCollection->getItems();
     }
 
     protected function _getProducts()
     {
         if (!$this->_productCollection) {
-            $this->_productCollection= Mage::getResourceModel('catalog/product_collection');
-            //$this->_productCollection->getEntity()->setStore($this->_getStore());
-            Mage::getSingleton('catalog/product_status')->addVisibleFilterToCollection($this->_productCollection);
-            Mage::getSingleton('catalog/product_visibility')->addVisibleInSearchFilterToCollection($this->_productCollection);
-            $this->_productCollection->addAttributeToSelect('name')
+            $this->_productCollection = Mage::getResourceModel('catalog/product_collection');
+            $this->_productCollection
+                ->addAttributeToSelect('name')
                 ->addAttributeToSelect('sku')
                 ->addAttributeToFilter('type_id', Mage_Catalog_Model_Product_Type::TYPE_SIMPLE)
+                ->addAttributeToFilter('status', [
+                    'in' => Mage::getSingleton('catalog/product_status')->getVisibleStatusIds(),
+                ])
+                ->setVisibility(Mage::getSingleton('catalog/product_visibility')::getVisibleInSearchIds())
                 ->load();
         }
+
         return $this->_productCollection->getItems();
     }
 
@@ -104,6 +98,7 @@ class Mage_Adminhtml_Model_Sales_Order_Random
             $randKey = array_rand($items);
             $this->_customer = $items[$randKey];
         }
+
         return $this->_customer;
     }
 
@@ -111,7 +106,7 @@ class Mage_Adminhtml_Model_Sales_Order_Random
     {
         $items = $this->_getProducts();
         $randKey = array_rand($items);
-        return isset($items[$randKey]) ? $items[$randKey] : false;
+        return $items[$randKey] ?? false;
     }
 
     protected function _getStore()
@@ -121,6 +116,7 @@ class Mage_Adminhtml_Model_Sales_Order_Random
             $randKey = array_rand($items);
             $this->_store = $items[$randKey];
         }
+
         return $this->_store;
     }
 
@@ -132,14 +128,15 @@ class Mage_Adminhtml_Model_Sales_Order_Random
         $this->_quote->getBillingAddress()->importCustomerAddress($customer->getDefaultBillingAddress());
         $this->_quote->getShippingAddress()->importCustomerAddress($customer->getDefaultShippingAddress());
 
-        $productCount = rand(3, 10);
-        for ($i=0; $i<$productCount; $i++){
+        $productCount = random_int(3, 10);
+        for ($i = 0; $i < $productCount; $i++) {
             $product = $this->_getRandomProduct();
             if ($product) {
                 $product->setQuoteQty(1);
                 $this->_quote->addCatalogProduct($product);
             }
         }
+
         $this->_quote->getPayment()->setMethod('checkmo');
 
         $this->_quote->getShippingAddress()->setShippingMethod('freeshipping_freeshipping');//->collectTotals()->save();
@@ -152,8 +149,8 @@ class Mage_Adminhtml_Model_Sales_Order_Random
 
     protected function _getRandomDate()
     {
-        $timestamp = mktime(rand(0,23), rand(0,59), 0, rand(1,11), rand(1,28), rand(2006, 2007));
-        return date('Y-m-d H:i:s', $timestamp);
+        $timestamp = mktime(random_int(0, 23), random_int(0, 59), 0, random_int(1, 11), random_int(1, 28), random_int(2006, 2007));
+        return Carbon::createFromTimestamp($timestamp)->format(Varien_Date::DATETIME_PHP_FORMAT);
     }
 
     public function save()

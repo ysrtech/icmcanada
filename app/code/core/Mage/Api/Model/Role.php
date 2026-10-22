@@ -1,55 +1,42 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Api
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Api
  */
 
 /**
  * Role item model
  *
- * @method Mage_Api_Model_Resource_Role _getResource()
- * @method Mage_Api_Model_Resource_Role getResource()
- * @method int getParentId()
- * @method Mage_Api_Model_Role setParentId(int $value)
- * @method int getTreeLevel()
- * @method Mage_Api_Model_Role setTreeLevel(int $value)
- * @method int getSortOrder()
- * @method Mage_Api_Model_Role setSortOrder(int $value)
- * @method string getRoleType()
- * @method Mage_Api_Model_Role setRoleType(string $value)
- * @method int getUserId()
- * @method Mage_Api_Model_Role setUserId(int $value)
- * @method string getRoleName()
- * @method Mage_Api_Model_Role setRoleName(string $value)
+ * @package    Mage_Api
  *
- * @category    Mage
- * @package     Mage_Api
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Api_Model_Resource_Role            _getResource()
+ * @method Mage_Api_Model_Resource_Role_Collection getCollection()
+ * @method int                                     getParentId()
+ * @method Mage_Api_Model_Resource_Role            getResource()
+ * @method Mage_Api_Model_Resource_Role_Collection getResourceCollection()
+ * @method string                                  getRoleName()
+ * @method string                                  getRoleType()
+ * @method int                                     getSortOrder()
+ * @method int                                     getTreeLevel()
+ * @method int                                     getUserId()
+ * @method $this                                   setCreated(string $value)
+ * @method $this                                   setModified(string $value)
+ * @method $this                                   setParentId(int $value)
+ * @method $this                                   setRoleName(string $value)
+ * @method $this                                   setRoleType(string $value)
+ * @method $this                                   setSortOrder(int $value)
+ * @method $this                                   setTreeLevel(int $value)
+ * @method $this                                   setUserId(int $value)
  */
 class Mage_Api_Model_Role extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource
+     * @inheritDoc
      */
     protected function _construct()
     {

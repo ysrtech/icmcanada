@@ -6,7 +6,7 @@
  * @author      Ben Tideswell <help@fishpig.co.uk>
  */
 
-class Fishpig_iBanners_Model_Mysql4_Banner_Collection extends Mage_Core_Model_Mysql4_Collection_Abstract
+class Fishpig_iBanners_Model_Mysql4_Banner_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
 	public function _construct()
 	{

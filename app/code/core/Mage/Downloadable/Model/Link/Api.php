@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Downloadable
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Downloadable
  */
 
 /**
  * Downloadable links API model
  *
- * @category    Mage
- * @package     Mage_Downloadable
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Downloadable
  */
 class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
 {
@@ -44,10 +25,10 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
     }
 
     /**
-     * Decode file from base64 and upload it to donwloadable 'tmp' folder
+     * Decode file from base64 and upload it to downloadable 'tmp' folder
      *
-     * @param array $fileInfo
-     * @param string $type
+     * @param  array  $fileInfo
+     * @param  string $type
      * @return string
      */
     protected function _uploadFile($fileInfo, $type)
@@ -61,8 +42,9 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
             $tmpPath = Mage_Downloadable_Model_Link::getBaseSampleTmpPath();
         }
 
-        $result = array();
+        $result = [];
         try {
+            /** @var Mage_Downloadable_Model_Link_Api_Uploader $uploader */
             $uploader = Mage::getModel('downloadable/link_api_uploader', $fileInfo);
             $uploader->setAllowRenameFiles(true);
             $uploader->setFilesDispersion(true);
@@ -72,36 +54,36 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
                 $fullPath = rtrim($tmpPath, DS) . DS . ltrim($result['file'], DS);
                 Mage::helper('core/file_storage_database')->saveFile($fullPath);
             }
-        } catch (Exception $e) {
-            if ($e->getMessage() != '') {
-                $this->_fault('upload_failed', $e->getMessage());
+        } catch (Exception $exception) {
+            if ($exception->getMessage() != '') {
+                $this->_fault('upload_failed', $exception->getMessage());
             } else {
-                $this->_fault($e->getCode());
+                $this->_fault($exception->getCode());
             }
         }
 
         $result['status'] = 'new';
-        $result['name'] = substr($result['file'], strrpos($result['file'], '/')+1);
-        return Mage::helper('core')->jsonEncode(array($result));
+        $result['name'] = substr($result['file'], strrpos($result['file'], '/') + 1);
+        return Mage::helper('core')->jsonEncode([$result]);
     }
 
     /**
      * Add downloadable content to product
      *
-     * @param int|string $productId
-     * @param array $resource
-     * @param string $resourceType
-     * @param string|int|null $store
-     * @param string|null $identifierType ('sku'|'id')
-     * @return boolean
+     * @param  int|string      $productId
+     * @param  array           $resource
+     * @param  string          $resourceType
+     * @param  null|int|string $store
+     * @param  null|string     $identifierType ('sku'|'id')
+     * @return bool
      */
     public function add($productId, $resource, $resourceType, $store = null, $identifierType = null)
     {
         try {
             $this->_getValidator()->validateType($resourceType);
             $this->_getValidator()->validateAttributes($resource, $resourceType);
-        } catch (Exception $e) {
-            $this->_fault('validation_error', $e->getMessage());
+        } catch (Exception $exception) {
+            $this->_fault('validation_error', $exception->getMessage());
         }
 
         $resource['is_delete'] = 0;
@@ -115,7 +97,8 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
             if (isset($resource['file'])) {
                 $resource['file'] = $this->_uploadFile($resource['file'], $resourceType);
             }
-            unset($resource[$resourceType.'_url']);
+
+            unset($resource[$resourceType . '_url']);
         } elseif ($resource['type'] == 'url') {
             unset($resource['file']);
         }
@@ -124,6 +107,7 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
             if (isset($resource['sample']['file'])) {
                 $resource['sample']['file'] = $this->_uploadFile($resource['sample']['file'], 'link_samples');
             }
+
             unset($resource['sample']['url']);
         } elseif ($resourceType == 'link' && $resource['sample']['type'] == 'url') {
             $resource['sample']['file'] = null;
@@ -131,11 +115,11 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
 
         $product = $this->_getProduct($productId, $store, $identifierType);
         try {
-            $downloadable = array($resourceType => array($resource));
+            $downloadable = [$resourceType => [$resource]];
             $product->setDownloadableData($downloadable);
             $product->save();
-        } catch (Exception $e) {
-            $this->_fault('save_error', $e->getMessage());
+        } catch (Exception $exception) {
+            $this->_fault('save_error', $exception->getMessage());
         }
 
         return true;
@@ -144,20 +128,22 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
     /**
      * Retrieve downloadable product links
      *
-     * @param int|string $productId
-     * @param string|int $store
-     * @param string $identifierType ('sku'|'id')
-     * @return array
+     * @param  int|string             $productId
+     * @param  int|string             $store
+     * @param  string                 $identifierType ('sku'|'id')
+     * @return array<string, mixed[]>
      */
     public function items($productId, $store = null, $identifierType = null)
     {
         $product = $this->_getProduct($productId, $store, $identifierType);
 
-        $linkArr = array();
-        $links = $product->getTypeInstance(true)->getLinks($product);
+        $linkArr = [];
+        /** @var Mage_Downloadable_Model_Product_Type $productType */
+        $productType = $product->getTypeInstance(true);
+        $links = $productType->getLinks($product);
         $downloadHelper = Mage::helper('downloadable');
         foreach ($links as $item) {
-            $tmpLinkItem = array(
+            $tmpLinkItem = [
                 'link_id' => $item->getId(),
                 'title' => $item->getTitle(),
                 'price' => $item->getPrice(),
@@ -168,10 +154,11 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
                 'sample_file' => $item->getSampleFile(),
                 'sample_url' => $item->getSampleUrl(),
                 'sample_type' => $item->getSampleType(),
-                'sort_order' => $item->getSortOrder()
-            );
+                'sort_order' => $item->getSortOrder(),
+            ];
             $file = Mage::helper('downloadable/file')->getFilePath(
-                Mage_Downloadable_Model_Link::getBasePath(), $item->getLinkFile()
+                Mage_Downloadable_Model_Link::getBasePath(),
+                $item->getLinkFile(),
             );
 
             if ($item->getLinkFile() && !is_file($file)) {
@@ -180,66 +167,77 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
 
             if ($item->getLinkFile() && is_file($file)) {
                 $name = Mage::helper('downloadable/file')->getFileFromPathFile($item->getLinkFile());
-                $tmpLinkItem['file_save'] = array(
-                    array(
+                $tmpLinkItem['file_save'] = [
+                    [
                         'file' => $item->getLinkFile(),
                         'name' => $name,
                         'size' => filesize($file),
-                        'status' => 'old'
-                    ));
+                        'status' => 'old',
+                    ]];
             }
+
             $sampleFile = Mage::helper('downloadable/file')->getFilePath(
-                Mage_Downloadable_Model_Link::getBaseSamplePath(), $item->getSampleFile()
+                Mage_Downloadable_Model_Link::getBaseSamplePath(),
+                $item->getSampleFile(),
             );
             if ($item->getSampleFile() && is_file($sampleFile)) {
-                $tmpLinkItem['sample_file_save'] = array(
-                    array(
+                $tmpLinkItem['sample_file_save'] = [
+                    [
                         'file' => $item->getSampleFile(),
                         'name' => Mage::helper('downloadable/file')->getFileFromPathFile($item->getSampleFile()),
                         'size' => filesize($sampleFile),
-                        'status' => 'old'
-                    ));
+                        'status' => 'old',
+                    ]];
             }
+
             if ($item->getNumberOfDownloads() == '0') {
                 $tmpLinkItem['is_unlimited'] = 1;
             }
+
             if ($product->getStoreId() && $item->getStoreTitle()) {
                 $tmpLinkItem['store_title'] = $item->getStoreTitle();
             }
+
             if ($product->getStoreId() && $downloadHelper->getIsPriceWebsiteScope()) {
                 $tmpLinkItem['website_price'] = $item->getWebsitePrice();
             }
+
             $linkArr[] = $tmpLinkItem;
         }
+
         unset($item);
         unset($tmpLinkItem);
         unset($links);
 
-        $samples = $product->getTypeInstance(true)->getSamples($product)->getData();
-        return array('links' => $linkArr, 'samples' => $samples);
+        $samples = $productType->getSamples($product)->getData();
+        return ['links' => $linkArr, 'samples' => $samples];
     }
 
     /**
      * Remove downloadable product link
-     * @param string $linkId
-     * @param string $resourceType
+     * @param  string $linkId
+     * @param  string $resourceType
      * @return bool
      */
     public function remove($linkId, $resourceType)
     {
         try {
             $this->_getValidator()->validateType($resourceType);
-        } catch (Exception $e) {
-            $this->_fault('validation_error', $e->getMessage());
+        } catch (Exception $exception) {
+            $this->_fault('validation_error', $exception->getMessage());
         }
 
-        switch($resourceType) {
+        switch ($resourceType) {
             case 'link':
                 $downloadableModel = Mage::getSingleton('downloadable/link');
                 break;
             case 'sample':
                 $downloadableModel = Mage::getSingleton('downloadable/sample');
                 break;
+        }
+
+        if (!isset($downloadableModel)) {
+            $this->_fault('invalid_resource_type');
         }
 
         $downloadableModel->load($linkId);
@@ -249,8 +247,8 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
 
         try {
             $downloadableModel->delete();
-        } catch (Exception $e) {
-            $this->_fault('remove_error', $e->getMessage());
+        } catch (Exception $exception) {
+            $this->_fault('remove_error', $exception->getMessage());
         }
 
         return true;
@@ -259,11 +257,12 @@ class Mage_Downloadable_Model_Link_Api extends Mage_Catalog_Model_Api_Resource
     /**
      * Return loaded downloadable product instance
      *
-     * @param  int|string $productId (SKU or ID)
-     * @param  int|string $store
-     * @param  string $identifierType
+     * @param  int|string                 $productId      (SKU or ID)
+     * @param  int|string                 $store
+     * @param  string                     $identifierType
      * @return Mage_Catalog_Model_Product
      */
+    #[Override]
     protected function _getProduct($productId, $store = null, $identifierType = null)
     {
         $product = parent::_getProduct($productId, $store, $identifierType);

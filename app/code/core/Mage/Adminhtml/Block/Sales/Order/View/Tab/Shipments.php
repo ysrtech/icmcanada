@@ -1,40 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Order Shipments grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Mage_Adminhtml_Block_Sales_Order_View_Tab_Shipments
-    extends Mage_Adminhtml_Block_Widget_Grid
-    implements Mage_Adminhtml_Block_Widget_Tab_Interface
+class Mage_Adminhtml_Block_Sales_Order_View_Tab_Shipments extends Mage_Adminhtml_Block_Widget_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
+    protected string $_eventPrefix = 'adminhtml_sales_order_view_tab_shipments';
+
     public function __construct()
     {
         parent::__construct();
@@ -52,9 +33,15 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Shipments
         return 'sales/order_shipment_grid_collection';
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareCollection()
     {
-        $collection = Mage::getResourceModel($this->_getCollectionClass())
+        /** @var Mage_Sales_Model_Resource_Order_Shipment_Grid_Collection $collection */
+        $collection = Mage::getResourceModel($this->_getCollectionClass());
+        $collection
             ->addFieldToSelect('entity_id')
             ->addFieldToSelect('created_at')
             ->addFieldToSelect('increment_id')
@@ -66,29 +53,34 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Shipments
         return parent::_prepareCollection();
     }
 
+    /**
+     * @inheritDoc
+     * @throws Exception
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('increment_id', array(
+        $this->addColumn('increment_id', [
             'header' => Mage::helper('sales')->__('Shipment #'),
             'index' => 'increment_id',
-        ));
+        ]);
 
-        $this->addColumn('shipping_name', array(
+        $this->addColumn('shipping_name', [
             'header' => Mage::helper('sales')->__('Ship to Name'),
             'index' => 'shipping_name',
-        ));
+        ]);
 
-        $this->addColumn('created_at', array(
+        $this->addColumn('created_at', [
             'header' => Mage::helper('sales')->__('Date Shipped'),
             'index' => 'created_at',
             'type' => 'datetime',
-        ));
+        ]);
 
-        $this->addColumn('total_qty', array(
+        $this->addColumn('total_qty', [
             'header' => Mage::helper('sales')->__('Total Qty'),
             'index' => 'total_qty',
             'type'  => 'number',
-        ));
+        ]);
 
         return parent::_prepareColumns();
     }
@@ -103,42 +95,63 @@ class Mage_Adminhtml_Block_Sales_Order_View_Tab_Shipments
         return Mage::registry('current_order');
     }
 
+    /**
+     * @inheritDoc
+     * @param  Mage_Sales_Model_Order_Shipment $row
+     * @throws Mage_Core_Exception
+     */
+    #[Override]
     public function getRowUrl($row)
     {
         return $this->getUrl(
             '*/sales_order_shipment/view',
-            array(
-                'shipment_id'=> $row->getId(),
-                'order_id'  => $row->getOrderId()
-             ));
-    }
-
-    public function getGridUrl()
-    {
-        return $this->getUrl('*/*/shipments', array('_current' => true));
+            [
+                'shipment_id' => $row->getId(),
+                'order_id'  => $row->getOrderId(),
+            ],
+        );
     }
 
     /**
-     * ######################## TAB settings #################################
+     * @inheritDoc
+     */
+    #[Override]
+    public function getGridUrl()
+    {
+        return $this->getUrl('*/*/shipments', ['_current' => true]);
+    }
+
+    /**
+     * @inheritDoc
      */
     public function getTabLabel()
     {
         return Mage::helper('sales')->__('Shipments');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getTabTitle()
     {
-        return Mage::helper('sales')->__('Order Shipments');
+        return Mage::helper('sales')->__('Shipments');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function canShowTab()
     {
         if ($this->getOrder()->getIsVirtual()) {
             return false;
         }
-        return true;
+
+        return Mage::getSingleton('admin/session')->isAllowed('sales/shipment');
     }
 
+    /**
+     * @inheritDoc
+     */
     public function isHidden()
     {
         return false;

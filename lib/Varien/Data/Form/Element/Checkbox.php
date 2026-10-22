@@ -1,68 +1,63 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Data
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Data
  */
 
 /**
  * Form checkbox element
  *
- * @category   Varien
  * @package    Varien_Data
- * @author      Magento Core Team <core@magentocommerce.com>
+ *
+ * @method bool getChecked()
  */
 class Varien_Data_Form_Element_Checkbox extends Varien_Data_Form_Element_Abstract
 {
-    public function __construct($attributes=array())
+    /**
+     * Varien_Data_Form_Element_Checkbox constructor.
+     * @param array $attributes
+     */
+    public function __construct($attributes = [])
     {
         parent::__construct($attributes);
         $this->setType('checkbox');
         $this->setExtType('checkbox');
     }
 
+    /**
+     * @return array<int, string>
+     */
+    #[Override]
     public function getHtmlAttributes()
     {
-        return array('type', 'title', 'class', 'style', 'checked', 'onclick', 'onchange', 'disabled', 'tabindex');
+        return ['type', 'title', 'class', 'style', 'checked', 'onclick', 'onchange', 'disabled', 'tabindex'];
     }
 
+    /**
+     * @return string
+     */
+    #[Override]
     public function getElementHtml()
     {
         if ($checked = $this->getChecked()) {
             $this->setData('checked', true);
-        }
-        else {
+        } else {
             $this->unsetData('checked');
         }
+
         return parent::getElementHtml();
     }
 
     /**
      * Set check status of checkbox
      *
-     * @param boolean $value
-     * @return Varien_Data_Form_Element_Checkbox
+     * @param  bool  $value
+     * @return $this
      */
-    public function setIsChecked($value=false)
+    public function setIsChecked($value = false)
     {
         $this->setData('checked', $value);
         return $this;
@@ -71,9 +66,10 @@ class Varien_Data_Form_Element_Checkbox extends Varien_Data_Form_Element_Abstrac
     /**
      * Return check status of checkbox
      *
-     * @return boolean
+     * @return bool
      */
-    public function getIsChecked() {
-        return $this->getData('checked');
+    public function getIsChecked()
+    {
+        return $this->getDataByKey('checked');
     }
 }

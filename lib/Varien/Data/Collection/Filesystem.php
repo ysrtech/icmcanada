@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Data
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Data
  */
 
 /**
@@ -44,9 +27,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Target directory
      *
-     * @var string
+     * @var array
      */
-    protected $_targetDirs = array();
+    protected $_targetDirs = [];
 
     /**
      * Whether to collect files
@@ -104,7 +87,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * @see Varien_Data_Collection::$_isFiltersRendered
      */
     private $_filterIncrement = 0;
-    private $_filterBrackets = array();
+
+    private $_filterBrackets = [];
+
     private $_filterEvalRendered = '';
 
     /**
@@ -112,19 +97,20 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      *
      * @var array
      */
-    protected $_collectedDirs  = array();
-    protected $_collectedFiles = array();
+    protected $_collectedDirs  = [];
+
+    protected $_collectedFiles = [];
 
     /**
      * Allowed dirs mask setter
      * Set empty to not filter
      *
-     * @param string $regex
-     * @return Varien_Data_Collection_Files
+     * @param  string $regex
+     * @return $this
      */
     public function setDirsFilter($regex)
     {
-        $this->_allowedDirsMask = (string)$regex;
+        $this->_allowedDirsMask = (string) $regex;
         return $this;
     }
 
@@ -132,12 +118,12 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * Allowed files mask setter
      * Set empty to not filter
      *
-     * @param string $regex
-     * @return Varien_Data_Collection_Files
+     * @param  string $regex
+     * @return $this
      */
     public function setFilesFilter($regex)
     {
-        $this->_allowedFilesMask = (string)$regex;
+        $this->_allowedFilesMask = (string) $regex;
         return $this;
     }
 
@@ -145,63 +131,64 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * Disallowed files mask setter
      * Set empty value to not use this filter
      *
-     * @param string $regex
-     * @return Varien_Data_Collection_Files
+     * @param  string $regex
+     * @return $this
      */
     public function setDisallowedFilesFilter($regex)
     {
-        $this->_disallowedFilesMask = (string)$regex;
+        $this->_disallowedFilesMask = (string) $regex;
         return $this;
     }
 
     /**
      * Set whether to collect dirs
      *
-     * @param bool $value
-     * @return Varien_Data_Collection_Filesystem
+     * @param  bool  $value
+     * @return $this
      */
     public function setCollectDirs($value)
     {
-        $this->_collectDirs = (bool)$value;
+        $this->_collectDirs = (bool) $value;
         return $this;
     }
 
     /**
      * Set whether to collect files
      *
-     * @param bool $value
-     * @return Varien_Data_Collection_Filesystem
+     * @param  bool  $value
+     * @return $this
      */
     public function setCollectFiles($value)
     {
-        $this->_collectFiles = (bool)$value;
+        $this->_collectFiles = (bool) $value;
         return $this;
     }
 
     /**
      * Set whether to collect recursively
      *
-     * @param bool $value
-     * @return Varien_Data_Collection_Filesystem
+     * @param  bool  $value
+     * @return $this
      */
     public function setCollectRecursively($value)
     {
-        $this->_collectRecursively = (bool)$value;
+        $this->_collectRecursively = (bool) $value;
         return $this;
     }
 
     /**
      * Target directory setter. Adds directory to be scanned
      *
-     * @param string $value
-     * @return Varien_Data_Collection_Filesystem
+     * @param  string $value
+     * @return $this
      */
     public function addTargetDir($value)
     {
-        $value = (string)$value;
+        $value = (string) $value;
         if (!is_dir($value)) {
             throw new Exception('Unable to set target directory.');
         }
+
         $this->_targetDirs[$value] = $value;
         return $this;
     }
@@ -210,26 +197,27 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * Set whether to collect directories before files
      * Works *before* sorting.
      *
-     * @param bool $value
-     * @return Varien_Data_Collection_Filesystem
+     * @param  bool  $value
+     * @return $this
      */
     public function setDirsFirst($value)
     {
-        $this->_dirsFirst = (bool)$value;
+        $this->_dirsFirst = (bool) $value;
         return $this;
     }
 
     /**
      * Get files from specified directory recursively (if needed)
      *
-     * @param string|array $dir
+     * @param array|string $dir
      */
     protected function _collectRecursive($dir)
     {
-        $collectedResult = array();
+        $collectedResult = [];
         if (!is_array($dir)) {
-            $dir = array($dir);
+            $dir = [$dir];
         }
+
         foreach ($dir as $folder) {
             if ($nodes = glob($folder . DIRECTORY_SEPARATOR . '*')) {
                 foreach ($nodes as $node) {
@@ -237,50 +225,49 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
                 }
             }
         }
-        if (empty($collectedResult)) {
-            return;
-        }
 
         foreach ($collectedResult as $item) {
             if (is_dir($item) && (!$this->_allowedDirsMask || preg_match($this->_allowedDirsMask, basename($item)))) {
                 if ($this->_collectDirs) {
                     if ($this->_dirsFirst) {
                         $this->_collectedDirs[] = $item;
-                    }
-                    else {
+                    } else {
                         $this->_collectedFiles[] = $item;
                     }
                 }
+
                 if ($this->_collectRecursively) {
                     $this->_collectRecursive($item);
                 }
-            }
-            elseif ($this->_collectFiles && is_file($item)
+            } elseif ($this->_collectFiles && is_file($item)
                 && (!$this->_allowedFilesMask || preg_match($this->_allowedFilesMask, basename($item)))
-                && (!$this->_disallowedFilesMask || !preg_match($this->_disallowedFilesMask, basename($item)))) {
+                && (!$this->_disallowedFilesMask || !preg_match($this->_disallowedFilesMask, basename($item)))
+            ) {
                 $this->_collectedFiles[] = $item;
             }
         }
     }
 
     /**
-     * Lauch data collecting
+     * Launch data collecting
      *
-     * @param bool $printQuery
-     * @param bool $logQuery
-     * @return Varien_Data_Collection_Filesystem
+     * @param  bool  $printQuery
+     * @param  bool  $logQuery
+     * @return $this
      */
+    #[Override]
     public function loadData($printQuery = false, $logQuery = false)
     {
         if ($this->isLoaded()) {
             return $this;
         }
-        if (empty($this->_targetDirs)) {
+
+        if ($this->_targetDirs === []) {
             throw new Exception('Please specify at least one target directory.');
         }
 
-        $this->_collectedFiles = array();
-        $this->_collectedDirs = array();
+        $this->_collectedFiles = [];
+        $this->_collectedDirs = [];
         $this->_collectRecursive($this->_targetDirs);
         $this->_generateAndFilterAndSort('_collectedFiles');
         if ($this->_dirsFirst) {
@@ -293,16 +280,17 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
         $this->_setIsLoaded();
 
         // paginate and add items
-        $from = ($this->getCurPage() - 1) * $this->getPageSize();
-        $to = $from + $this->getPageSize() - 1;
+        $min = ($this->getCurPage() - 1) * $this->getPageSize();
+        $max = $min + $this->getPageSize() - 1;
         $isPaginated = $this->getPageSize() > 0;
 
         $cnt = 0;
         foreach ($this->_collectedFiles as $row) {
             $cnt++;
-            if ($isPaginated && ($cnt < $from || $cnt > $to)) {
+            if ($isPaginated && ($cnt < $min || $cnt > $max)) {
                 continue;
             }
+
             $item = new $this->_itemObjectClass();
             $this->addItem($item->addData($row));
             if (!$item->hasId()) {
@@ -329,7 +317,7 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
         }
 
         // apply filters on generated data
-        if (!empty($this->_filters)) {
+        if ($this->_filters !== []) {
             foreach ($this->$attributeName as $key => $row) {
                 if (!$this->_filterRow($row)) {
                     unset($this->{$attributeName}[$key]);
@@ -339,7 +327,7 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
 
         // sort (keys are lost!)
         if (!empty($this->_orders)) {
-            usort($this->$attributeName, array($this, '_usort'));
+            usort($this->$attributeName, $this->_usort(...));
         }
     }
 
@@ -347,45 +335,45 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * Callback for sorting items
      * Currently supports only sorting by one column
      *
-     * @param array $a
-     * @param array $b
-     * @return int
+     * @param  array    $a
+     * @param  array    $b
+     * @return null|int
      */
     protected function _usort($a, $b)
     {
         foreach ($this->_orders as $key => $direction) {
             $result = $a[$key] > $b[$key] ? 1 : ($a[$key] < $b[$key] ? -1 : 0);
             return (self::SORT_ORDER_ASC === strtoupper($direction) ? $result : -$result);
-            break;
         }
+
+        return null;
     }
 
     /**
      * Set select order
      * Currently supports only sorting by one column
      *
-     * @param   string $field
-     * @param   string $direction
-     * @return  Varien_Data_Collection
+     * @inheritDoc
      */
-    public function setOrder($field, $direction = self::SORT_ORDER_DESC)
+    #[Override]
+    public function setOrder($field, $dir = self::SORT_ORDER_DESC)
     {
-        $this->_orders = array($field => $direction);
+        $this->_orders = [$field => $dir];
         return $this;
     }
 
     /**
      * Generate item row basing on the filename
      *
-     * @param string $filename
-     * @return array
+     * @param  string                $filename
+     * @return array<string, string>
      */
     protected function _generateRow($filename)
     {
-        return array(
+        return [
             'filename' => $filename,
             'basename' => basename($filename),
-        );
+        ];
     }
 
     /**
@@ -395,22 +383,22 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      *     mixed  $filterValue - value to filter by,
      *     array  $row         - a generated row (before generaring varien objects)
      *
-     * @param string $field
-     * @param mixed $value
-     * @param string $type 'and'|'or'
-     * @param callback $callback
-     * @param bool $isInverted
-     * @return Varien_Data_Collection_Filesystem
+     * @param  string   $field
+     * @param  mixed    $value
+     * @param  string   $type       'and'|'or'
+     * @param  callable $callback
+     * @param  bool     $isInverted
+     * @return $this
      */
     public function addCallbackFilter($field, $value, $type, $callback, $isInverted = false)
     {
-        $this->_filters[$this->_filterIncrement] = array(
+        $this->_filters[$this->_filterIncrement] = [
             'field'       => $field,
             'value'       => $value,
             'is_and'      => 'and' === $type,
             'callback'    => $callback,
-            'is_inverted' => $isInverted
-        );
+            'is_inverted' => $isInverted,
+        ];
         $this->_filterIncrement++;
         return $this;
     }
@@ -419,7 +407,7 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * The filters renderer and caller
      * Aplies to each row, renders once.
      *
-     * @param array $row
+     * @param  array $row
      * @return bool
      */
     protected function _filterRow($row)
@@ -431,21 +419,23 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
                 if (isset($this->_filterBrackets[$i])) {
                     $eval .= $this->_renderConditionBeforeFilterElement($i, $this->_filterBrackets[$i]['is_and'])
                         . $this->_filterBrackets[$i]['value'];
-                }
-                else {
+                } else {
                     $f = '$this->_filters[' . $i . ']';
                     $eval .= $this->_renderConditionBeforeFilterElement($i, $this->_filters[$i]['is_and'])
                         . ($this->_filters[$i]['is_inverted'] ? '!' : '')
                         . '$this->_invokeFilter(' . "{$f}['callback'], array({$f}['field'], {$f}['value'], " . '$row))';
                 }
             }
+
             $this->_filterEvalRendered = $eval;
             $this->_isFiltersRendered = true;
         }
+
         $result = false;
         if ($this->_filterEvalRendered) {
             eval('$result = ' . $this->_filterEvalRendered . ';');
         }
+
         return $result;
     }
 
@@ -453,27 +443,28 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      * Invokes specified callback
      * Skips, if there is no filtered key in the row
      *
-     * @param callback $callback
-     * @param array $callbackParams
+     * @param  callable $callback
+     * @param  array    $callbackParams
      * @return bool
      */
     protected function _invokeFilter($callback, $callbackParams)
     {
-        list($field, $value, $row) = $callbackParams;
+        [$field, $value, $row] = $callbackParams;
         if (!array_key_exists($field, $row)) {
             return false;
         }
+
         return call_user_func_array($callback, $callbackParams);
     }
 
     /**
      * Fancy field filter
      *
-     * @param string $field
-     * @param mixed $cond
-     * @param string $type 'and' | 'or'
+     * @param  string $field
+     * @param  mixed  $cond
+     * @param  string $type  'and' | 'or'
+     * @return $this
      * @see Varien_Data_Collection_Db::addFieldToFilter()
-     * @return Varien_Data_Collection_Filesystem
      */
     public function addFieldToFilter($field, $cond, $type = 'and')
     {
@@ -481,62 +472,78 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
 
         // simply check whether equals
         if (!is_array($cond)) {
-            return $this->addCallbackFilter($field, $cond, $type, array($this, 'filterCallbackEq'));
+            return $this->addCallbackFilter($field, $cond, $type, $this->filterCallbackEq(...));
         }
 
         // versatile filters
         if (isset($cond['from']) || isset($cond['to'])) {
             $this->_addFilterBracket('(', 'and' === $type);
             if (isset($cond['from'])) {
-                $this->addCallbackFilter($field, $cond['from'], 'and', array($this, 'filterCallbackIsLessThan'), $inverted);
+                $this->addCallbackFilter($field, $cond['from'], 'and', $this->filterCallbackIsLessThan(...), $inverted);
             }
+
             if (isset($cond['to'])) {
-                $this->addCallbackFilter($field, $cond['to'], 'and', array($this, 'filterCallbackIsMoreThan'), $inverted);
+                $this->addCallbackFilter($field, $cond['to'], 'and', $this->filterCallbackIsMoreThan(...), $inverted);
             }
+
             return $this->_addFilterBracket(')');
         }
+
         if (isset($cond['eq'])) {
-            return $this->addCallbackFilter($field, $cond['eq'], $type, array($this, 'filterCallbackEq'));
+            return $this->addCallbackFilter($field, $cond['eq'], $type, $this->filterCallbackEq(...));
         }
+
         if (isset($cond['neq'])) {
-            return $this->addCallbackFilter($field, $cond['neq'], $type, array($this, 'filterCallbackEq'), $inverted);
+            return $this->addCallbackFilter($field, $cond['neq'], $type, $this->filterCallbackEq(...), $inverted);
         }
+
         if (isset($cond['like'])) {
-            return $this->addCallbackFilter($field, $cond['like'], $type, array($this, 'filterCallbackLike'));
+            return $this->addCallbackFilter($field, $cond['like'], $type, $this->filterCallbackLike(...));
         }
+
         if (isset($cond['nlike'])) {
-            return $this->addCallbackFilter($field, $cond['nlike'], $type, array($this, 'filterCallbackLike'), $inverted);
+            return $this->addCallbackFilter($field, $cond['nlike'], $type, $this->filterCallbackLike(...), $inverted);
         }
+
         if (isset($cond['in'])) {
-            return $this->addCallbackFilter($field, $cond['in'], $type, array($this, 'filterCallbackInArray'));
+            return $this->addCallbackFilter($field, $cond['in'], $type, $this->filterCallbackInArray(...));
         }
+
         if (isset($cond['nin'])) {
-            return $this->addCallbackFilter($field, $cond['nin'], $type, array($this, 'filterCallbackInArray'), $inverted);
+            return $this->addCallbackFilter($field, $cond['nin'], $type, $this->filterCallbackInArray(...), $inverted);
         }
+
         if (isset($cond['notnull'])) {
-            return $this->addCallbackFilter($field, $cond['notnull'], $type, array($this, 'filterCallbackIsNull'), $inverted);
+            return $this->addCallbackFilter($field, $cond['notnull'], $type, $this->filterCallbackIsNull(...), $inverted);
         }
+
         if (isset($cond['null'])) {
-            return $this->addCallbackFilter($field, $cond['null'], $type, array($this, 'filterCallbackIsNull'));
+            return $this->addCallbackFilter($field, $cond['null'], $type, $this->filterCallbackIsNull(...));
         }
+
         if (isset($cond['moreq'])) {
-            return $this->addCallbackFilter($field, $cond['moreq'], $type, array($this, 'filterCallbackIsLessThan'), $inverted);
+            return $this->addCallbackFilter($field, $cond['moreq'], $type, $this->filterCallbackIsLessThan(...), $inverted);
         }
+
         if (isset($cond['gt'])) {
-            return $this->addCallbackFilter($field, $cond['gt'], $type, array($this, 'filterCallbackIsMoreThan'));
+            return $this->addCallbackFilter($field, $cond['gt'], $type, $this->filterCallbackIsMoreThan(...));
         }
+
         if (isset($cond['lt'])) {
-            return $this->addCallbackFilter($field, $cond['lt'], $type, array($this, 'filterCallbackIsLessThan'));
+            return $this->addCallbackFilter($field, $cond['lt'], $type, $this->filterCallbackIsLessThan(...));
         }
+
         if (isset($cond['gteq'])) {
-            return $this->addCallbackFilter($field, $cond['gteq'], $type, array($this, 'filterCallbackIsLessThan'), $inverted);
+            return $this->addCallbackFilter($field, $cond['gteq'], $type, $this->filterCallbackIsLessThan(...), $inverted);
         }
+
         if (isset($cond['lteq'])) {
-            return $this->addCallbackFilter($field, $cond['lteq'], $type, array($this, 'filterCallbackIsMoreThan'), $inverted);
+            return $this->addCallbackFilter($field, $cond['lteq'], $type, $this->filterCallbackIsMoreThan(...), $inverted);
         }
+
         if (isset($cond['finset'])) {
-            $filterValue = ($cond['finset'] ? explode(',', $cond['finset']) : array());
-            return $this->addCallbackFilter($field, $filterValue, $type, array($this, 'filterCallbackInArray'));
+            $filterValue = ($cond['finset'] ? explode(',', $cond['finset']) : []);
+            return $this->addCallbackFilter($field, $filterValue, $type, $this->filterCallbackInArray(...));
         }
 
         // add OR recursively
@@ -545,22 +552,23 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
             $this->addFieldToFilter($field, $orCond, 'or');
             $this->_addFilterBracket(')');
         }
+
         return $this;
     }
 
     /**
      * Prepare a bracket into filters
      *
-     * @param string $bracket
-     * @param bool $isAnd
-     * @return Varien_Data_Collection_Filesystem
+     * @param  string $bracket
+     * @param  bool   $isAnd
+     * @return $this
      */
     protected function _addFilterBracket($bracket = '(', $isAnd = true)
     {
-        $this->_filterBrackets[$this->_filterIncrement] = array(
+        $this->_filterBrackets[$this->_filterIncrement] = [
             'value' => $bracket === ')' ? ')' : '(',
             'is_and' => $isAnd,
-        );
+        ];
         $this->_filterIncrement++;
         return $this;
     }
@@ -568,8 +576,8 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Render condition sign before element, if required
      *
-     * @param int $increment
-     * @param bool $isAnd
+     * @param  int    $increment
+     * @param  bool   $isAnd
      * @return string
      */
     protected function _renderConditionBeforeFilterElement($increment, $isAnd)
@@ -577,22 +585,29 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
         if (isset($this->_filterBrackets[$increment]) && ')' === $this->_filterBrackets[$increment]['value']) {
             return '';
         }
+
         $prevIncrement = $increment - 1;
         $prevBracket = false;
         if (isset($this->_filterBrackets[$prevIncrement])) {
             $prevBracket = $this->_filterBrackets[$prevIncrement]['value'];
         }
+
         if ($prevIncrement < 0 || $prevBracket === '(') {
             return '';
         }
+
         return ($isAnd ? ' && ' : ' || ');
     }
 
     /**
      * Does nothing. Intentionally disabled parent method
      *
-     * @return Varien_Data_Collection_Filesystem
+     * @param  string       $field
+     * @param  array|string $value
+     * @param  string       $type  and|or|string
+     * @return $this
      */
+    #[Override]
     public function addFilter($field, $value, $type = 'and')
     {
         return $this;
@@ -603,6 +618,7 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
      *
      * @return array
      */
+    #[Override]
     public function getAllIds()
     {
         return array_keys($this->_items);
@@ -611,9 +627,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Callback method for 'like' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()
@@ -621,15 +637,15 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     public function filterCallbackLike($field, $filterValue, $row)
     {
         $filterValueRegex = str_replace('%', '(.*?)', preg_quote($filterValue, '/'));
-        return (bool)preg_match("/^{$filterValueRegex}$/i", $row[$field]);
+        return (bool) preg_match("/^{$filterValueRegex}$/i", $row[$field]);
     }
 
     /**
      * Callback method for 'eq' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()
@@ -642,9 +658,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Callback method for 'in' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()
@@ -657,9 +673,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Callback method for 'isnull' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()
@@ -672,9 +688,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Callback method for 'moreq' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()
@@ -687,9 +703,9 @@ class Varien_Data_Collection_Filesystem extends Varien_Data_Collection
     /**
      * Callback method for 'lteq' fancy filter
      *
-     * @param string $field
-     * @param mixed $filterValue
-     * @param array $row
+     * @param  string $field
+     * @param  mixed  $filterValue
+     * @param  array  $row
      * @return bool
      * @see addFieldToFilter()
      * @see addCallbackFilter()

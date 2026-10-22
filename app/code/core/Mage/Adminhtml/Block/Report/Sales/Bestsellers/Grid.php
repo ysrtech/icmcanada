@@ -1,35 +1,16 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml bestsellers report grid block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Report_Sales_Bestsellers_Grid extends Mage_Adminhtml_Block_Report_Grid_Abstract
 {
@@ -38,17 +19,25 @@ class Mage_Adminhtml_Block_Report_Sales_Bestsellers_Grid extends Mage_Adminhtml_
     public function __construct()
     {
         parent::__construct();
-        $this->setCountTotals(true);
+        $this->setCountTotals();
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     public function getResourceCollectionName()
     {
         return 'sales/report_bestsellers_collection';
     }
 
+    /**
+     * @inheritDoc
+     */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('period', array(
+        $this->addColumn('period', [
             'header'        => Mage::helper('sales')->__('Period'),
             'index'         => 'period',
             'width'         => 100,
@@ -56,38 +45,37 @@ class Mage_Adminhtml_Block_Report_Sales_Bestsellers_Grid extends Mage_Adminhtml_
             'period_type'   => $this->getPeriodType(),
             'renderer'      => 'adminhtml/report_sales_grid_column_renderer_date',
             'totals_label'  => Mage::helper('adminhtml')->__('Total'),
-            'html_decorators' => array('nobr'),
-        ));
+            'html_decorators' => ['nobr'],
+        ]);
 
-        $this->addColumn('product_name', array(
+        $this->addColumn('product_name', [
             'header'    => Mage::helper('sales')->__('Product Name'),
             'index'     => 'product_name',
             'type'      => 'string',
-            'sortable'  => false
-        ));
+            'sortable'  => false,
+        ]);
 
         if ($this->getFilterData()->getStoreIds()) {
             $this->setStoreIds(explode(',', $this->getFilterData()->getStoreIds()));
         }
+
         $currencyCode = $this->getCurrentCurrencyCode();
 
-        $this->addColumn('product_price', array(
-            'header'        => Mage::helper('sales')->__('Price'),
+        $this->addColumn('product_price', [
             'type'          => 'currency',
             'currency_code' => $currencyCode,
             'index'         => 'product_price',
             'sortable'      => false,
             'rate'          => $this->getRate($currencyCode),
-        ));
+        ]);
 
-        $this->addColumn('qty_ordered', array(
+        $this->addColumn('qty_ordered', [
             'header'    => Mage::helper('sales')->__('Quantity Ordered'),
             'index'     => 'qty_ordered',
             'type'      => 'number',
             'total'     => 'sum',
-            'sortable'  => false
-        ));
-
+            'sortable'  => false,
+        ]);
 
         $this->addExportType('*/*/exportBestsellersCsv', Mage::helper('adminhtml')->__('CSV'));
         $this->addExportType('*/*/exportBestsellersExcel', Mage::helper('adminhtml')->__('Excel XML'));

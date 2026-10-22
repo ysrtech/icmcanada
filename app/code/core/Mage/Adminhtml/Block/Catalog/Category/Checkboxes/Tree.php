@@ -1,41 +1,29 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Categories tree with checkboxes
  *
- * @author     Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Adminhtml
  */
 class Mage_Adminhtml_Block_Catalog_Category_Checkboxes_Tree extends Mage_Adminhtml_Block_Catalog_Category_Tree
 {
-    protected $_selectedIds = array();
+    protected $_selectedIds = [];
 
+    /**
+     * @return $this
+     */
+    #[Override]
     protected function _prepareLayout()
     {
         $this->setTemplate('catalog/category/checkboxes/tree.phtml');
+        return $this;
     }
 
     public function getCategoryIds()
@@ -46,38 +34,43 @@ class Mage_Adminhtml_Block_Catalog_Category_Checkboxes_Tree extends Mage_Adminht
     public function setCategoryIds($ids)
     {
         if (empty($ids)) {
-            $ids = array();
+            $ids = [];
+        } elseif (!is_array($ids)) {
+            $ids = [(int) $ids];
         }
-        elseif (!is_array($ids)) {
-            $ids = array((int)$ids);
-        }
+
         $this->_selectedIds = $ids;
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    #[Override]
     protected function _getNodeJson($node, $level = 1)
     {
-        $item = array();
-        $item['text']= $this->escapeHtml($node->getName());
+        $item = [];
+        $item['text'] = $this->escapeHtml($node->getName());
 
         if ($this->_withProductCount) {
-             $item['text'].= ' ('.$node->getProductCount().')';
+            $item['text'] .= ' (' . $node->getProductCount() . ')';
         }
+
         $item['id']  = $node->getId();
-        $item['path'] = $node->getData('path');
+        $item['path'] = $node->getDataByKey('path');
         $item['cls'] = 'folder ' . ($node->getIsActive() ? 'active-category' : 'no-active-category');
         $item['allowDrop'] = false;
         $item['allowDrag'] = false;
 
         if ($node->hasChildren()) {
-            $item['children'] = array();
+            $item['children'] = [];
             foreach ($node->getChildren() as $child) {
                 $item['children'][] = $this->_getNodeJson($child, $level + 1);
             }
         }
 
-        if (empty($item['children']) && (int)$node->getChildrenCount() > 0) {
-            $item['children'] = array();
+        if (empty($item['children']) && (int) $node->getChildrenCount() > 0) {
+            $item['children'] = [];
         }
 
         if (!empty($item['children'])) {
@@ -91,7 +84,8 @@ class Mage_Adminhtml_Block_Catalog_Category_Checkboxes_Tree extends Mage_Adminht
         return $item;
     }
 
-    public function getRoot($parentNodeCategory=null, $recursionLevel=3)
+    #[Override]
+    public function getRoot($parentNodeCategory = null, $recursionLevel = 3)
     {
         return $this->getRootByIds($this->getCategoryIds());
     }

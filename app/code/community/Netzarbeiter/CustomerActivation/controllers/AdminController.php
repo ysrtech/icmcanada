@@ -120,7 +120,7 @@ class Netzarbeiter_CustomerActivation_AdminController extends Mage_Adminhtml_Con
      *
      * @return bool
      */
-    protected function _isAllowed()
+    protected function _isAllowed(): bool
     {
         return Mage::getSingleton('admin/session')->isAllowed('customer/manage');
     }

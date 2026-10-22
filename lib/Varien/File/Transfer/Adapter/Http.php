@@ -1,37 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_File
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_File
  */
 
 /**
  * Csv parse
- *
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Varien_File_Transfer_Adapter_Http
 {
-    protected $_mimeTypes = array(
+    protected $_mimeTypes = [
         'txt' => 'text/plain',
         'htm' => 'text/html',
         'html' => 'text/html',
@@ -44,6 +25,7 @@ class Varien_File_Transfer_Adapter_Http
         'flv' => 'video/x-flv',
 
         // images
+        'webp' => 'image/webp',
         'png' => 'image/png',
         'jpe' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
@@ -73,61 +55,52 @@ class Varien_File_Transfer_Adapter_Http
         'psd' => 'image/vnd.adobe.photoshop',
         'ai' => 'application/postscript',
         'eps' => 'application/postscript',
-        'ps' => 'application/postscript'
-    );
+        'ps' => 'application/postscript',
+    ];
 
     /**
      * Send the file to the client (Download)
      *
-     * @param  string|array $options Options for the file(s) to send
-     * @return void
+     * @param  array|string $options Options for the file(s) to send
+     * @throws Exception
      */
     public function send($options = null)
     {
         if (is_string($options)) {
             $filepath = $options;
-        } else if (is_array($options)) {
+        } elseif (is_array($options)) {
             $filepath = $options['filepath'];
         } else {
-            throw new Exception("Filename is not set.");
+            throw new Exception('Filename is not set.');
         }
 
         if (!is_file($filepath) || !is_readable($filepath)) {
             throw new Exception("File '{$filepath}' does not exists.");
         }
 
-        $mimeType = $this->_detectMimeType(array('name' => $filepath));
+        $mimeType = $this->_detectMimeType(['name' => $filepath]);
 
         $response = new Zend_Controller_Response_Http();
 
-        $response->setHeader('Content-length', filesize($filepath));
+        $response->setHeader('Content-length', (string) filesize($filepath));
         $response->setHeader('Content-Type', $mimeType);
 
         $response->sendHeaders();
 
-        $handle = fopen($filepath, 'r');
-        if ($handle) {
-            while (($buffer = fgets($handle, 4096)) !== false) {
-                echo $buffer;
-            }
-            if (!feof($handle)) {
-                throw new Exception("Error: unexpected fgets() fail.");
-            }
-            fclose($handle);
-        }
+        readfile($filepath);
     }
 
     /**
      * Internal method to detect the mime type of a file
      *
-     * @param  array $value File infos
-     * @return string Mime type of given file
+     * @param  array       $value File infos
+     * @return null|string Mime type of given file
      */
     protected function _detectMimeType($value)
     {
         if (file_exists($value['name'])) {
             $file = $value['name'];
-        } else if (file_exists($value['tmp_name'])) {
+        } elseif (file_exists($value['tmp_name'])) {
             $file = $value['tmp_name'];
         } else {
             return null;
@@ -144,10 +117,9 @@ class Varien_File_Transfer_Adapter_Http
         }
 
         if (empty($result)) {
-            $result = 'application/octet-stream';
+            return 'application/octet-stream';
         }
 
         return $result;
     }
-
 }

@@ -1,41 +1,25 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml transaction details grid
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Sales_Transactions_Detail_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'adminhtml_sales_transactions_detail_grid';
+
     /**
-     * Initialize default sorting and html ID
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         $this->setId('transactionDetailsGrid');
@@ -44,15 +28,15 @@ class Mage_Adminhtml_Block_Sales_Transactions_Detail_Grid extends Mage_Adminhtml
     }
 
     /**
-     * Prepare collection for grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = new Varien_Data_Collection();
         foreach ($this->getTransactionAdditionalInfo() as $key => $value) {
-            $data = new Varien_Object(array('key' => $key, 'value' => $value));
+            $data = new Varien_Object(['key' => $key, 'value' => $value]);
             $collection->addItem($data);
         }
 
@@ -61,41 +45,41 @@ class Mage_Adminhtml_Block_Sales_Transactions_Detail_Grid extends Mage_Adminhtml
     }
 
     /**
-     * Add columns to grid
-     *
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * @inheritDoc
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $this->addColumn('key', array(
+        $this->addColumn('key', [
             'header'    => Mage::helper('sales')->__('Key'),
             'index'     => 'key',
             'sortable'  => false,
             'type'      => 'text',
-            'width'     => '50%'
-        ));
+            'width'     => '50%',
+        ]);
 
-        $this->addColumn('value', array(
+        $this->addColumn('value', [
             'header'    => Mage::helper('sales')->__('Value'),
             'index'     => 'value',
             'sortable'  => false,
             'type'      => 'text',
-            'escape'    => true
-        ));
+            'escape'    => true,
+        ]);
 
         return parent::_prepareColumns();
     }
 
     /**
-     * Retrieve Transaction addtitional info
+     * Retrieve Transaction additional info
      *
      * @return array
      */
     public function getTransactionAdditionalInfo()
     {
         $info = Mage::registry('current_transaction')->getAdditionalInformation(
-            Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS
+            Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS,
         );
-        return (is_array($info)) ? $info : array();
+        return (is_array($info)) ? $info : [];
     }
 }

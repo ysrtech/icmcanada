@@ -1,39 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Persistent
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Persistent
+ */
 
 /**
  * Persistent Shopping Cart Data Helper
  *
- * @category   Mage
  * @package    Mage_Persistent
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Persistent_Helper_Session extends Mage_Core_Helper_Data
 {
+    protected $_moduleName = 'Mage_Persistent';
+
     /**
      * Instance of Session Model
      *
@@ -66,14 +48,15 @@ class Mage_Persistent_Helper_Session extends Mage_Core_Helper_Data
             $this->_sessionModel = Mage::getModel('persistent/session');
             $this->_sessionModel->loadByCookieKey();
         }
+
         return $this->_sessionModel;
     }
 
     /**
      * Force setting session model
      *
-     * @param Mage_Persistent_Model_Session $sessionModel
-     * @return Mage_Persistent_Model_Session
+     * @param  null|Mage_Persistent_Model_Session $sessionModel null to unset session
+     * @return null|Mage_Persistent_Model_Session
      */
     public function setSession($sessionModel)
     {
@@ -107,12 +90,12 @@ class Mage_Persistent_Helper_Session extends Mage_Core_Helper_Data
                 return $isRememberMeChecked;
             }
 
-            /** @var $helper Mage_Persistent_Helper_Data */
+            /** @var Mage_Persistent_Helper_Data $helper */
             $helper = Mage::helper('persistent');
             return $helper->isEnabled() && $helper->isRememberMeEnabled() && $helper->isRememberMeCheckedDefault();
         }
 
-        return (bool)$this->_isRememberMeChecked;
+        return (bool) $this->_isRememberMeChecked;
     }
 
     /**
@@ -128,7 +111,7 @@ class Mage_Persistent_Helper_Session extends Mage_Core_Helper_Data
     /**
      * Return persistent customer
      *
-     * @return Mage_Customer_Model_Customer|bool
+     * @return Mage_Customer_Model_Customer
      */
     public function getCustomer()
     {
@@ -136,6 +119,7 @@ class Mage_Persistent_Helper_Session extends Mage_Core_Helper_Data
             $customerId = $this->getSession()->getCustomerId();
             $this->_customer = Mage::getModel('customer/customer')->load($customerId);
         }
+
         return $this->_customer;
     }
 }

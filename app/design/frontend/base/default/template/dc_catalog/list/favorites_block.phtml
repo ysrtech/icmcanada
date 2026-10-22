@@ -9,6 +9,7 @@
 	$_items = $this->getValuesCollection(true)->getItems();
 
 	$_helper = $this->helper('dc_catalog/attributeInfo');
+	$_urlHelper = $this->helper('dc_catalog');
 
 	$columns = 5;
 	$maxItems = 5;
@@ -51,8 +52,8 @@
 		$_imgHtml = '<img
 			width="'.($thumbnail_width ? $thumbnail_width : $width) .'"
 	        src="'.$_imgUrl.'"
-	        alt="'.$this->htmlEscape($item->getValue()).'"
-	        title="'.$this->htmlEscape($item->getValue()).'"
+	        alt="'.$this->escapeHtml($item->getValue()).'"
+	        title="'.$this->escapeHtml($item->getValue()).'"
 	        class="attribute-values-logo" />';
 	}
 
@@ -67,7 +68,7 @@
 		?>
 		<a
 				href="<?php echo $this->getUrl('/').$item->getAttributeCode().'/'.$item->getIdentifier(); ?>"
-				title="<?php echo $this->htmlEscape($item->getName())?>"><?php
+				title="<?php echo $this->escapeHtml($item->getName())?>"><?php
 					echo $item->getValue();
 		?></a>
 		<?php
@@ -78,7 +79,7 @@
 		<?php endforeach; ?>
 
 		<li class="view-all">
-			<?php //echo __('or') ?> <a href="<?php echo $this->getUrl('/').$item->getAttributeCode().'/'; ?>">
+			<?php //echo __('or') ?> <a href="<?php echo $this->getUrl('/').$_urlHelper->getAttributeUrlPrefix($item->getAttributeCode()).'/'; ?>">
     			<strong><?php echo __('View all '.$this->getAttributeCode().'s') ?></strong>
 			</a>
 		</li>

@@ -1,48 +1,32 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
  */
 
 /**
  * Catalog product link api V2
  *
- * @category   Mage
  * @package    Mage_Catalog
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_Link_Api
 {
     /**
      * Add product link association
      *
-     * @param string $type
-     * @param int|string $productId
-     * @param int|string $linkedProductId
-     * @param array $data
-     * @return boolean
+     * @param  string             $type
+     * @param  int|string         $productId
+     * @param  int|string         $linkedProductId
+     * @param  array              $data
+     * @param  null|string        $identifierType
+     * @return bool
+     * @throws Mage_Api_Exception
      */
-    public function assign($type, $productId, $linkedProductId, $data = array(), $identifierType = null)
+    #[Override]
+    public function assign($type, $productId, $linkedProductId, $data = [], $identifierType = null)
     {
         $typeId = $this->_getTypeId($type);
 
@@ -59,10 +43,12 @@ class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_
 
         $links = $this->_collectionToEditableArray($collection);
 
-        $links[(int)$linkedProductId] = array();
+        $links[(int) $linkedProductId] = [];
         foreach ($collection->getLinkModel()->getAttributes() as $attribute) {
-            if (isset($data->{$attribute['code']})) {
-                $links[(int)$linkedProductId][$attribute['code']] = $data->{$attribute['code']};
+            /** @var string $attributeCode */
+            $attributeCode = $attribute['code'];
+            if (isset($data->{$attributeCode})) {
+                $links[(int) $linkedProductId][$attributeCode] = $data->{$attributeCode};
             }
         }
 
@@ -81,9 +67,8 @@ class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_
 
             $indexerPrice = Mage::getResourceModel('catalog/product_indexer_price');
             $indexerPrice->reindexProductIds($productId);
-
-        } catch (Exception $e) {
-            $this->_fault('data_invalid', $e->getMessage());
+        } catch (Exception $exception) {
+            $this->_fault('data_invalid', $exception->getMessage());
             //$this->_fault('data_invalid', Mage::helper('catalog')->__('Link product does not exist.'));
         }
 
@@ -93,13 +78,16 @@ class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_
     /**
      * Update product link association info
      *
-     * @param string $type
-     * @param int|string $productId
-     * @param int|string $linkedProductId
-     * @param array $data
-     * @return boolean
+     * @param  string             $type
+     * @param  int|string         $productId
+     * @param  int|string         $linkedProductId
+     * @param  array              $data
+     * @param  null|string        $identifierType
+     * @return bool
+     * @throws Mage_Api_Exception
      */
-    public function update($type, $productId, $linkedProductId, $data = array(), $identifierType = null)
+    #[Override]
+    public function update($type, $productId, $linkedProductId, $data = [], $identifierType = null)
     {
         $typeId = $this->_getTypeId($type);
 
@@ -118,8 +106,10 @@ class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_
         }
 
         foreach ($collection->getLinkModel()->getAttributes() as $attribute) {
-            if (isset($data->{$attribute['code']})) {
-                $links[(int)$linkedProductId][$attribute['code']] = $data->{$attribute['code']};
+            /** @var string $attributeCode */
+            $attributeCode = $attribute['code'];
+            if (isset($data->{$attributeCode})) {
+                $links[(int) $linkedProductId][$attributeCode] = $data->{$attributeCode};
             }
         }
 
@@ -138,8 +128,7 @@ class Mage_Catalog_Model_Product_Link_Api_V2 extends Mage_Catalog_Model_Product_
 
             $indexerPrice = Mage::getResourceModel('catalog/product_indexer_price');
             $indexerPrice->reindexProductIds($productId);
-
-        } catch (Exception $e) {
+        } catch (Exception) {
             $this->_fault('data_invalid', Mage::helper('catalog')->__('Link product does not exist.'));
         }
 

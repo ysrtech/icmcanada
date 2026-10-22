@@ -13,8 +13,13 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class BL_CustomGrid_Model_Grid_Absorber extends BL_CustomGrid_Model_Grid_Worker
+class BL_CustomGrid_Model_Grid_Absorber extends BL_CustomGrid_Model_Grid_Worker_Abstract
 {
+    public function getType()
+    {
+        return BL_CustomGrid_Model_Grid::WORKER_TYPE_ABSORBER;
+    }
+    
     /**
      * Initialize the current grid model's variable names from the given block
      *
@@ -133,6 +138,31 @@ class BL_CustomGrid_Model_Grid_Absorber extends BL_CustomGrid_Model_Grid_Worker
     }
     
     /**
+     * Absorb columns from the given grid collection
+     * 
+     * @param Varien_Data_Collection_Db $gridCollection Grid collection
+     * @param int $order Starting order
+     * @param int $orderPitch Order pitch
+     * @return BL_CustomGrid_Model_Grid_Absorber
+     */
+    protected function _absorbGridCollectionColumns(Varien_Data_Collection_Db $gridCollection, $order, $orderPitch)
+    {
+        if ($gridCollection->count() > 0) {
+            $item = $gridCollection->getFirstItem();
+            list($gridColumnBlockIds, $gridColumnIndices) = $this->_getGridColumnsMainValues();
+        
+            foreach ($item->getData() as $key => $value) {
+                if ((is_scalar($value) || is_null($value))
+                    && !in_array($key, $gridColumnIndices, true)
+                    && !in_array($key, $gridColumnBlockIds, true)) {
+                    $this->_absorbColumnFromCollection($key, ++$order * $orderPitch);
+                }
+            }
+        }
+        return $this;
+    }
+    
+    /**
      * Initialize the current grid model values from the given grid block, and save it afterwards
      *
      * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Grid block
@@ -157,18 +187,9 @@ class BL_CustomGrid_Model_Grid_Absorber extends BL_CustomGrid_Model_Grid_Worker
         foreach ($gridBlock->getColumns() as $columnBlock) {
             $this->_absorbColumnFromBlock($columnBlock, ++$order * $orderPitch);
         }
-        
-        if (($collection = $gridBlock->getCollection()) && ($collection->count() > 0)) {
-            $item = $collection->getFirstItem();
-            list($gridColumnBlockIds, $gridColumnIndices) = $this->_getGridColumnsMainValues();
-            
-            foreach ($item->getData() as $key => $value) {
-                if ((is_scalar($value) || is_null($value))
-                    && !in_array($key, $gridColumnIndices, true) 
-                    && !in_array($key, $gridColumnBlockIds, true)) {
-                    $this->_absorbColumnFromCollection($key, ++$order * $orderPitch);
-                }
-            }
+    
+        if ($collection = $gridBlock->getCollection()) {
+            $this->_absorbGridCollectionColumns($collection, $order, $orderPitch);
         }
         
         $gridModel->setDataChanges(true)->save();

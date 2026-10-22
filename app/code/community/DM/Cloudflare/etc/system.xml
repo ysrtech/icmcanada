@@ -10,29 +10,31 @@
 		<general  translate="label" module="cloudflare">            
 					<groups>
 				      <cf_group translate="label"> 
-					  <label>CloufFlare</label>
+					  <label>Cloudflare</label>
 					  <frontend_type>text</frontend_type>
 					  <sort_order>0</sort_order>
 					  <show_in_default>1</show_in_default>
 					  <show_in_website>1</show_in_website>
 					  <show_in_store>1</show_in_store>
 				       <fields>
-                          <cf_api translate="label">
-                            <label>Cloud Flare API</label>
+                          <cf_api_token translate="label">
+                            <label>Cloudflare API Token</label>
+                            <comment>Create a token at dash.cloudflare.com → My Profile → API Tokens with Zone Cache Purge permission.</comment>
 							<frontend_type>text</frontend_type>
                             <sort_order>0</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                          </cf_api>
-                          <cf_email translate="label">
-                            <label>Cloud Flare Email</label>
+                          </cf_api_token>
+                          <cf_zone_id translate="label">
+                            <label>Cloudflare Zone ID</label>
+                            <comment>Found on the Overview page of your domain in the Cloudflare dashboard.</comment>
 							<frontend_type>text</frontend_type>
-                            <sort_order>0</sort_order>
+                            <sort_order>1</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                          </cf_email>
+                          </cf_zone_id>
 					   </fields>
 					   </cf_group>
 					</groups>

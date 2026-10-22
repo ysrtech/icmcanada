@@ -13,7 +13,7 @@
 "var order.getShippingAddress().format('html')":"Shipping Address",
 "var order.getShippingDescription()":"Shipping Description",
 "layout handle=\"sales_email_order_items\" order=$order":"Order Items Grid",
-"var order.getEmailCustomerNote()":"Email Order Note"},
+"var order.getEmailCustomerNote()":"Email Order Note",
 "var notes":"Email Order Comments"}
 @-->
 <!--@styles
@@ -98,9 +98,9 @@
                     <td>
                         <h3>Order Comments:</h3>
                         <p>{{var notes}}</p>
-        </td>
-    </tr>
-</table>
+                    </td>
+                </tr>
+            </table>
             {{/if}}
         </td>
     </tr>

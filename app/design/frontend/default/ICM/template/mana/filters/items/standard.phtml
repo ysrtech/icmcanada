@@ -22,7 +22,7 @@
         	<span class="m-selected-filter-item"><?php echo $_item->getLabel() ?></span>
         <?php else : ?>
 	        <?php if ($_item->getCount() > 0): ?>
-	        <a href="<?php echo $this->urlEscape($_item->getReplaceUrl()) ?>" title="<?php echo $_item->getLabel() ?>"><?php echo $_item->getLabel() ?></a>
+	        <a href="<?php echo $this->escapeUrl($_item->getReplaceUrl()) ?>" title="<?php echo $_item->getLabel() ?>"><?php echo $_item->getLabel() ?></a>
 	        <?php else: echo $_item->getLabel() ?>
 	        <?php endif; ?>
         <?php endif; ?>

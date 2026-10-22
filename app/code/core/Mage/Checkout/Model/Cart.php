@@ -1,49 +1,30 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Shopping cart model
  *
- * @category    Mage
- * @package     Mage_Checkout
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Checkout
  */
 class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Model_Cart_Interface
 {
     /**
      * Shopping cart items summary quantity(s)
      *
-     * @var int|null
+     * @var null|int
      */
     protected $_summaryQty;
 
     /**
      * List of product ids in shopping cart
      *
-     * @var array|null
+     * @var null|array
      */
     protected $_productIds;
 
@@ -70,7 +51,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Retrieve customer session model
      *
-     * @return Mage_Customer_Model_Customer
+     * @return Mage_Customer_Model_Session
      */
     public function getCustomerSession()
     {
@@ -80,13 +61,15 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * List of shopping cart items
      *
-     * @return Mage_Eav_Model_Entity_Collection_Abstract|array
+     * @return array|Mage_Sales_Model_Resource_Quote_Item_Collection
+     * @throws Mage_Core_Exception
      */
     public function getItems()
     {
         if (!$this->getQuote()->getId()) {
-            return array();
+            return [];
         }
+
         return $this->getQuote()->getItemsCollection();
     }
 
@@ -94,17 +77,21 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
      * Retrieve array of cart product ids
      *
      * @return array
+     * @throws Mage_Core_Exception
      */
     public function getQuoteProductIds()
     {
-        $products = $this->getData('product_ids');
+        $products = $this->getDataByKey('product_ids');
         if (is_null($products)) {
-            $products = array();
+            $products = [];
             foreach ($this->getQuote()->getAllItems() as $item) {
-                $products[$item->getProductId()] = $item->getProductId();
+                $productId = $item->getProductId();
+                $products[$productId] = $productId;
             }
+
             $this->setData('product_ids', $products);
         }
+
         return $products;
     }
 
@@ -118,14 +105,14 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         if (!$this->hasData('quote')) {
             $this->setData('quote', $this->getCheckoutSession()->getQuote());
         }
+
         return $this->_getData('quote');
     }
 
     /**
      * Set quote object associated with the cart
      *
-     * @param Mage_Sales_Model_Quote $quote
-     * @return Mage_Checkout_Model_Cart
+     * @return $this
      */
     public function setQuote(Mage_Sales_Model_Quote $quote)
     {
@@ -136,7 +123,8 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Initialize cart quote state to be able use it on cart page
      *
-     * @return Mage_Checkout_Model_Cart
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function init()
     {
@@ -158,13 +146,13 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Convert order item to quote item
      *
-     * @param Mage_Sales_Model_Order_Item $orderItem
-     * @param mixed $qtyFlag if is null set product qty like in order
-     * @return Mage_Checkout_Model_Cart
+     * @param  Mage_Sales_Model_Order_Item $orderItem
+     * @param  mixed                       $qtyFlag   if is null set product qty like in order
+     * @return $this
+     * @throws Mage_Core_Exception
      */
-    public function addOrderItem($orderItem, $qtyFlag=null)
+    public function addOrderItem($orderItem, $qtyFlag = null)
     {
-        /* @var $orderItem Mage_Sales_Model_Order_Item */
         if (is_null($orderItem->getParentItem())) {
             $product = Mage::getModel('catalog/product')
                 ->setStoreId(Mage::app()->getStore()->getId())
@@ -183,14 +171,16 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
 
             $this->addProduct($product, $info);
         }
+
         return $this;
     }
 
     /**
      * Get product object based on requested product information
      *
-     * @param   mixed $productInfo
-     * @return  Mage_Catalog_Model_Product
+     * @param  mixed                      $productInfo
+     * @return Mage_Catalog_Model_Product
+     * @throws Mage_Core_Exception
      */
     protected function _getProduct($productInfo)
     {
@@ -202,6 +192,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
                 ->setStoreId(Mage::app()->getStore()->getId())
                 ->load($productInfo);
         }
+
         $currentWebsiteId = Mage::app()->getStore()->getWebsiteId();
         if (!$product
             || !$product->getId()
@@ -210,21 +201,22 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         ) {
             Mage::throwException(Mage::helper('checkout')->__('The product could not be found.'));
         }
+
         return $product;
     }
 
     /**
      * Get request for product add to cart procedure
      *
-     * @param   mixed $requestInfo
-     * @return  Varien_Object
+     * @param  mixed         $requestInfo
+     * @return Varien_Object
      */
     protected function _getProductRequest($requestInfo)
     {
         if ($requestInfo instanceof Varien_Object) {
             $request = $requestInfo;
         } elseif (is_numeric($requestInfo)) {
-            $request = new Varien_Object(array('qty' => $requestInfo));
+            $request = new Varien_Object(['qty' => $requestInfo]);
         } else {
             $request = new Varien_Object($requestInfo);
         }
@@ -235,14 +227,17 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Add product to shopping cart (quote)
      *
-     * @param   int|Mage_Catalog_Model_Product $productInfo
-     * @param   mixed $requestInfo
-     * @return  Mage_Checkout_Model_Cart
+     * @param  int|Mage_Catalog_Model_Product $productInfo
+     * @param  mixed                          $requestInfo
+     * @return $this
+     * @throws Mage_Core_Exception
      */
-    public function addProduct($productInfo, $requestInfo=null)
+    public function addProduct($productInfo, $requestInfo = null)
     {
         $product = $this->_getProduct($productInfo);
         $request = $this->_getProductRequest($requestInfo);
+
+        Mage::dispatchEvent('checkout_cart_product_add_before', ['request' => $request, 'product' => $product]);
 
         /** @var Mage_Catalog_Helper_Product $helper */
         $helper  = Mage::helper('catalog/product');
@@ -266,10 +261,11 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         if ($productId) {
             try {
                 $result = $this->getQuote()->addProduct($product, $request);
-            } catch (Mage_Core_Exception $e) {
+            } catch (Mage_Core_Exception $mageCoreException) {
                 $this->getCheckoutSession()->setUseNotice(false);
-                $result = $e->getMessage();
+                $result = $mageCoreException->getMessage();
             }
+
             /**
              * String we can get if prepare process has error
              */
@@ -277,20 +273,21 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
                 $redirectUrl = ($product->hasOptionsValidationFail())
                     ? $product->getUrlModel()->getUrl(
                         $product,
-                        array('_query' => array('startcustomization' => 1))
+                        ['_query' => ['startcustomization' => 1]],
                     )
                     : $product->getProductUrl();
                 $this->getCheckoutSession()->setRedirectUrl($redirectUrl);
                 if ($this->getCheckoutSession()->getUseNotice() === null) {
                     $this->getCheckoutSession()->setUseNotice(true);
                 }
+
                 Mage::throwException($result);
             }
         } else {
             Mage::throwException(Mage::helper('checkout')->__('The product does not exist.'));
         }
 
-        Mage::dispatchEvent('checkout_cart_product_add_after', array('quote_item' => $result, 'product' => $product));
+        Mage::dispatchEvent('checkout_cart_product_add_after', ['quote_item' => $result, 'product' => $product]);
         $this->getCheckoutSession()->setLastAddedProductId($productId);
         return $this;
     }
@@ -298,8 +295,9 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Adding products to cart by ids
      *
-     * @param   array $productIds
-     * @return  Mage_Checkout_Model_Cart
+     * @param  array               $productIds
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function addProductsByIds($productIds)
     {
@@ -312,11 +310,12 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
                 if (!$productId) {
                     continue;
                 }
+
                 $product = $this->_getProduct($productId);
                 if ($product->getId() && $product->isVisibleInCatalog()) {
                     try {
                         $this->getQuote()->addProduct($product);
-                    } catch (Exception $e){
+                    } catch (Exception) {
                         $allAdded = false;
                     }
                 } else {
@@ -326,15 +325,17 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
 
             if (!$allAvailable) {
                 $this->getCheckoutSession()->addError(
-                    Mage::helper('checkout')->__('Some of the requested products are unavailable.')
+                    Mage::helper('checkout')->__('Some of the requested products are unavailable.'),
                 );
             }
+
             if (!$allAdded) {
                 $this->getCheckoutSession()->addError(
-                    Mage::helper('checkout')->__('Some of the requested products are not available in the desired quantity.')
+                    Mage::helper('checkout')->__('Some of the requested products are not available in the desired quantity.'),
                 );
             }
         }
+
         return $this;
     }
 
@@ -345,8 +346,9 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
      *
      * $data is an array of ($quoteItemId => (item info array with 'qty' key), ...)
      *
-     * @param   array $data
-     * @return  array
+     * @param  array               $data
+     * @return array
+     * @throws Mage_Core_Exception
      */
     public function suggestItemsQty($data)
     {
@@ -354,6 +356,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
             if (!isset($itemInfo['qty'])) {
                 continue;
             }
+
             $qty = (float) $itemInfo['qty'];
             if ($qty <= 0) {
                 continue;
@@ -369,7 +372,6 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
                 continue;
             }
 
-            /* @var $stockItem Mage_CatalogInventory_Model_Stock_Item */
             $stockItem = $product->getStockItem();
             if (!$stockItem) {
                 continue;
@@ -385,14 +387,14 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Update cart items information
      *
-     * @param   array $data
-     * @return  Mage_Checkout_Model_Cart
+     * @param  array               $data
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function updateItems($data)
     {
-        Mage::dispatchEvent('checkout_cart_update_items_before', array('cart'=>$this, 'info'=>$data));
+        Mage::dispatchEvent('checkout_cart_update_items_before', ['cart' => $this, 'info' => $data]);
 
-        /* @var $messageFactory Mage_Core_Model_Message */
         $messageFactory = Mage::getSingleton('core/message');
         $session = $this->getCheckoutSession();
         $qtyRecalculatedFlag = false;
@@ -402,7 +404,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
                 continue;
             }
 
-            if (!empty($itemInfo['remove']) || (isset($itemInfo['qty']) && $itemInfo['qty']=='0')) {
+            if (!empty($itemInfo['remove']) || (isset($itemInfo['qty']) && $itemInfo['qty'] == '0')) {
                 $this->removeItem($itemId);
                 continue;
             }
@@ -427,19 +429,20 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
 
         if ($qtyRecalculatedFlag) {
             $session->addNotice(
-                Mage::helper('checkout')->__('Some products quantities were recalculated because of quantity increment mismatch')
+                Mage::helper('checkout')->__('Some products quantities were recalculated because of quantity increment mismatch'),
             );
         }
 
-        Mage::dispatchEvent('checkout_cart_update_items_after', array('cart'=>$this, 'info'=>$data));
+        Mage::dispatchEvent('checkout_cart_update_items_after', ['cart' => $this, 'info' => $data]);
         return $this;
     }
 
     /**
      * Remove item from cart
      *
-     * @param   int $itemId
-     * @return  Mage_Checkout_Model_Cart
+     * @param  int                 $itemId
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function removeItem($itemId)
     {
@@ -450,11 +453,13 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     /**
      * Save cart
      *
-     * @return Mage_Checkout_Model_Cart
+     * @return $this
+     * @throws Mage_Core_Exception
+     * @throws Throwable
      */
     public function save()
     {
-        Mage::dispatchEvent('checkout_cart_save_before', array('cart'=>$this));
+        Mage::dispatchEvent('checkout_cart_save_before', ['cart' => $this]);
 
         $this->getQuote()->getBillingAddress();
         $this->getQuote()->getShippingAddress()->setCollectShippingRates(true);
@@ -464,7 +469,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         /**
          * Cart save usually called after changes with cart items.
          */
-        Mage::dispatchEvent('checkout_cart_save_after', array('cart'=>$this));
+        Mage::dispatchEvent('checkout_cart_save_after', ['cart' => $this]);
         return $this;
     }
 
@@ -474,12 +479,14 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
     public function saveQuote()
     {
         $this->save();
+        return $this;
     }
 
     /**
      * Mark all quote items as deleted (empty shopping cart)
      *
-     * @return Mage_Checkout_Model_Cart
+     * @return $this
+     * @throws Mage_Core_Exception
      */
     public function truncate()
     {
@@ -487,25 +494,30 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         return $this;
     }
 
+    /**
+     * @return array
+     * @throws Mage_Core_Exception
+     */
     public function getProductIds()
     {
-        $quoteId = Mage::getSingleton('checkout/session')->getQuoteId();
-        if (null === $this->_productIds) {
-            $this->_productIds = array();
-            if ($this->getSummaryQty()>0) {
-               foreach ($this->getQuote()->getAllItems() as $item) {
-                   $this->_productIds[] = $item->getProductId();
-               }
+        if ($this->_productIds === null) {
+            $this->_productIds = [];
+            if ($this->getSummaryQty() > 0) {
+                foreach ($this->getQuote()->getAllItems() as $item) {
+                    $this->_productIds[] = $item->getProductId();
+                }
             }
+
             $this->_productIds = array_unique($this->_productIds);
         }
+
         return $this->_productIds;
     }
 
     /**
      * Get shopping cart items summary (includes config settings)
      *
-     * @return int|float
+     * @return float|int
      */
     public function getSummaryQty()
     {
@@ -515,17 +527,14 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
         //and get new quote id. This is done for cases when quote was created
         //not by customer (from backend for example).
         if (!$quoteId && Mage::getSingleton('customer/session')->isLoggedIn()) {
-            $quote = Mage::getSingleton('checkout/session')->getQuote();
+            Mage::getSingleton('checkout/session')->getQuote();
             $quoteId = Mage::getSingleton('checkout/session')->getQuoteId();
         }
 
         if ($quoteId && $this->_summaryQty === null) {
-            if (Mage::getStoreConfig('checkout/cart_link/use_qty')) {
-                $this->_summaryQty = $this->getItemsQty();
-            } else {
-                $this->_summaryQty = $this->getItemsCount();
-            }
+            $this->_summaryQty = Mage::getStoreConfig('checkout/cart_link/use_qty') ? $this->getItemsQty() : $this->getItemsCount();
         }
+
         return $this->_summaryQty;
     }
 
@@ -536,17 +545,17 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
      */
     public function getItemsCount()
     {
-        return $this->getQuote()->getItemsCount()*1;
+        return $this->getQuote()->getItemsCount() * 1;
     }
 
     /**
      * Get shopping cart summary qty
      *
-     * @return int|float
+     * @return float|int
      */
     public function getItemsQty()
     {
-        return $this->getQuote()->getItemsQty()*1;
+        return $this->getQuote()->getItemsQty() * 1;
     }
 
     /**
@@ -554,11 +563,11 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
      * $requestInfo - either qty (int) or buyRequest in form of array or Varien_Object
      * $updatingParams - information on how to perform update, passed to Quote->updateItem() method
      *
-     * @param int $itemId
-     * @param int|array|Varien_Object $requestInfo
-     * @param null|array|Varien_Object $updatingParams
-     * @return Mage_Sales_Model_Quote_Item|string
-     *
+     * @param  int                                         $itemId
+     * @param  array|int|Varien_Object                     $requestInfo
+     * @param  null|array|Varien_Object                    $updatingParams
+     * @return Mage_Sales_Model_Quote_Item_Abstract|string
+     * @throws Mage_Core_Exception
      * @see Mage_Sales_Model_Quote::updateItem()
      */
     public function updateItem($itemId, $requestInfo = null, $updatingParams = null)
@@ -568,6 +577,7 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
             if (!$item) {
                 Mage::throwException(Mage::helper('checkout')->__('Quote item does not exist.'));
             }
+
             $productId = $item->getProduct()->getId();
             $product = $this->_getProduct($productId);
             $request = $this->_getProductRequest($requestInfo);
@@ -584,9 +594,9 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
             }
 
             $result = $this->getQuote()->updateItem($itemId, $request, $updatingParams);
-        } catch (Mage_Core_Exception $e) {
+        } catch (Mage_Core_Exception $mageCoreException) {
             $this->getCheckoutSession()->setUseNotice(false);
-            $result = $e->getMessage();
+            $result = $mageCoreException->getMessage();
         }
 
         /**
@@ -596,14 +606,17 @@ class Mage_Checkout_Model_Cart extends Varien_Object implements Mage_Checkout_Mo
             if ($this->getCheckoutSession()->getUseNotice() === null) {
                 $this->getCheckoutSession()->setUseNotice(true);
             }
+
             Mage::throwException($result);
         }
 
-        Mage::dispatchEvent('checkout_cart_product_update_after', array(
+        Mage::dispatchEvent('checkout_cart_product_update_after', [
             'quote_item' => $result,
-            'product' => $product
-        ));
+            'product' => $product,
+        ]);
+
         $this->getCheckoutSession()->setLastAddedProductId($productId);
+
         return $result;
     }
 }

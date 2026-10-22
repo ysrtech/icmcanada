@@ -96,7 +96,7 @@ class DC_Catalog_Block_Product_Attributes extends Mage_Core_Block_Template
                         if ($attribute->getFrontendInput() == 'price') {
                             $value = Mage::app()->getStore()->convertPrice($value,true);
                         } elseif (!$attribute->getIsHtmlAllowedOnFront()) {
-                            $value = $this->htmlEscape($value);
+                            $value = $this->escapeHtml($value);
                         }
                         $data[$attribute->getAttributeCode()] = array(
                            'label' => $attribute->getFrontend()->getLabel(),

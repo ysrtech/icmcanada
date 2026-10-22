@@ -1,56 +1,34 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rule
  */
 
+/**
+ * @package    Mage_Rule
+ */
 class Mage_Rule_Model_Resource_Rule_Condition_SqlBuilder
 {
     /**
      * Database adapter
-     *
      * @var Varien_Db_Adapter_Interface
      */
     protected $_adapter;
 
-    /**
-     * Constructor
-     *
-     * @param array $config
-     */
-    public function __construct(array $config = array())
+    public function __construct(array $config = [])
     {
-        $this->_adapter = isset($config['adapter'])
-            ? $config['adapter']
-            : Mage::getSingleton('core/resource')->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
+        $this->_adapter = $config['adapter'] ?? Mage::getSingleton('core/resource')->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
     }
 
     /**
      * Convert operator for sql where
      *
-     * @param string $field
-     * @param string $operator
-     * @param string|array $value
+     * @param  string       $field
+     * @param  string       $operator
+     * @param  array|string $value
      * @return string
      */
     public function getOperatorCondition($field, $operator, $value)
@@ -65,14 +43,12 @@ class Mage_Rule_Model_Resource_Rule_Condition_SqlBuilder
                 break;
             case '{}':
             case '!{}':
-                if (preg_match('/^.*(category_id)$/', $field) && is_array($value)) {
-                    $selectOperator = ' IN (?)';
-                } else {
-                    $selectOperator = ' LIKE ?';
-                }
-                if (substr($operator, 0, 1) == '!') {
+                $selectOperator = preg_match('/^.*(category_id)$/', $field) && is_array($value) ? ' IN (?)' : ' LIKE ?';
+
+                if (str_starts_with($operator, '!')) {
                     $selectOperator = ' NOT' . $selectOperator;
                 }
+
                 break;
 
             case '[]':
@@ -80,36 +56,41 @@ class Mage_Rule_Model_Resource_Rule_Condition_SqlBuilder
             case '()':
             case '!()':
                 $selectOperator = 'FIND_IN_SET(?,' . $this->_adapter->quoteIdentifier($field) . ')';
-                if (substr($operator, 0, 1) == '!') {
+                if (str_starts_with($operator, '!')) {
                     $selectOperator = 'NOT ' . $selectOperator;
                 }
+
                 break;
 
             default:
                 $selectOperator = '=?';
                 break;
         }
+
         $field = $this->_adapter->quoteIdentifier($field);
 
-        if (is_array($value) && in_array($operator, array('==', '!=', '>=', '<=', '>', '<', '{}', '!{}'))) {
-            $results = array();
-            foreach ($value as $v) {
-                $results[] = $this->_adapter->quoteInto("{$field}{$selectOperator}", $v);
-            }
-            $result = implode(' AND ', $results);
-        } elseif (in_array($operator, array('()', '!()', '[]', '![]'))) {
-            if (!is_array($value)) {
-                $value = array($value);
+        if (is_array($value) && in_array($operator, ['==', '!=', '>=', '<=', '>', '<', '{}', '!{}'], true)) {
+            $results = [];
+            foreach ($value as $item) {
+                $results[] = $this->_adapter->quoteInto("{$field}{$selectOperator}", $item);
             }
 
-            $results = array();
-            foreach ($value as $v) {
-                $results[] = $this->_adapter->quoteInto("{$selectOperator}", $v);
+            $result = implode(' AND ', $results);
+        } elseif (in_array($operator, ['()', '!()', '[]', '![]'], true)) {
+            if (!is_array($value)) {
+                $value = [$value];
             }
-            $result = implode(in_array($operator, array('()', '!()')) ? ' OR ' : ' AND ', $results);
+
+            $results = [];
+            foreach ($value as $item) {
+                $results[] = $this->_adapter->quoteInto("{$selectOperator}", $item);
+            }
+
+            $result = implode(in_array($operator, ['()', '!()'], true) ? ' OR ' : ' AND ', $results);
         } else {
             $result = $this->_adapter->quoteInto("{$field}{$selectOperator}", $value);
         }
+
         return $result;
     }
 }

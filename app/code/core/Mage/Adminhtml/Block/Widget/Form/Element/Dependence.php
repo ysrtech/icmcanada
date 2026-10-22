@@ -1,33 +1,18 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Form element dependencies mapper
  * Assumes that one element may depend on other element values.
  * Will toggle as "enabled" only if all elements it depends from toggle as true.
+ *
+ * @package    Mage_Adminhtml
  */
 class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml_Block_Abstract
 {
@@ -35,7 +20,7 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
      * name => id mapper
      * @var array
      */
-    protected $_fields = array();
+    protected $_fields = [];
 
     /**
      * Dependencies mapper (by names)
@@ -48,21 +33,21 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
      * )
      * @var array
      */
-    protected $_depends = array();
+    protected $_depends = [];
 
     /**
      * Additional configuration options for the dependencies javascript controller
      *
      * @var array
      */
-    protected $_configOptions = array();
+    protected $_configOptions = [];
 
     /**
      * Add name => id mapping
      *
-     * @param string $fieldId - element ID in DOM
-     * @param string $fieldName - element name in their fieldset/form namespace
-     * @return Mage_Adminhtml_Block_Widget_Form_Element_Dependence
+     * @param  string $fieldId   - element ID in DOM
+     * @param  string $fieldName - element name in their fieldset/form namespace
+     * @return $this
      */
     public function addFieldMap($fieldId, $fieldName)
     {
@@ -73,10 +58,10 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
     /**
      * Register field name dependence one from each other by specified values
      *
-     * @param string $fieldName
-     * @param string $fieldNameFrom
-     * @param string|array $refValues
-     * @return Mage_Adminhtml_Block_Widget_Form_Element_Dependence
+     * @param  string       $fieldName
+     * @param  string       $fieldNameFrom
+     * @param  array|string $refValues
+     * @return $this
      */
     public function addFieldDependence($fieldName, $fieldNameFrom, $refValues)
     {
@@ -87,8 +72,7 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
     /**
      * Add misc configuration options to the javascript dependencies controller
      *
-     * @param array $options
-     * @return Mage_Adminhtml_Block_Widget_Form_Element_Dependence
+     * @return $this
      */
     public function addConfigOptions(array $options)
     {
@@ -100,11 +84,13 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
      * HTML output getter
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
         if (!$this->_depends) {
             return '';
         }
+
         return '<script type="text/javascript"> new FormElementDependenceController('
             . $this->_getDependsJson()
             . ($this->_configOptions ? ', ' . Mage::helper('core')->jsonEncode($this->_configOptions) : '')
@@ -112,17 +98,18 @@ class Mage_Adminhtml_Block_Widget_Form_Element_Dependence extends Mage_Adminhtml
     }
 
     /**
-     * Field dependences JSON map generator
+     * Field dependencies JSON map generator
      * @return string
      */
     protected function _getDependsJson()
     {
-        $result = array();
-        foreach ($this->_depends as $to => $row) {
+        $result = [];
+        foreach ($this->_depends as $key => $row) {
             foreach ($row as $from => $value) {
-                $result[$this->_fields[$to]][$this->_fields[$from]] = $value;
+                $result[$this->_fields[$key]][$this->_fields[$from]] = $value;
             }
         }
+
         return Mage::helper('core')->jsonEncode($result);
     }
 }

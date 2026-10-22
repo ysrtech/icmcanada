@@ -1,61 +1,51 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Bundle
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Bundle
  */
 
 /**
  * Bundle Selection Model
  *
- * @method Mage_Bundle_Model_Resource_Selection _getResource()
- * @method Mage_Bundle_Model_Resource_Selection getResource()
- * @method int getOptionId()
- * @method Mage_Bundle_Model_Selection setOptionId(int $value)
- * @method int getParentProductId()
- * @method Mage_Bundle_Model_Selection setParentProductId(int $value)
- * @method int getProductId()
- * @method Mage_Bundle_Model_Selection setProductId(int $value)
- * @method int getPosition()
- * @method Mage_Bundle_Model_Selection setPosition(int $value)
- * @method int getIsDefault()
- * @method Mage_Bundle_Model_Selection setIsDefault(int $value)
- * @method int getSelectionPriceType()
- * @method Mage_Bundle_Model_Selection setSelectionPriceType(int $value)
- * @method float getSelectionPriceValue()
- * @method Mage_Bundle_Model_Selection setSelectionPriceValue(float $value)
- * @method float getSelectionQty()
- * @method Mage_Bundle_Model_Selection setSelectionQty(float $value)
- * @method int getSelectionCanChangeQty()
- * @method Mage_Bundle_Model_Selection setSelectionCanChangeQty(int $value)
+ * @package    Mage_Bundle
  *
- * @category    Mage
- * @package     Mage_Bundle
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Bundle_Model_Resource_Selection            _getResource()
+ * @method Mage_Bundle_Model_Resource_Selection_Collection getCollection()
+ * @method string                                          getDefaultPriceScope()
+ * @method int                                             getIsDefault()
+ * @method int                                             getOptionId()
+ * @method int                                             getParentProductId()
+ * @method int                                             getPosition()
+ * @method int                                             getProductId()
+ * @method Mage_Bundle_Model_Resource_Selection            getResource()
+ * @method Mage_Bundle_Model_Resource_Selection_Collection getResourceCollection()
+ * @method int                                             getSelectionCanChangeQty()
+ * @method int                                             getSelectionId()
+ * @method int                                             getSelectionPriceType()
+ * @method float                                           getSelectionPriceValue()
+ * @method float                                           getSelectionQty()
+ * @method int                                             getWebsiteId()
+ * @method bool                                            isSalable()
+ * @method $this                                           setIsDefault(int $value)
+ * @method $this                                           setOptionId(int $value)
+ * @method $this                                           setParentProductId(int $value)
+ * @method $this                                           setPosition(int $value)
+ * @method $this                                           setProductId(int $value)
+ * @method $this                                           setSelectionCanChangeQty(int $value)
+ * @method $this                                           setSelectionPriceType(int $value)
+ * @method $this                                           setSelectionPriceValue(float $value)
+ * @method $this                                           setSelectionQty(float $value)
+ * @method $this                                           setWebsiteId(int $value)
+ * @method $this                                           unsSelectionPriceType()
+ * @method $this                                           unsSelectionPriceValue()
  */
 class Mage_Bundle_Model_Selection extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource model
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -64,10 +54,10 @@ class Mage_Bundle_Model_Selection extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Processing object after save data
-     *
-     * @return Mage_Bundle_Model_Selection
+     * @inheritDoc
+     * @throws Mage_Core_Model_Store_Exception
      */
+    #[Override]
     protected function _afterSave()
     {
         $storeId = Mage::registry('product')->getStoreId();
@@ -80,6 +70,7 @@ class Mage_Bundle_Model_Selection extends Mage_Core_Model_Abstract
                 $this->unsSelectionPriceType();
             }
         }
-        parent::_afterSave();
+
+        return parent::_afterSave();
     }
 }

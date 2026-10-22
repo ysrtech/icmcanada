@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Varien
- * @package     Varien_Cache
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Varien_Cache
  */
 
 /**
@@ -45,43 +28,44 @@ CREATE TABLE IF NOT EXISTS `core_cache_tag` (
     CONSTRAINT `FK_CORE_CACHE_TAG` FOREIGN KEY (`cache_id`)
     REFERENCES `core_cache` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-*/
+ */
+
+use Carbon\Carbon;
 
 /**
  * Database cache backend
  */
-class Varien_Cache_Backend_Database
-    extends Zend_Cache_Backend implements Zend_Cache_Backend_ExtendedInterface
+class Varien_Cache_Backend_Database extends Zend_Cache_Backend implements Zend_Cache_Backend_ExtendedInterface
 {
     /**
      * Available options
      *
      * @var array available options
      */
-    protected $_options = array(
+    protected $_options = [
         'adapter'           => '',
         'adapter_callback'  => '',
         'data_table'        => '',
         'tags_table'        => '',
         'store_data'        => true,
-    );
+    ];
 
     protected $_adapter = null;
 
     /**
      * Constructor
      *
-     * @param array $options associative array of options
+     * @param  array                $options associative array of options
+     * @throws Zend_Cache_Exception
      */
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         parent::__construct($options);
-        if (empty($this->_options['adapter_callback'])) {
-            if (!($this->_options['adapter'] instanceof Zend_Db_Adapter_Abstract)) {
-                Zend_Cache::throwException('Option "adapter" should be declared and extend Zend_Db_Adapter_Abstract!');
-            }
+        if (empty($this->_options['adapter_callback']) && !($this->_options['adapter'] instanceof Zend_Db_Adapter_Abstract)) {
+            Zend_Cache::throwException('Option "adapter" should be declared and extend Zend_Db_Adapter_Abstract!');
         }
-        if (empty($this->_options['data_table']) || empty ($this->_options['tags_table'])) {
+
+        if (empty($this->_options['data_table']) || empty($this->_options['tags_table'])) {
             Zend_Cache::throwException('Options "data_table" and "tags_table" should be declared!');
         }
     }
@@ -90,6 +74,7 @@ class Varien_Cache_Backend_Database
      * Get DB adapter
      *
      * @return Zend_Db_Adapter_Abstract
+     * @throws Zend_Cache_Exception
      */
     protected function _getAdapter()
     {
@@ -99,12 +84,14 @@ class Varien_Cache_Backend_Database
             } else {
                 $adapter = $this->_options['adapter'];
             }
+
             if (!($adapter instanceof Zend_Db_Adapter_Abstract)) {
                 Zend_Cache::throwException('DB Adapter should be declared and extend Zend_Db_Adapter_Abstract');
             } else {
                 $this->_adapter = $adapter;
             }
         }
+
         return $this->_adapter;
     }
 
@@ -133,9 +120,10 @@ class Varien_Cache_Backend_Database
      *
      * Note : return value is always "string" (unserialization is done by the core not by the backend)
      *
-     * @param  string  $id                     Cache id
-     * @param  boolean $doNotTestCacheValidity If set to true, the cache validity won't be tested
-     * @return string|false cached datas
+     * @param  string               $id                     Cache id
+     * @param  bool                 $doNotTestCacheValidity If set to true, the cache validity won't be tested
+     * @return false|string         cached data
+     * @throws Zend_Cache_Exception
      */
     public function load($id, $doNotTestCacheValidity = false)
     {
@@ -145,19 +133,21 @@ class Varien_Cache_Backend_Database
                 ->where('id=:cache_id');
 
             if (!$doNotTestCacheValidity) {
-                $select->where('expire_time=0 OR expire_time>?', time());
+                $select->where('expire_time=0 OR expire_time>?', Carbon::now()->getTimestamp());
             }
-            return $this->_getAdapter()->fetchOne($select, array('cache_id'=>$id));
-        } else {
-            return false;
+
+            return $this->_getAdapter()->fetchOne($select, ['cache_id' => $id]);
         }
+
+        return false;
     }
 
     /**
      * Test if a cache is available or not (for the given id)
      *
-     * @param  string $id cache id
-     * @return mixed|false (a cache is not available) or "last modified" timestamp (int) of the available cache record
+     * @param  string               $id cache id
+     * @return null|false|string    (a cache is not available) or "last modified" timestamp (int) of the available cache record
+     * @throws Zend_Cache_Exception
      */
     public function test($id)
     {
@@ -165,11 +155,11 @@ class Varien_Cache_Backend_Database
             $select = $this->_getAdapter()->select()
                 ->from($this->_getDataTable(), 'update_time')
                 ->where('id=:cache_id')
-                ->where('expire_time=0 OR expire_time>?', time());
-            return $this->_getAdapter()->fetchOne($select, array('cache_id'=>$id));
-        } else {
-            return false;
+                ->where('expire_time=0 OR expire_time>?', Carbon::now()->getTimestamp());
+            return $this->_getAdapter()->fetchOne($select, ['cache_id' => $id]);
         }
+
+        return false;
     }
 
     /**
@@ -178,23 +168,25 @@ class Varien_Cache_Backend_Database
      * Note : $data is always "string" (serialization is done by the
      * core not by the backend)
      *
-     * @param  string $data Data to cache
-     * @param  string $id Cache id
-     * @param  array $tags Array of strings, the cache record will be tagged by each string entry
-     * @param  int|bool|null $specificLifetime If != false, set a specific lifetime for this cache record
-     *                                    (null => infinite lifetime)
+     * @param string        $data             Data to cache
+     * @param string        $id               Cache id
+     * @param array         $tags             Array of strings, the cache record will be tagged by each string entry
+     * @param null|bool|int $specificLifetime If != false, set a specific lifetime for this cache record
+     *                                        (null => infinite lifetime)
      *
-     * @return bool true if no problem
+     * @return bool                        true if no problem
+     * @throws Zend_Cache_Exception
+     * @throws Zend_Db_Statement_Exception
      */
-    public function save($data, $id, $tags = array(), $specificLifetime = false)
+    public function save($data, $id, $tags = [], $specificLifetime = false)
     {
         if ($this->_options['store_data']) {
             $adapter    = $this->_getAdapter();
             $dataTable  = $this->_getDataTable();
 
             $lifetime = $this->getLifetime($specificLifetime);
-            $time     = time();
-            $expire   = ($lifetime === 0 || $lifetime === null) ? 0 : $time+$lifetime;
+            $time     = Carbon::now()->getTimestamp();
+            $expire   = ($lifetime === 0 || $lifetime === null) ? 0 : $time + $lifetime;
 
             $dataCol    = $adapter->quoteIdentifier('data');
             $expireCol  = $adapter->quoteIdentifier('expire_time');
@@ -208,52 +200,55 @@ class Varien_Cache_Backend_Database
                     {$dataCol}=VALUES({$dataCol}),
                     {$expireCol}=VALUES({$expireCol})";
 
-            $result = $adapter->query($query, array($id, $data, $time, $time, $expire))->rowCount();
+            $result = $adapter->query($query, [$id, $data, $time, $time, $expire])->rowCount();
             if (!$result) {
                 return false;
             }
         }
-        $tagRes = $this->_saveTags($id, $tags);
-        return $tagRes;
+
+        return $this->_saveTags($id, $tags);
     }
 
     /**
      * Remove a cache record
      *
-     * @param  string $id Cache id
-     * @return boolean True if no problem
+     * @param  string               $id Cache id
+     * @return bool                 True if no problem
+     * @throws Zend_Cache_Exception
      */
     public function remove($id)
     {
         $adapter = $this->_getAdapter();
         $result = true;
         if ($this->_options['store_data']) {
-            $result = $adapter->delete($this->_getDataTable(), array('id = ?' => $id));
+            $result = $adapter->delete($this->_getDataTable(), ['id = ?' => $id]);
         }
 
-        return $result && $adapter->delete($this->_getTagsTable(), array('cache_id = ?' => $id));
+        return $result && $adapter->delete($this->_getTagsTable(), ['cache_id = ?' => $id]);
     }
 
     /**
      * Delete cache rows from Data table
      *
-     * @param $cacheIdsToRemove
+     * @param                       $cacheIdsToRemove
      * @return int
+     * @throws Zend_Cache_Exception
      */
     protected function _deleteCachesFromDataTable($cacheIdsToRemove)
     {
-        return $this->_getAdapter()->delete($this->_getDataTable(), array('id IN (?)' => $cacheIdsToRemove));
+        return $this->_getAdapter()->delete($this->_getDataTable(), ['id IN (?)' => $cacheIdsToRemove]);
     }
 
     /**
      * Delete cache rows from Tags table
      *
-     * @param $cacheIdsToRemove
+     * @param                       $cacheIdsToRemove
      * @return int
+     * @throws Zend_Cache_Exception
      */
     protected function _deleteCachesFromTagsTable($cacheIdsToRemove)
     {
-        return $this->_getAdapter()->delete($this->_getTagsTable(), array('cache_id IN (?)' => $cacheIdsToRemove));
+        return $this->_getAdapter()->delete($this->_getTagsTable(), ['cache_id IN (?)' => $cacheIdsToRemove]);
     }
 
     /**
@@ -269,26 +264,30 @@ class Varien_Cache_Backend_Database
      * Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG => remove cache entries matching any given tags
      *                                               ($tags can be an array of strings or a single string)
      *
-     * @param  string $mode Clean mode
-     * @param  array  $tags Array of tags
-     * @return boolean true if no problem
+     * @param  string                      $mode Clean mode
+     * @param  array                       $tags Array of tags
+     * @return bool                        true if no problem
+     * @throws Zend_Cache_Exception
+     * @throws Zend_Db_Statement_Exception
      */
-    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, $tags = array())
+    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, $tags = [])
     {
         $adapter = $this->_getAdapter();
         $result = true;
 
-        switch($mode) {
+        switch ($mode) {
             case Zend_Cache::CLEANING_MODE_ALL:
                 if ($this->_options['store_data']) {
                     $result = $adapter->query('TRUNCATE TABLE ' . $this->_getDataTable());
                 }
+
                 $result = $result && $adapter->query('TRUNCATE TABLE ' . $this->_getTagsTable());
                 break;
             case Zend_Cache::CLEANING_MODE_OLD:
                 if ($this->_options['store_data']) {
                     $result = $this->_cleanOldCache();
                 }
+
                 break;
             case Zend_Cache::CLEANING_MODE_MATCHING_TAG:
             case Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
@@ -307,14 +306,16 @@ class Varien_Cache_Backend_Database
      * Clean old cache data and related cache tag data
      *
      * @return bool
+     * @throws Zend_Cache_Exception
+     * @throws Zend_Db_Statement_Exception
      */
     protected function _cleanOldCache()
     {
-        $time    = time();
+        $time    = Carbon::now()->getTimestamp();
         $counter = 0;
         $result  = true;
         $adapter = $this->_getAdapter();
-        $cacheIdsToRemove = array();
+        $cacheIdsToRemove = [];
 
         $select = $adapter->select()
             ->from($this->_getDataTable(), 'id')
@@ -327,16 +328,18 @@ class Varien_Cache_Backend_Database
             if (!$result) {
                 break;
             }
+
             $cacheIdsToRemove[] = $row['id'];
             $counter++;
             if ($counter > 100) {
                 $result = $result && $this->_deleteCachesFromDataTable($cacheIdsToRemove);
                 $result = $result && $this->_deleteCachesFromTagsTable($cacheIdsToRemove);
-                $cacheIdsToRemove = array();
+                $cacheIdsToRemove = [];
                 $counter = 0;
             }
         }
-        if (!empty($cacheIdsToRemove)) {
+
+        if ($cacheIdsToRemove !== []) {
             $result = $result && $this->_deleteCachesFromDataTable($cacheIdsToRemove);
             $result = $result && $this->_deleteCachesFromTagsTable($cacheIdsToRemove);
         }
@@ -347,7 +350,8 @@ class Varien_Cache_Backend_Database
     /**
      * Return an array of stored cache ids
      *
-     * @return array array of stored cache ids (string)
+     * @return array                array of stored cache ids (string)
+     * @throws Zend_Cache_Exception
      */
     public function getIds()
     {
@@ -355,15 +359,16 @@ class Varien_Cache_Backend_Database
             $select = $this->_getAdapter()->select()
                 ->from($this->_getDataTable(), 'id');
             return $this->_getAdapter()->fetchCol($select);
-        } else {
-            return array();
         }
+
+        return [];
     }
 
     /**
      * Return an array of stored tags
      *
-     * @return array array of stored tags (string)
+     * @return array                array of stored tags (string)
+     * @throws Zend_Cache_Exception
      */
     public function getTags()
     {
@@ -378,17 +383,18 @@ class Varien_Cache_Backend_Database
      *
      * In case of multiple tags, a logical AND is made between tags
      *
-     * @param array $tags array of tags
-     * @return array array of matching cache ids (string)
+     * @param  array                $tags array of tags
+     * @return array                array of matching cache ids (string)
+     * @throws Zend_Cache_Exception
      */
-    public function getIdsMatchingTags($tags = array())
+    public function getIdsMatchingTags($tags = [])
     {
         $select = $this->_getAdapter()->select()
             ->from($this->_getTagsTable(), 'cache_id')
             ->distinct(true)
             ->where('tag IN(?)', $tags)
             ->group('cache_id')
-            ->having('COUNT(cache_id)='.count($tags));
+            ->having('COUNT(cache_id)=' . count($tags));
         return $this->_getAdapter()->fetchCol($select);
     }
 
@@ -397,10 +403,11 @@ class Varien_Cache_Backend_Database
      *
      * In case of multiple tags, a logical OR is made between tags
      *
-     * @param array $tags array of tags
-     * @return array array of not matching cache ids (string)
+     * @param  array                $tags array of tags
+     * @return array                array of not matching cache ids (string)
+     * @throws Zend_Cache_Exception
      */
-    public function getIdsNotMatchingTags($tags = array())
+    public function getIdsNotMatchingTags($tags = [])
     {
         return array_diff($this->getIds(), $this->getIdsMatchingAnyTags($tags));
     }
@@ -410,10 +417,11 @@ class Varien_Cache_Backend_Database
      *
      * In case of multiple tags, a logical AND is made between tags
      *
-     * @param array $tags array of tags
-     * @return array array of any matching cache ids (string)
+     * @param  array                $tags array of tags
+     * @return array                array of any matching cache ids (string)
+     * @throws Zend_Cache_Exception
      */
-    public function getIdsMatchingAnyTags($tags = array())
+    public function getIdsMatchingAnyTags($tags = [])
     {
         $select = $this->_getAdapter()->select()
             ->from($this->_getTagsTable(), 'cache_id')
@@ -440,8 +448,9 @@ class Varien_Cache_Backend_Database
      * - tags : a string array of tags
      * - mtime : timestamp of last modification time
      *
-     * @param string $id cache id
-     * @return array array of metadatas (false if the cache id is not found)
+     * @param  string               $id cache id
+     * @return array|false          array of metadatas (false if the cache id is not found)
+     * @throws Zend_Cache_Exception
      */
     public function getMetadatas($id)
     {
@@ -456,33 +465,36 @@ class Varien_Cache_Backend_Database
         $data = $this->_getAdapter()->fetchRow($select);
         $res = false;
         if ($data) {
-            $res = array (
-                'expire'=> $data['expire_time'],
+            return [
+                'expire' => $data['expire_time'],
                 'mtime' => $data['update_time'],
-                'tags'  => $tags
-            );
+                'tags'  => $tags,
+            ];
         }
+
         return $res;
     }
 
     /**
      * Give (if possible) an extra lifetime to the given cache id
      *
-     * @param string $id cache id
-     * @param int $extraLifetime
-     * @return boolean true if ok
+     * @param  string                    $id            cache id
+     * @param  int                       $extraLifetime
+     * @return int|true                  if ok
+     * @throws Zend_Cache_Exception
+     * @throws Zend_Db_Adapter_Exception
      */
     public function touch($id, $extraLifetime)
     {
         if ($this->_options['store_data']) {
             return $this->_getAdapter()->update(
                 $this->_getDataTable(),
-                array('expire_time'=>new Zend_Db_Expr('expire_time+'.$extraLifetime)),
-                array('id=?' => $id, 'expire_time = 0 OR expire_time>?' => time())
+                ['expire_time' => new Zend_Db_Expr('expire_time+' . $extraLifetime)],
+                ['id=?' => $id, 'expire_time = 0 OR expire_time>?' => Carbon::now()->getTimestamp()],
             );
-        } else {
-            return true;
         }
+
+        return true;
     }
 
     /**
@@ -497,33 +509,35 @@ class Varien_Cache_Backend_Database
      * - infinite_lifetime (is infinite lifetime can work with this backend)
      * - get_list (is it possible to get the list of cache ids and the complete list of tags)
      *
-     * @return array associative of with capabilities
+     * @return array<string, bool> associative of with capabilities
      */
     public function getCapabilities()
     {
-        return array(
+        return [
             'automatic_cleaning' => true,
             'tags' => true,
             'expired_read' => true,
             'priority' => false,
             'infinite_lifetime' => true,
-            'get_list' => true
-        );
+            'get_list' => true,
+        ];
     }
 
     /**
      * Save tags related to specific id
      *
-     * @param string $id
-     * @param array $tags
+     * @param  string               $id
+     * @param  array                $tags
      * @return bool
+     * @throws Zend_Cache_Exception
      */
     protected function _saveTags($id, $tags)
     {
         if (!is_array($tags)) {
-            $tags = array($tags);
+            $tags = [$tags];
         }
-        if (empty($tags)) {
+
+        if ($tags === []) {
             return true;
         }
 
@@ -537,15 +551,16 @@ class Varien_Cache_Backend_Database
         $result = true;
         $existingTags = $adapter->fetchCol($select);
         $insertTags = array_diff($tags, $existingTags);
-        if (!empty($insertTags)) {
+        if ($insertTags !== []) {
             $query = 'INSERT IGNORE INTO ' . $tagsTable . ' (tag, cache_id) VALUES ';
-            $bind = array();
-            $lines = array();
+            $bind = [];
+            $lines = [];
             foreach ($insertTags as $tag) {
                 $lines[] = '(?, ?)';
                 $bind[] = $tag;
                 $bind[] = $id;
             }
+
             $query .= implode(',', $lines);
             $result = $adapter->query($query, $bind);
         }
@@ -556,9 +571,11 @@ class Varien_Cache_Backend_Database
     /**
      * Remove cache data by tags with specified mode
      *
-     * @param string $mode
-     * @param array $tags
+     * @param  string                      $mode
+     * @param  array                       $tags
      * @return bool
+     * @throws Zend_Cache_Exception
+     * @throws Zend_Db_Statement_Exception
      */
     protected function _cleanByTags($mode, $tags)
     {
@@ -566,47 +583,44 @@ class Varien_Cache_Backend_Database
         $result = true;
         $select = $adapter->select()
             ->from($this->_getTagsTable(), 'cache_id');
-        switch ($mode) {
-            case Zend_Cache::CLEANING_MODE_MATCHING_TAG:
-                $select->where('tag IN (?)', $tags)
-                    ->group('cache_id')
-                    ->having('COUNT(cache_id) = ' . count($tags));
-                break;
-            case Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
-                $select->where('tag NOT IN (?)', $tags);
-                break;
-            case Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
-                $select->where('tag IN (?)', $tags);
-                break;
-            default:
-                Zend_Cache::throwException('Invalid mode for _cleanByTags() method');
-                break;
-        }
+        match ($mode) {
+            Zend_Cache::CLEANING_MODE_MATCHING_TAG => $select->where('tag IN (?)', $tags)
+                ->group('cache_id')
+                ->having('COUNT(cache_id) = ' . count($tags)),
+            Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG => $select->where('tag NOT IN (?)', $tags),
+            Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG => $select->where('tag IN (?)', $tags),
+            default => Zend_Cache::throwException('Invalid mode for _cleanByTags() method'),
+        };
 
-        $cacheIdsToRemove = array();
+        $cacheIdsToRemove = [];
         $counter = 0;
         $statement = $adapter->query($select);
         while ($row = $statement->fetch()) {
             if (!$result) {
                 break;
             }
+
             $cacheIdsToRemove[] = $row['cache_id'];
             $counter++;
             if ($counter > 100) {
                 if ($this->_options['store_data']) {
                     $result = $result && $this->_deleteCachesFromDataTable($cacheIdsToRemove);
                 }
+
                 $result = $result && $this->_deleteCachesFromTagsTable($cacheIdsToRemove);
-                $cacheIdsToRemove = array();
+                $cacheIdsToRemove = [];
                 $counter = 0;
             }
         }
-        if (!empty($cacheIdsToRemove)) {
+
+        if ($cacheIdsToRemove !== []) {
             if ($this->_options['store_data']) {
                 $result = $result && $this->_deleteCachesFromDataTable($cacheIdsToRemove);
             }
+
             $result = $result && $this->_deleteCachesFromTagsTable($cacheIdsToRemove);
         }
+
         return $result;
     }
 }

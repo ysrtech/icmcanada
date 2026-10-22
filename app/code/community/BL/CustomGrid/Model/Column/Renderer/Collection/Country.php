@@ -20,7 +20,7 @@ class BL_CustomGrid_Model_Column_Renderer_Collection_Country extends BL_CustomGr
         Mage_Core_Model_Store $store,
         BL_CustomGrid_Model_Grid $gridModel
     ) {
-        /** @var $countriesCollection Mage_Directory_Model_Mysql4_Country_Collection */
+        /** @var $countriesCollection Mage_Directory_Model_Resource_Country_Collection */
         $countriesCollection = Mage::getResourceModel('directory/country_collection');
         $options = $countriesCollection->load()->toOptionArray(false);
         $implodedSeparator = $this->getData('values/imploded_separator');

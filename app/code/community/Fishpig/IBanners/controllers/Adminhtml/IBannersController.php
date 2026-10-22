@@ -71,7 +71,7 @@ class Fishpig_iBanners_Adminhtml_iBannersController extends Fishpig_iBanners_Con
 	 *
 	 * @return bool
 	 */
-	protected function _isAllowed()
+	protected function _isAllowed(): bool
 	{
 		return true;
 	}

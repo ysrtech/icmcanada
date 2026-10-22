@@ -1,73 +1,77 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Downloadable
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Downloadable
  */
 
 /**
  * Downloadable link model
  *
- * @method Mage_Downloadable_Model_Resource_Link _getResource()
- * @method Mage_Downloadable_Model_Resource_Link getResource()
- * @method int getProductId()
- * @method Mage_Downloadable_Model_Link setProductId(int $value)
- * @method int getSortOrder()
- * @method Mage_Downloadable_Model_Link setSortOrder(int $value)
- * @method int getNumberOfDownloads()
- * @method Mage_Downloadable_Model_Link setNumberOfDownloads(int $value)
- * @method int getIsShareable()
- * @method Mage_Downloadable_Model_Link setIsShareable(int $value)
- * @method string getLinkUrl()
- * @method Mage_Downloadable_Model_Link setLinkUrl(string $value)
- * @method string getLinkFile()
- * @method Mage_Downloadable_Model_Link setLinkFile(string $value)
- * @method string getLinkType()
- * @method Mage_Downloadable_Model_Link setLinkType(string $value)
- * @method string getSampleUrl()
- * @method Mage_Downloadable_Model_Link setSampleUrl(string $value)
- * @method string getSampleFile()
- * @method Mage_Downloadable_Model_Link setSampleFile(string $value)
- * @method string getSampleType()
- * @method Mage_Downloadable_Model_Link setSampleType(string $value)
+ * @package    Mage_Downloadable
  *
- * @category    Mage
- * @package     Mage_Downloadable
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Downloadable_Model_Resource_Link            _getResource()
+ * @method Mage_Downloadable_Model_Resource_Link_Collection getCollection()
+ * @method int                                              getIsShareable()
+ * @method bool                                             getIsUnlimited()
+ * @method string                                           getLinkFile()
+ * @method int                                              getLinkId()
+ * @method string                                           getLinkType()
+ * @method string                                           getLinkUrl()
+ * @method int                                              getNumberOfDownloads()
+ * @method float                                            getPrice()
+ * @method Mage_Catalog_Model_Product                       getProduct()
+ * @method int                                              getProductId()
+ * @method array                                            getProductWebsiteIds()
+ * @method Mage_Downloadable_Model_Resource_Link            getResource()
+ * @method Mage_Downloadable_Model_Resource_Link_Collection getResourceCollection()
+ * @method string                                           getSampleFile()
+ * @method string                                           getSampleType()
+ * @method string                                           getSampleUrl()
+ * @method int                                              getSortOrder()
+ * @method int                                              getStoreId()
+ * @method string                                           getStoreTitle()
+ * @method string                                           getTitle()
+ * @method bool                                             getUseDefaultPrice()
+ * @method bool                                             getUseDefaultTitle()
+ * @method int                                              getWebsiteId()
+ * @method float                                            getWebsitePrice()
+ * @method $this                                            setIsShareable(int $value)
+ * @method $this                                            setLinkFile(string $value)
+ * @method $this                                            setLinkType(string $value)
+ * @method $this                                            setLinkUrl(string $value)
+ * @method $this                                            setNumberOfDownloads(int $value)
+ * @method $this                                            setPrice(float $value)
+ * @method $this                                            setProduct(Mage_Catalog_Model_Product $value)
+ * @method $this                                            setProductId(int $value)
+ * @method $this                                            setProductWebsiteIds(array $value)
+ * @method $this                                            setSampleFile(string $value)
+ * @method $this                                            setSampleType(string $value)
+ * @method $this                                            setSampleUrl(string $value)
+ * @method $this                                            setSortOrder(int $value)
+ * @method $this                                            setStoreId(int $value)
+ * @method $this                                            setWebsiteId(int $value)
  */
 class Mage_Downloadable_Model_Link extends Mage_Core_Model_Abstract
 {
-    const XML_PATH_LINKS_TITLE              = 'catalog/downloadable/links_title';
-    const XML_PATH_DEFAULT_DOWNLOADS_NUMBER = 'catalog/downloadable/downloads_number';
-    const XML_PATH_TARGET_NEW_WINDOW        = 'catalog/downloadable/links_target_new_window';
-    const XML_PATH_CONFIG_IS_SHAREABLE      = 'catalog/downloadable/shareable';
+    public const XML_PATH_LINKS_TITLE              = 'catalog/downloadable/links_title';
 
-    const LINK_SHAREABLE_YES    = 1;
-    const LINK_SHAREABLE_NO     = 0;
-    const LINK_SHAREABLE_CONFIG = 2;
+    public const XML_PATH_DEFAULT_DOWNLOADS_NUMBER = 'catalog/downloadable/downloads_number';
+
+    public const XML_PATH_TARGET_NEW_WINDOW        = 'catalog/downloadable/links_target_new_window';
+
+    public const XML_PATH_CONFIG_IS_SHAREABLE      = 'catalog/downloadable/shareable';
+
+    public const LINK_SHAREABLE_YES    = 1;
+
+    public const LINK_SHAREABLE_NO     = 0;
+
+    public const LINK_SHAREABLE_CONFIG = 2;
 
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -86,10 +90,9 @@ class Mage_Downloadable_Model_Link extends Mage_Core_Model_Abstract
     }
 
     /**
-     * Enter description here...
-     *
-     * @return Mage_Downloadable_Model_Link
+     * @inheritDoc
      */
+    #[Override]
     protected function _afterSave()
     {
         $this->getResource()->saveItemTitleAndPrice($this);
@@ -139,8 +142,8 @@ class Mage_Downloadable_Model_Link extends Mage_Core_Model_Abstract
     /**
      * Retrieve links searchable data
      *
-     * @param int $productId
-     * @param int $storeId
+     * @param  int   $productId
+     * @param  int   $storeId
      * @return array
      */
     public function getSearchableData($productId, $storeId)

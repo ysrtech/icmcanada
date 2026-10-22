@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Loads the ICM admin stylesheet on every backend page.
+ *
+ * The login and forgot password screens don't use layout (login.phtml links
+ * login.css directly), so their logo is set in the skin's own login.css.
+ */
+-->
+<layout>
+    <default>
+        <reference name="head">
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>icm-admin.css</name>
+            </action>
+        </reference>
+    </default>
+</layout>

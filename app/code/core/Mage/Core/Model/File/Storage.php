@@ -1,54 +1,40 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
+ */
 
 /**
  * File storage model class
  *
- * @category    Mage
- * @package     Mage_Core
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Core
  */
 class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
 {
     /**
      * Storage systems ids
      */
-    const STORAGE_MEDIA_FILE_SYSTEM         = 0;
-    const STORAGE_MEDIA_DATABASE            = 1;
+    public const STORAGE_MEDIA_FILE_SYSTEM         = 0;
+
+    public const STORAGE_MEDIA_DATABASE            = 1;
 
     /**
-     * Config pathes for storing storage configuration
+     * Config paths for storing storage configuration
      */
-    const XML_PATH_STORAGE_MEDIA            = 'default/system/media_storage_configuration/media_storage';
-    const XML_PATH_STORAGE_MEDIA_DATABASE   = 'default/system/media_storage_configuration/media_database';
-    const XML_PATH_MEDIA_RESOURCE_WHITELIST = 'default/system/media_storage_configuration/allowed_resources';
-    const XML_PATH_MEDIA_RESOURCE_IGNORED   = 'default/system/media_storage_configuration/ignored_resources';
-    const XML_PATH_MEDIA_UPDATE_TIME        = 'system/media_storage_configuration/configuration_update_time';
+    public const XML_PATH_STORAGE_MEDIA            = 'default/system/media_storage_configuration/media_storage';
 
+    public const XML_PATH_STORAGE_MEDIA_DATABASE   = 'default/system/media_storage_configuration/media_database';
+
+    public const XML_PATH_MEDIA_RESOURCE_WHITELIST = 'default/system/media_storage_configuration/allowed_resources';
+
+    public const XML_PATH_MEDIA_RESOURCE_IGNORED   = 'default/system/media_storage_configuration/ignored_resources';
+
+    public const XML_PATH_MEDIA_LOADED_MODULES     = 'default/system/media_storage_configuration/loaded_modules';
+
+    public const XML_PATH_MEDIA_UPDATE_TIME        = 'system/media_storage_configuration/configuration_update_time';
 
     /**
      * Prefix of model events names
@@ -60,18 +46,15 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
     /**
      * Show if there were errors while synchronize process
      *
-     * @param  Mage_Core_Model_Abstract $sourceModel
-     * @param  Mage_Core_Model_Abstract $destinationModel
      * @return bool
      */
-    protected function _synchronizeHasErrors(Mage_Core_Model_Abstract $sourceModel,
-        Mage_Core_Model_Abstract $destinationModel
-    ) {
-        if (!$sourceModel || !$destinationModel) {
+    protected function _synchronizeHasErrors(Mage_Core_Model_Abstract $sourceModel, Mage_Core_Model_Abstract $destinationModel)
+    {
+        if ($sourceModel->hasErrors()) {
             return true;
         }
 
-        return $sourceModel->hasErrors() || $destinationModel->hasErrors();
+        return $destinationModel->hasErrors();
     }
 
     /**
@@ -93,11 +76,11 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
      *  init        => bool     - force initialization process for storage model
      * )
      *
-     * @param  int|null $storage
-     * @param  array $params
-     * @return Mage_Core_Model_Abstract|bool
+     * @param  null|int                                                                      $storage
+     * @param  array                                                                         $params
+     * @return false|Mage_Core_Model_File_Storage_Database|Mage_Core_Model_File_Storage_File
      */
-    public function getStorageModel($storage = null, $params = array())
+    public function getStorageModel($storage = null, $params = [])
     {
         if (is_null($storage)) {
             $storage = Mage::helper('core/file_storage')->getCurrentStorageCode();
@@ -108,8 +91,8 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
                 $model = Mage::getModel('core/file_storage_file');
                 break;
             case self::STORAGE_MEDIA_DATABASE:
-                $connection = (isset($params['connection'])) ? $params['connection'] : null;
-                $model = Mage::getModel('core/file_storage_database', array('connection' => $connection));
+                $connection = $params['connection'] ?? null;
+                $model = Mage::getModel('core/file_storage_database', ['connection' => $connection]);
                 break;
             default:
                 return false;
@@ -130,13 +113,13 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
      * )
      *
      * @param  array $storage
-     * @return Mage_Core_Model_File_Storage
+     * @return $this
      */
     public function synchronize($storage)
     {
         if (is_array($storage) && isset($storage['type'])) {
             $storageDest    = (int) $storage['type'];
-            $connection     = (isset($storage['connection'])) ? $storage['connection'] : null;
+            $connection     = $storage['connection'] ?? null;
             $helper         = Mage::helper('core/file_storage');
 
             // if unable to sync to internal storage from itself
@@ -147,10 +130,10 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
             $sourceModel        = $this->getStorageModel();
             $destinationModel   = $this->getStorageModel(
                 $storageDest,
-                array(
+                [
                     'connection'    => $connection,
-                    'init'          => true
-                )
+                    'init'          => true,
+                ],
             );
 
             if (!$sourceModel || !$destinationModel) {
@@ -159,14 +142,14 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
 
             $hasErrors = false;
             $flag = $this->getSyncFlag();
-            $flagData = array(
+            $flagData = [
                 'source'                        => $sourceModel->getStorageName(),
                 'destination'                   => $destinationModel->getStorageName(),
                 'destination_storage_type'      => $storageDest,
                 'destination_connection_name'   => (string) $destinationModel->getConfigConnectionName(),
                 'has_errors'                    => false,
-                'timeout_reached'               => false
-            );
+                'timeout_reached'               => false,
+            ];
             $flag->setFlagData($flagData);
 
             $destinationModel->clear();
@@ -187,6 +170,7 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
                 $destinationModel->importDirectories($dirs);
                 $offset += count($dirs);
             }
+
             unset($dirs);
 
             $offset = 0;
@@ -205,6 +189,7 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
                 $destinationModel->importFiles($files);
                 $offset += count($files);
             }
+
             unset($files);
         }
 
@@ -214,15 +199,20 @@ class Mage_Core_Model_File_Storage extends Mage_Core_Model_Abstract
     /**
      * Return current media directory, allowed resources for get.php script, etc.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public static function getScriptConfig()
     {
-        $config = array();
+        $config = [];
         $config['media_directory'] = Mage::getBaseDir('media');
 
+        $loadedModules = (array) Mage::app()->getConfig()->getNode(self::XML_PATH_MEDIA_LOADED_MODULES);
+        foreach ($loadedModules as $loadedModule) {
+            $config['loaded_modules'][] = $loadedModule->getName();
+        }
+
         $allowedResources = (array) Mage::app()->getConfig()->getNode(self::XML_PATH_MEDIA_RESOURCE_WHITELIST);
-        foreach ($allowedResources as $key => $allowedResource) {
+        foreach ($allowedResources as $allowedResource) {
             $config['allowed_resources'][] = $allowedResource;
         }
 

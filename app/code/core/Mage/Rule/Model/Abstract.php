@@ -1,35 +1,34 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Rule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Rule
  */
 
 /**
  * Abstract Rule entity data model
  *
- * @category Mage
- * @package Mage_Rule
- * @author Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Rule
+ *
+ * @method string getActionsSerialized()
+ * @method string getConditionsSerialized()
+ * @method array  getCustomerGroupIds()
+ * @method float  getDiscountAmount()
+ * @method bool   hasActionsSerialized()
+ * @method bool   hasConditionsSerialized()
+ * @method bool   hasCustomerGroupIds()
+ * @method bool   hasDiscountAmount()
+ * @method bool   hasWebsiteIds()
+ * @method $this  setActionsSerialized(string $value)
+ * @method $this  setConditionsSerialized(string $value)
+ * @method $this  setCustomerGroupIds(array $value)
+ * @method $this  setWebsiteIds(array $value)
+ * @method $this  unsActions()
+ * @method $this  unsActionsSerialized()
+ * @method $this  unsConditions()
+ * @method $this  unsConditionsSerialized()
  */
 abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
 {
@@ -85,12 +84,12 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
     /**
      * Prepare select for condition
      *
-     * @param int $storeId
+     * @param  int              $storeId
      * @return Varien_Db_Select
      */
     public function getProductFlatSelect($storeId)
     {
-        /** @var $resource Mage_Rule_Model_Resource_Abstract */
+        /** @var Mage_Rule_Model_Resource_Abstract $resource */
         $resource = $this->getResource();
 
         return $resource->getProductFlatSelect($storeId, $this->getConditions());
@@ -99,15 +98,14 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
     /**
      * Prepare data before saving
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
+    #[Override]
     protected function _beforeSave()
     {
         // Check if discount amount not negative
-        if ($this->hasDiscountAmount()) {
-            if ((int)$this->getDiscountAmount() < 0) {
-                Mage::throwException(Mage::helper('rule')->__('Invalid discount amount.'));
-            }
+        if ($this->hasDiscountAmount() && (int) $this->getDiscountAmount() < 0) {
+            Mage::throwException(Mage::helper('rule')->__('Invalid discount amount.'));
         }
 
         // Serialize conditions
@@ -128,7 +126,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
          */
         if ($this->hasWebsiteIds()) {
             $websiteIds = $this->getWebsiteIds();
-            if (is_string($websiteIds) && !empty($websiteIds)) {
+            if (is_string($websiteIds) && $websiteIds !== '') {
                 $this->setWebsiteIds(explode(',', $websiteIds));
             }
         }
@@ -139,7 +137,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
          */
         if ($this->hasCustomerGroupIds()) {
             $groupIds = $this->getCustomerGroupIds();
-            if (is_string($groupIds) && !empty($groupIds)) {
+            if (is_string($groupIds) && $groupIds !== '') {
                 $this->setCustomerGroupIds(explode(',', $groupIds));
             }
         }
@@ -153,7 +151,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param Mage_Rule_Model_Condition_Combine $conditions
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     public function setConditions($conditions)
     {
@@ -168,7 +166,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      */
     public function getConditions()
     {
-        if (empty($this->_conditions)) {
+        if (is_null($this->_conditions)) {
             $this->_resetConditions();
         }
 
@@ -177,10 +175,11 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
             $conditions = $this->getConditionsSerialized();
             if (!empty($conditions)) {
                 $conditions = Mage::helper('core/unserializeArray')->unserialize($conditions);
-                if (is_array($conditions) && !empty($conditions)) {
+                if (is_array($conditions) && $conditions !== []) {
                     $this->_conditions->loadArray($conditions);
                 }
             }
+
             $this->unsConditionsSerialized();
         }
 
@@ -192,7 +191,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param Mage_Rule_Model_Action_Collection $actions
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     public function setActions($actions)
     {
@@ -216,10 +215,11 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
             $actions = $this->getActionsSerialized();
             if (!empty($actions)) {
                 $actions = Mage::helper('core/unserializeArray')->unserialize($actions);
-                if (is_array($actions) && !empty($actions)) {
+                if (is_array($actions) && $actions !== []) {
                     $this->_actions->loadArray($actions);
                 }
             }
+
             $this->unsActionsSerialized();
         }
 
@@ -231,13 +231,14 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param null|Mage_Rule_Model_Condition_Combine $conditions
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     protected function _resetConditions($conditions = null)
     {
         if (is_null($conditions)) {
             $conditions = $this->getConditionsInstance();
         }
+
         $conditions->setRule($this)->setId('1')->setPrefix('conditions');
         $this->setConditions($conditions);
 
@@ -249,13 +250,14 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param null|Mage_Rule_Model_Action_Collection $actions
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     protected function _resetActions($actions = null)
     {
         if (is_null($actions)) {
             $actions = $this->getActionsInstance();
         }
+
         $actions->setRule($this)->setId('1')->setPrefix('actions');
         $this->setActions($actions);
 
@@ -272,24 +274,24 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
         if (!$this->_form) {
             $this->_form = new Varien_Data_Form();
         }
+
         return $this->_form;
     }
 
     /**
      * Initialize rule model data from array
      *
-     * @param array $data
-     *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     public function loadPost(array $data)
     {
         $arr = $this->_convertFlatToRecursive($data);
         if (isset($arr['conditions'])) {
-            $this->getConditions()->setConditions(array())->loadArray($arr['conditions'][1]);
+            $this->getConditions()->setConditions([])->loadArray($arr['conditions'][1]);
         }
+
         if (isset($arr['actions'])) {
-            $this->getActions()->setActions(array())->loadArray($arr['actions'][1], 'actions');
+            $this->getActions()->setActions([])->loadArray($arr['actions'][1], 'actions');
         }
 
         return $this;
@@ -300,40 +302,37 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      * Set conditions and actions recursively.
      * Convert dates into Zend_Date.
      *
-     * @param array $data
-     *
-     * @return array
+     * @return array<void>|array{mixed, mixed}
      */
     protected function _convertFlatToRecursive(array $data)
     {
-        $arr = array();
+        $arr = [];
         foreach ($data as $key => $value) {
             if (($key === 'conditions' || $key === 'actions') && is_array($value)) {
-                foreach ($value as $id=>$data) {
+                foreach ($value as $id => $data) {
                     $path = explode('--', $id);
-                    $node =& $arr;
-                    for ($i=0, $l=sizeof($path); $i<$l; $i++) {
-                        if (!isset($node[$key][$path[$i]])) {
-                            $node[$key][$path[$i]] = array();
-                        }
-                        $node =& $node[$key][$path[$i]];
+                    $node = & $arr;
+                    for ($i = 0, $l = count($path); $i < $l; $i++) {
+                        $node = & $node[$key][$path[$i]] ?? [];
                     }
-                    foreach ($data as $k => $v) {
-                        $node[$k] = $v;
+
+                    foreach ($data as $index => $val) {
+                        $node[$index] = $val;
                     }
                 }
             } else {
                 /**
                  * Convert dates into Zend_Date
                  */
-                if (in_array($key, array('from_date', 'to_date')) && $value) {
+                if (in_array($key, ['from_date', 'to_date'], true) && $value) {
                     $value = Mage::app()->getLocale()->date(
                         $value,
                         Varien_Date::DATE_INTERNAL_FORMAT,
                         null,
-                        false
+                        false,
                     );
                 }
+
                 $this->setData($key, $value);
             }
         }
@@ -343,8 +342,6 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
 
     /**
      * Validate rule conditions to determine if rule can run
-     *
-     * @param Varien_Object $object
      *
      * @return bool
      */
@@ -356,14 +353,13 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
     /**
      * Validate rule data
      *
-     * @param Varien_Object $object
-     *
-     * @return bool|array - return true if validation passed successfully. Array with errors description otherwise
+     * @return array|bool - return true if validation passed successfully. Array with errors description otherwise
      */
     public function validateData(Varien_Object $object)
     {
-        $result   = array();
-        $fromDate = $toDate = null;
+        $result   = [];
+        $fromDate = null;
+        $toDate = null;
 
         if ($object->hasFromDate() && $object->hasToDate()) {
             $fromDate = $object->getFromDate();
@@ -385,6 +381,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
                 $result[] = Mage::helper('rule')->__('Websites must be specified.');
             }
         }
+
         if ($object->hasCustomerGroupIds()) {
             $customerGroupIds = $object->getCustomerGroupIds();
             if (empty($customerGroupIds)) {
@@ -392,7 +389,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
             }
         }
 
-        return !empty($result) ? $result : true;
+        return $result === [] ? true : $result;
     }
 
     /**
@@ -410,7 +407,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param bool $value
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     public function setIsDeleteable($value)
     {
@@ -433,7 +430,7 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
      *
      * @param bool $value
      *
-     * @return Mage_Rule_Model_Abstract
+     * @return $this
      */
     public function setIsReadonly($value)
     {
@@ -450,30 +447,26 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
     {
         if (!$this->hasWebsiteIds()) {
             $websiteIds = $this->_getResource()->getWebsiteIds($this->getId());
-            $this->setData('website_ids', (array)$websiteIds);
+            $this->setData('website_ids', (array) $websiteIds);
         }
+
         return $this->_getData('website_ids');
     }
 
-
-
-
     /**
-     * @deprecated since 1.7.0.0
-     *
      * @param string $format
      *
      * @return string
+     * @deprecated since 1.7.0.0
      */
-    public function asString($format='')
+    public function asString($format = '')
     {
         return '';
     }
 
     /**
-     * @deprecated since 1.7.0.0
-     *
      * @return string
+     * @deprecated since 1.7.0.0
      */
     public function asHtml()
     {
@@ -483,23 +476,19 @@ abstract class Mage_Rule_Model_Abstract extends Mage_Core_Model_Abstract
     /**
      * Returns rule as an array for admin interface
      *
+     * @return array<void>
      * @deprecated since 1.7.0.0
-     *
-     * @param array $arrAttributes
-     *
-     * @return array
      */
-    public function asArray(array $arrAttributes = array())
+    public function asArray(array $arrAttributes = [])
     {
-        return array();
+        return [];
     }
 
     /**
      * Combine website ids to string
      *
+     * @return $this
      * @deprecated since 1.7.0.0
-     *
-     * @return Mage_Rule_Model_Abstract
      */
     protected function _prepareWebsiteIds()
     {

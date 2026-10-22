@@ -1,51 +1,43 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Admin ratings controller
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
-
 class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * ACL resource
+     * @see Mage_Adminhtml_Controller_Action::_isAllowed()
+     */
+    public const ADMIN_RESOURCE = 'catalog/reviews_ratings/ratings';
+
+    /**
+     * @return void
+     */
     public function indexAction()
     {
         $this->_initEnityId();
         $this->loadLayout();
 
-        $this->_setActiveMenu('catalog/ratings');
+        $this->_setActiveMenu('catalog/reviews_ratings/ratings');
         $this->_addBreadcrumb(Mage::helper('adminhtml')->__('Manage Ratings'), Mage::helper('adminhtml')->__('Manage Ratings'));
         $this->_addContent($this->getLayout()->createBlock('adminhtml/rating_rating'));
 
         $this->renderLayout();
     }
 
+    /**
+     * @return void
+     */
     public function editAction()
     {
         $this->_initEnityId();
@@ -58,7 +50,7 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
 
         $this->_title($ratingModel->getId() ? $ratingModel->getRatingCode() : $this->__('New Rating'));
 
-        $this->_setActiveMenu('catalog/ratings');
+        $this->_setActiveMenu('catalog/reviews_ratings/ratings');
         $this->_addBreadcrumb(Mage::helper('adminhtml')->__('Manage Ratings'), Mage::helper('adminhtml')->__('Manage Ratings'));
 
         $this->_addContent($this->getLayout()->createBlock('adminhtml/rating_edit'))
@@ -66,6 +58,9 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
         $this->renderLayout();
     }
 
+    /**
+     * @return void
+     */
     public function newAction()
     {
         $this->_forward('edit');
@@ -73,6 +68,7 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
 
     /**
      * Save rating
+     * @return void
      */
     public function saveAction()
     {
@@ -83,7 +79,7 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
                 $ratingModel = Mage::getModel('rating/rating');
 
                 $stores = $this->getRequest()->getParam('stores');
-                $position = (int)$this->getRequest()->getParam('position');
+                $position = (int) $this->getRequest()->getParam('position');
                 $stores[] = 0;
                 $ratingModel->setRatingCode($this->getRequest()->getParam('rating_code'))
                     ->setRatingCodes($this->getRequest()->getParam('rating_codes'))
@@ -99,7 +95,7 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
                     $i = 1;
                     foreach ($options as $key => $optionCode) {
                         $optionModel = Mage::getModel('rating/rating_option');
-                        if (!preg_match("/^add_([0-9]*?)$/", $key)) {
+                        if (!preg_match('/^add_(\d*?)$/', $key)) {
                             $optionModel->setId($key);
                         }
 
@@ -117,31 +113,36 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
 
                 $this->_redirect('*/*/');
                 return;
-            } catch (Exception $e) {
-                Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
+            } catch (Exception $exception) {
+                Mage::getSingleton('adminhtml/session')->addError($exception->getMessage());
                 Mage::getSingleton('adminhtml/session')->setRatingData($this->getRequest()->getPost());
-                $this->_redirect('*/*/edit', array('id' => $this->getRequest()->getParam('id')));
+                $this->_redirect('*/*/edit', ['id' => $this->getRequest()->getParam('id')]);
                 return;
             }
         }
+
         $this->_redirect('*/*/');
     }
 
+    /**
+     * @return void
+     */
     public function deleteAction()
     {
-        if( $this->getRequest()->getParam('id') > 0 ) {
+        if ($this->getRequest()->getParam('id') > 0) {
             try {
                 $model = Mage::getModel('rating/rating');
-                /* @var $model Mage_Rating_Model_Rating */
+                /** @var Mage_Rating_Model_Rating $model */
                 $model->load($this->getRequest()->getParam('id'))
                     ->delete();
                 Mage::getSingleton('adminhtml/session')->addSuccess(Mage::helper('adminhtml')->__('The rating has been deleted.'));
                 $this->_redirect('*/*/');
-            } catch (Exception $e) {
-                Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
-                $this->_redirect('*/*/edit', array('id' => $this->getRequest()->getParam('id')));
+            } catch (Exception $exception) {
+                Mage::getSingleton('adminhtml/session')->addError($exception->getMessage());
+                $this->_redirect('*/*/edit', ['id' => $this->getRequest()->getParam('id')]);
             }
         }
+
         $this->_redirect('*/*/');
     }
 
@@ -153,10 +154,4 @@ class Mage_Adminhtml_RatingController extends Mage_Adminhtml_Controller_Action
 
         Mage::register('entityId', Mage::getModel('rating/rating_entity')->getIdByCode('product'));
     }
-
-    protected function _isAllowed()
-    {
-        return Mage::getSingleton('admin/session')->isAllowed('catalog/reviews_ratings/ratings');
-    }
-
 }

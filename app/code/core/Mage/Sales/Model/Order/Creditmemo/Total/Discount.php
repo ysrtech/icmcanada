@@ -1,32 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Sales
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Sales
  */
 
-
+/**
+ * @package    Mage_Sales
+ */
 class Mage_Sales_Model_Order_Creditmemo_Total_Discount extends Mage_Sales_Model_Order_Creditmemo_Total_Abstract
 {
+    /**
+     * @return $this
+     */
+    #[Override]
     public function collect(Mage_Sales_Model_Order_Creditmemo $creditmemo)
     {
         $creditmemo->setDiscountAmount(0);
@@ -45,11 +34,11 @@ class Mage_Sales_Model_Order_Creditmemo_Total_Discount extends Mage_Sales_Model_
         if ($baseShippingAmount) {
             $baseShippingDiscount = $baseShippingAmount * $order->getBaseShippingDiscountAmount() / $order->getBaseShippingAmount();
             $shippingDiscount = $order->getShippingAmount() * $baseShippingDiscount / $order->getBaseShippingAmount();
-            $totalDiscountAmount = $totalDiscountAmount + $shippingDiscount;
-            $baseTotalDiscountAmount = $baseTotalDiscountAmount + $baseShippingDiscount;
+            $totalDiscountAmount += $shippingDiscount;
+            $baseTotalDiscountAmount += $baseShippingDiscount;
         }
 
-        /** @var $item Mage_Sales_Model_Order_Invoice_Item */
+        /** @var Mage_Sales_Model_Order_Invoice_Item $item */
         foreach ($creditmemo->getAllItems() as $item) {
             $orderItem = $item->getOrderItem();
 
@@ -67,10 +56,14 @@ class Mage_Sales_Model_Order_Creditmemo_Total_Discount extends Mage_Sales_Model_
                 if (!$item->isLast()) {
                     $availableQty = $orderItemQty - $orderItem->getQtyRefunded();
                     $discount = $creditmemo->roundPrice(
-                        $discount / $availableQty * $item->getQty(), 'regular', true
+                        $discount / $availableQty * $item->getQty(),
+                        'regular',
+                        true,
                     );
                     $baseDiscount = $creditmemo->roundPrice(
-                        $baseDiscount / $availableQty * $item->getQty(), 'base', true
+                        $baseDiscount / $availableQty * $item->getQty(),
+                        'base',
+                        true,
                     );
                 }
 

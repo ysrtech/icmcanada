@@ -1,47 +1,28 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Adminhtml
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Adminhtml
  */
 
 /**
  * Adminhtml customer view wishlist block
  *
- * @category   Mage
  * @package    Mage_Adminhtml
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_Block_Template
 {
-
     /**
      * Sales entity collection
      *
-     * @var Mage_Sales_Model_Entity_Sale_Collection
+     * @var Mage_Sales_Model_Resource_Sale_Collection
      */
     protected $_collection;
 
     protected $_groupedCollection;
+
     protected $_websiteCounts;
 
     /**
@@ -57,19 +38,24 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_B
         $this->setId('customer_view_sales_grid');
     }
 
-    public function _beforeToHtml()
+    /**
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    #[Override]
+    protected function _beforeToHtml()
     {
         $this->_currency = Mage::getModel('directory/currency')
-            ->load(Mage::getStoreConfig(Mage_Directory_Model_Currency::XML_PATH_CURRENCY_BASE))
-        ;
+            ->load(Mage_Directory_Helper_Data::getConfigCurrencyBase());
 
-        $this->_collection = Mage::getResourceModel('sales/sale_collection')
+        /** @var Mage_Sales_Model_Resource_Sale_Collection $model */
+        $model = Mage::getResourceModel('sales/sale_collection')
             ->setCustomerFilter(Mage::registry('current_customer'))
             ->setOrderStateFilter(Mage_Sales_Model_Order::STATE_CANCELED, true)
-            ->load()
-        ;
+            ->load();
+        $this->_collection = $model;
 
-        $this->_groupedCollection = array();
+        $this->_groupedCollection = [];
 
         foreach ($this->_collection as $sale) {
             if (!is_null($sale->getStoreId())) {
@@ -82,8 +68,7 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_B
                 $sale->setWebsiteName($store->getWebsite()->getName());
                 $sale->setGroupId($store->getGroupId());
                 $sale->setGroupName($store->getGroup()->getName());
-            }
-            else {
+            } else {
                 $websiteId  = 0;
                 $groupId    = 0;
                 $storeId    = 0;
@@ -100,7 +85,7 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_B
 
     public function getWebsiteCount($websiteId)
     {
-        return isset($this->_websiteCounts[$websiteId]) ? $this->_websiteCounts[$websiteId] : 0;
+        return $this->_websiteCounts[$websiteId] ?? 0;
     }
 
     public function getRows()
@@ -114,10 +99,9 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_B
     }
 
     /**
-     * @deprecated after 1.4.0.0-rc1
-     *
-     * @param float $price
+     * @param  float  $price
      * @return string
+     * @deprecated after 1.4.0.0-rc1
      */
     public function getPriceFormatted($price)
     {
@@ -127,13 +111,12 @@ class Mage_Adminhtml_Block_Customer_Edit_Tab_View_Sales extends Mage_Adminhtml_B
     /**
      * Format price by specified website
      *
-     * @param float $price
-     * @param null|int $websiteId
+     * @param  float    $price
+     * @param  null|int $websiteId
      * @return string
      */
     public function formatCurrency($price, $websiteId = null)
     {
         return Mage::app()->getWebsite($websiteId)->getBaseCurrency()->format($price);
     }
-
 }

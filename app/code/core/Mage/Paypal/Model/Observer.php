@@ -1,64 +1,45 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Paypal
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Paypal
  */
 
 /**
  * PayPal module observer
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Paypal
  */
-
 class Mage_Paypal_Model_Observer
 {
     /**
      * Goes to reports.paypal.com and fetches Settlement reports.
-     * @return Mage_Paypal_Model_Observer
      */
     public function fetchReports()
     {
         try {
             $reports = Mage::getModel('paypal/report_settlement');
-            /* @var $reports Mage_Paypal_Model_Report_Settlement */
+            /** @var Mage_Paypal_Model_Report_Settlement $reports */
             $credentials = $reports->getSftpCredentials(true);
             foreach ($credentials as $config) {
                 try {
                     $reports->fetchAndSave($config);
-                } catch (Exception $e) {
-                    Mage::logException($e);
+                } catch (Exception $exception) {
+                    Mage::logException($exception);
                 }
             }
-        } catch (Exception $e) {
-            Mage::logException($e);
+        } catch (Exception $exception) {
+            Mage::logException($exception);
         }
     }
 
     /**
      * Clean unfinished transaction
      *
+     * @return $this
      * @deprecated since 1.6.2.0
-     * @return Mage_Paypal_Model_Observer
      */
     public function cleanTransactions()
     {
@@ -68,13 +49,12 @@ class Mage_Paypal_Model_Observer
     /**
      * Save order into registry to use it in the overloaded controller.
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_Paypal_Model_Observer
+     * @return $this
      */
     public function saveOrderAfterSubmit(Varien_Event_Observer $observer)
     {
-        /* @var $order Mage_Sales_Model_Order */
-        $order = $observer->getEvent()->getData('order');
+        /** @var Mage_Sales_Model_Order $order */
+        $order = $observer->getEvent()->getDataByKey('order');
         Mage::register('hss_order', $order, true);
 
         return $this;
@@ -83,31 +63,30 @@ class Mage_Paypal_Model_Observer
     /**
      * Set data for response of frontend saveOrder action
      *
-     * @param Varien_Event_Observer $observer
-     * @return Mage_Paypal_Model_Observer
+     * @return $this
      */
     public function setResponseAfterSaveOrder(Varien_Event_Observer $observer)
     {
-        /* @var $order Mage_Sales_Model_Order */
+        /** @var Mage_Sales_Model_Order $order */
         $order = Mage::registry('hss_order');
 
         if ($order && $order->getId()) {
             $payment = $order->getPayment();
             if ($payment && in_array($payment->getMethod(), Mage::helper('paypal/hss')->getHssMethods())) {
-                /* @var $controller Mage_Core_Controller_Varien_Action */
-                $controller = $observer->getEvent()->getData('controller_action');
+                /** @var Mage_Core_Controller_Varien_Action $controller */
+                $controller = $observer->getEvent()->getDataByKey('controller_action');
                 $result = Mage::helper('core')->jsonDecode(
                     $controller->getResponse()->getBody('default'),
-                    Zend_Json::TYPE_ARRAY
+                    Zend_Json::TYPE_ARRAY,
                 );
 
                 if (empty($result['error'])) {
                     $controller->loadLayout('checkout_onepage_review');
                     $html = $controller->getLayout()->getBlock('paypal.iframe')->toHtml();
-                    $result['update_section'] = array(
+                    $result['update_section'] = [
                         'name' => 'paypaliframe',
-                        'html' => $html
-                    );
+                        'html' => $html,
+                    ];
                     $result['redirect'] = false;
                     $result['success'] = false;
                     $controller->getResponse()->clearHeader('Location');
@@ -121,9 +100,6 @@ class Mage_Paypal_Model_Observer
 
     /**
      * Load country dependent PayPal solutions system configuration
-     *
-     * @param Varien_Event_Observer $observer
-     * @return void
      */
     public function loadCountryDependentSolutionsConfig(Varien_Event_Observer $observer)
     {
@@ -139,8 +115,8 @@ class Mage_Paypal_Model_Observer
 
         $payments = $paymentGroups->xpath('paypal_payments/*');
         foreach ($payments as $payment) {
-            if ((int)$payment->include) {
-                $fields = $paymentGroups->xpath((string)$payment->group . '/fields');
+            if ((int) $payment->include) {
+                $fields = $paymentGroups->xpath($payment->group . '/fields');
                 if (isset($fields[0])) {
                     $fields[0]->appendChild($payment, true);
                 }
@@ -150,8 +126,6 @@ class Mage_Paypal_Model_Observer
 
     /**
      * Update transaction with HTML representation of txn_id
-     *
-     * @param Varien_Event_Observer $observer
      */
     public function observeHtmlTransactionId(Varien_Event_Observer $observer)
     {
@@ -159,7 +133,7 @@ class Mage_Paypal_Model_Observer
         $transaction = $observer->getEvent()->getTransaction();
         $transaction->setHtmlTxnId(Mage::helper('paypal')->getHtmlTransactionId(
             $observer->getEvent()->getPayment()->getMethodInstance()->getCode(),
-            $transaction->getTxnId()
+            $transaction->getTxnId(),
         ));
     }
 }

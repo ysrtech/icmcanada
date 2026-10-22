@@ -134,6 +134,39 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     }
     
     /**
+     * Return whether the given column filter value is empty
+     *
+     * @param mixed $filterValue Filter value
+     * @return bool
+     */
+    public function isColumnFilterValueEmpty($filterValue)
+    {
+        return (!empty($filterValue) || (strlen($filterValue) > 0));
+    }
+    
+    /**
+     * Return the indexes on which are based the active filters from the given list applied to the given grid block
+     * 
+     * @param Mage_Adminhtml_Block_Widget_Grid $gridBlock Grid block
+     * @param array $filters Applied filters
+     * @return array
+     */
+    public function getGridBlockActiveFiltersIndexes(Mage_Adminhtml_Block_Widget_Grid $gridBlock, array $filters)
+    {
+        $filtersIndexes = array();
+        
+        foreach ($gridBlock->getColumns() as $columnBlockId => $columnBlock) {
+            if (isset($filters[$columnBlockId])
+                && !$this->isColumnFilterValueEmpty($filters[$columnBlockId])
+                && $columnBlock->getFilter()) {
+                $filtersIndexes[] = $this->getColumnBlockFilterIndex($columnBlock);
+            }
+        }
+        
+        return $filtersIndexes;
+    }
+    
+    /**
      * Return whether the given block ID has been generated via Mage_Core_Helper_Abstract::uniqHash()
      *
      * @param string $gridBlockId Grid block ID
@@ -301,7 +334,7 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     ) {
         return $checkFromOneDotSix
             ? ($collection instanceof Mage_Catalog_Model_Resource_Product_Collection)
-            : ($collection instanceof Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Collection);
+            : ($collection instanceof Mage_Catalog_Model_Resource_Product_Collection);
     }
     
     /**
@@ -335,7 +368,7 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     ) {
         return $checkFromOneDotSix
             ? ($collection instanceof Mage_Sales_Model_Resource_Order_Grid_Collection)
-            : ($collection instanceof Mage_Sales_Model_Mysql4_Order_Grid_Collection);
+            : ($collection instanceof Mage_Sales_Model_Resource_Order_Grid_Collection);
     }
     
     /**
@@ -369,7 +402,7 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     ) {
         return $checkFromOneDotSix
             ? ($collection instanceof Mage_Sales_Model_Resource_Order_Invoice_Grid_Collection)
-            : ($collection instanceof Mage_Sales_Model_Mysql4_Order_Invoice_Grid_Collection);
+            : ($collection instanceof Mage_Sales_Model_Resource_Order_Invoice_Grid_Collection);
     }
     
     /**
@@ -403,7 +436,7 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     ) {
         return $checkFromOneDotSix
             ? ($collection instanceof Mage_Sales_Model_Resource_Order_Shipment_Grid_Collection)
-            : ($collection instanceof Mage_Sales_Model_Mysql4_Order_Shipment_Grid_Collection);
+            : ($collection instanceof Mage_Sales_Model_Resource_Order_Shipment_Grid_Collection);
     }
     
     /**
@@ -437,6 +470,6 @@ class BL_CustomGrid_Helper_Grid extends Mage_Core_Helper_Abstract
     ) {
         return $checkFromOneDotSix
             ? ($collection instanceof Mage_Sales_Model_Resource_Order_Creditmemo_Grid_Collection)
-            : ($collection instanceof Mage_Sales_Model_Mysql4_Order_Creditmemo_Grid_Collection);
+            : ($collection instanceof Mage_Sales_Model_Resource_Order_Creditmemo_Grid_Collection);
     }
 }

@@ -1,57 +1,40 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tag
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Tag
+ */
 
 /**
  * List of products tagged by customer Block
  *
- * @category   Mage
  * @package    Mage_Tag
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method int   getTagId()
+ * @method $this setTagId(int $value)
  */
 class Mage_Tag_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
 {
     /**
      * Tagged Product Collection
      *
-     * @var Mage_Tag_Model_Mysql4_Product_Collection
+     * @var null|Mage_Tag_Model_Resource_Product_Collection
      */
     protected $_collection;
 
     /**
      * Current Tag object
      *
-     * @var Mage_Tag_Model_Tag
+     * @var null|Mage_Tag_Model_Tag
      */
     protected $_tagInfo;
 
     /**
-     * Initialize block
-     *
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         parent::_construct();
@@ -69,6 +52,7 @@ class Mage_Tag_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
             $this->_tagInfo = Mage::getModel('tag/tag')
                 ->load($this->getTagId());
         }
+
         return $this->_tagInfo;
     }
 
@@ -89,25 +73,26 @@ class Mage_Tag_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
      */
     public function getCount()
     {
-        return sizeof($this->getMyProducts());
+        return count($this->getMyProducts());
     }
 
     /**
      * Retrieve Product Info URL
      *
-     * @param int $productId
+     * @param  int    $productId
      * @return string
      */
     public function getReviewUrl($productId)
     {
-        return Mage::getUrl('review/product/list', array('id' => $productId));
+        return Mage::getUrl('review/product/list', ['id' => $productId]);
     }
 
     /**
      * Preparing block layout
      *
-     * @return Mage_Tag_Block_Customer_View
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareLayout()
     {
         $toolbar = $this->getLayout()
@@ -141,7 +126,7 @@ class Mage_Tag_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
     /**
      * Retrieve Tagged product(s) collection
      *
-     * @return Mage_Tag_Model_Mysql4_Product_Collection
+     * @return Mage_Tag_Model_Resource_Product_Collection
      */
     protected function _getCollection()
     {
@@ -152,13 +137,13 @@ class Mage_Tag_Block_Customer_View extends Mage_Catalog_Block_Product_Abstract
                 ->addCustomerFilter(Mage::getSingleton('customer/session')->getCustomerId())
                 ->addStoreFilter(Mage::app()->getStore()->getId())
                 ->addAttributeToSelect(Mage::getSingleton('catalog/config')->getProductAttributes())
+                ->setVisibility(Mage::getSingleton('catalog/product_visibility')::getVisibleInSiteIds())
                 ->setActiveFilter();
 
             Mage::getSingleton('catalog/product_status')
                 ->addVisibleFilterToCollection($this->_collection);
-            Mage::getSingleton('catalog/product_visibility')
-                ->addVisibleInSiteFilterToCollection($this->_collection);
         }
+
         return $this->_collection;
     }
 }

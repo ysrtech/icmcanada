@@ -1,31 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Index
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Index
  */
 
+use Mage_Adminhtml_Block_Widget_Grid_Massaction_Abstract as MassAction;
+
+/**
+ * @package    Mage_Index
+ */
 class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+    protected string $_eventPrefix = 'index_adminhtml_process_grid';
+
     /**
      * Process model
      *
@@ -48,6 +38,7 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
         parent::__construct();
         $this->_processModel = Mage::getSingleton('index/process');
         $this->setId('indexer_processes_grid');
+        $this->setDefaultSort('ended_at');
         $this->_filterVisibility = false;
         $this->_pagerVisibility  = false;
     }
@@ -55,8 +46,10 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
     /**
      * Prepare grid collection
      *
-     * @return Mage_Index_Block_Adminhtml_Process_Grid
+     * @return $this
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('index/process_collection');
@@ -69,16 +62,19 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
     /**
      * Add name and description to collection elements
      *
-     * @return Mage_Index_Block_Adminhtml_Process_Grid
+     * @return $this
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     protected function _afterLoadCollection()
     {
-        /** @var $item Mage_Index_Model_Process */
+        /** @var Mage_Index_Model_Process $item */
         foreach ($this->_collection as $key => $item) {
             if (!$item->getIndexer()->isVisible()) {
                 $this->_collection->removeItemByKey($key);
                 continue;
             }
+
             $item->setName($item->getIndexer()->getName());
             $item->setDescription($item->getIndexer()->getDescription());
             $item->setUpdateRequired($item->getUnprocessedEventsCollection()->count() > 0 ? 1 : 0);
@@ -86,52 +82,54 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
                 $item->setStatus(Mage_Index_Model_Process::STATUS_RUNNING);
             }
         }
-        return $this;
+
+        return parent::_afterLoadCollection();
     }
 
     /**
      * Prepare grid columns
      *
-     * @return Mage_Index_Block_Adminhtml_Process_Grid
+     * @return $this
+     * @throws Exception
      */
+    #[Override]
     protected function _prepareColumns()
     {
-        $baseUrl = $this->getUrl();
-        $this->addColumn('indexer_code', array(
+        $this->addColumn('indexer_code', [
             'header'    => Mage::helper('index')->__('Index'),
             'width'     => '180',
             'align'     => 'left',
             'index'     => 'name',
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('description', array(
+        $this->addColumn('description', [
             'header'    => Mage::helper('index')->__('Description'),
             'align'     => 'left',
             'index'     => 'description',
             'sortable'  => false,
-        ));
+        ]);
 
-        $this->addColumn('mode', array(
+        $this->addColumn('mode', [
             'header'    => Mage::helper('index')->__('Mode'),
             'width'     => '150',
             'align'     => 'left',
             'index'     => 'mode',
             'type'      => 'options',
-            'options'   => $this->_processModel->getModesOptions()
-        ));
+            'options'   => $this->_processModel->getModesOptions(),
+        ]);
 
-        $this->addColumn('status', array(
+        $this->addColumn('status', [
             'header'    => Mage::helper('index')->__('Status'),
             'width'     => '120',
             'align'     => 'left',
             'index'     => 'status',
             'type'      => 'options',
             'options'   => $this->_processModel->getStatusesOptions(),
-            'frame_callback' => array($this, 'decorateStatus')
-        ));
+            'frame_callback' => $this->decorateStatus(...),
+        ]);
 
-        $this->addColumn('update_required', array(
+        $this->addColumn('update_required', [
             'header'    => Mage::helper('index')->__('Update Required'),
             'sortable'  => false,
             'width'     => '120',
@@ -139,35 +137,33 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
             'index'     => 'update_required',
             'type'      => 'options',
             'options'   => $this->_processModel->getUpdateRequiredOptions(),
-            'frame_callback' => array($this, 'decorateUpdateRequired')
-        ));
+            'frame_callback' => $this->decorateUpdateRequired(...),
+        ]);
 
-        $this->addColumn('ended_at', array(
+        $this->addColumn('ended_at', [
             'header'    => Mage::helper('index')->__('Updated At'),
             'type'      => 'datetime',
-            'width'     => '180',
             'align'     => 'left',
             'index'     => 'ended_at',
-            'frame_callback' => array($this, 'decorateDate')
-        ));
+            'frame_callback' => $this->decorateDate(...),
+        ]);
 
-        $this->addColumn('action',
-            array(
-                'header'    =>  Mage::helper('index')->__('Action'),
+        $this->addColumn(
+            'action',
+            [
                 'width'     => '100',
                 'type'      => 'action',
                 'getter'    => 'getId',
-                'actions'   => array(
-                    array(
+                'actions'   => [
+                    [
                         'caption'   => Mage::helper('index')->__('Reindex Data'),
-                        'url'       => array('base'=> '*/*/reindexProcess'),
-                        'field'     => 'process'
-                    ),
-                ),
-                'filter'    => false,
-                'sortable'  => false,
+                        'url'       => ['base' => '*/*/reindexProcess'],
+                        'field'     => 'process',
+                    ],
+                ],
                 'is_system' => true,
-        ));
+            ],
+        );
 
         parent::_prepareColumns();
 
@@ -177,38 +173,37 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
     /**
      * Decorate status column values
      *
-     * @param string $value
-     * @param Mage_Index_Model_Process $row
-     * @param Mage_Adminhtml_Block_Widget_Grid_Column $column
-     * @param bool $isExport
-     *
+     * @param  string                                  $value
+     * @param  Mage_Index_Model_Process                $row
+     * @param  Mage_Adminhtml_Block_Widget_Grid_Column $column
+     * @param  bool                                    $isExport
      * @return string
      */
     public function decorateStatus($value, $row, $column, $isExport)
     {
         $class = '';
         switch ($row->getStatus()) {
-            case Mage_Index_Model_Process::STATUS_PENDING :
-                $class = 'grid-severity-notice';
+            case Mage_Index_Model_Process::STATUS_PENDING:
+                $class = self::CSS_SEVERITY_NOTICE;
                 break;
-            case Mage_Index_Model_Process::STATUS_RUNNING :
-                $class = 'grid-severity-major';
+            case Mage_Index_Model_Process::STATUS_RUNNING:
+                $class = self::CSS_SEVERITY_MAJOR;
                 break;
-            case Mage_Index_Model_Process::STATUS_REQUIRE_REINDEX :
-                $class = 'grid-severity-critical';
+            case Mage_Index_Model_Process::STATUS_REQUIRE_REINDEX:
+                $class = self::CSS_SEVERITY_CRITICAL;
                 break;
         }
-        return '<span class="'.$class.'"><span>'.$value.'</span></span>';
+
+        return sprintf(self::PATTERN_SEVERITY, $class, $value);
     }
 
     /**
      * Decorate "Update Required" column values
      *
-     * @param string $value
-     * @param Mage_Index_Model_Process $row
-     * @param Mage_Adminhtml_Block_Widget_Grid_Column $column
-     * @param bool $isExport
-     *
+     * @param  string                                  $value
+     * @param  Mage_Index_Model_Process                $row
+     * @param  Mage_Adminhtml_Block_Widget_Grid_Column $column
+     * @param  bool                                    $isExport
      * @return string
      */
     public function decorateUpdateRequired($value, $row, $column, $isExport)
@@ -216,50 +211,49 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
         $class = '';
         switch ($row->getUpdateRequired()) {
             case 0:
-                $class = 'grid-severity-notice';
+                $class = self::CSS_SEVERITY_NOTICE;
                 break;
             case 1:
-                $class = 'grid-severity-critical';
+                $class = self::CSS_SEVERITY_CRITICAL;
                 break;
         }
-        return '<span class="'.$class.'"><span>'.$value.'</span></span>';
+
+        return sprintf(self::PATTERN_SEVERITY, $class, $value);
     }
 
     /**
      * Decorate last run date coumn
      *
-     * @param string $value
-     * @param Mage_Index_Model_Process $row
-     * @param Mage_Adminhtml_Block_Widget_Grid_Column $column
-     * @param bool $isExport
-     *
+     * @param  string                                  $value
+     * @param  Mage_Index_Model_Process                $row
+     * @param  Mage_Adminhtml_Block_Widget_Grid_Column $column
+     * @param  bool                                    $isExport
      * @return string
      */
     public function decorateDate($value, $row, $column, $isExport)
     {
-        if(!$value) {
+        if (!$value) {
             return $this->__('Never');
         }
+
         return $value;
     }
 
     /**
-     * Get row edit url
-     *
-     * @param Mage_Index_Model_Process $row
-     *
-     * @return string
+     * @inheritDoc
+     * @param  Mage_Index_Model_Process $row
+     * @throws Mage_Core_Exception
      */
+    #[Override]
     public function getRowUrl($row)
     {
-        return $this->getUrl('*/*/edit', array('process' => $row->getId()));
+        return $this->getUrl('*/*/edit', ['process' => $row->getId()]);
     }
 
     /**
-     * Add mass-actions to grid
-     *
-     * @return Mage_Index_Block_Adminhtml_Process_Grid
+     * @inheritDoc
      */
+    #[Override]
     protected function _prepareMassaction()
     {
         $this->setMassactionIdField('process_id');
@@ -267,26 +261,26 @@ class Mage_Index_Block_Adminhtml_Process_Grid extends Mage_Adminhtml_Block_Widge
 
         $modeOptions = Mage::getModel('index/process')->getModesOptions();
 
-        $this->getMassactionBlock()->addItem('change_mode', array(
+        $this->getMassactionBlock()->addItem(MassAction::CHANGE_MODE, [
             'label'         => Mage::helper('index')->__('Change Index Mode'),
             'url'           => $this->getUrl('*/*/massChangeMode'),
-            'additional'    => array(
-                'mode'      => array(
+            'additional'    => [
+                'mode'      => [
                     'name'      => 'index_mode',
                     'type'      => 'select',
                     'class'     => 'required-entry',
                     'label'     => Mage::helper('index')->__('Index mode'),
-                    'values'    => $modeOptions
-                )
-            )
-        ));
+                    'values'    => $modeOptions,
+                ],
+            ],
+        ]);
 
-        $this->getMassactionBlock()->addItem('reindex', array(
+        $this->getMassactionBlock()->addItem(MassAction::REINDEX, [
             'label'    => Mage::helper('index')->__('Reindex Data'),
             'url'      => $this->getUrl('*/*/massReindex'),
             'selected' => true,
-        ));
+        ]);
 
-        return $this;
+        return parent::_prepareMassaction();
     }
 }

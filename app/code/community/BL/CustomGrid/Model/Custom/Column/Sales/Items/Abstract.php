@@ -214,7 +214,7 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
     
     protected function _prepareConfig()
     {
-        $helper = $this->_getBaseHelper();
+        $helper = $this->getBaseHelper();
         
         if ($this->_canFilterOnSku()) {
             $this->addCustomizationParam(
@@ -324,11 +324,11 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
      * Return a loaded orders collection filtered by the given IDs
      * 
      * @param array $ordersIds Orders IDs
-     * @return Mage_Sales_Model_Mysql4_Order_Collection
+     * @return Mage_Sales_Model_Resource_Order_Collection
      */
     protected function _getOrdersCollection(array $ordersIds)
     {
-        /** @var $collection Mage_Sales_Model_Mysql4_Order_Collection */
+        /** @var $collection Mage_Sales_Model_Resource_Order_Collection */
         $collection = Mage::getResourceModel('sales/order_collection');
         $collection->addFieldToFilter('entity_id', array('in' => array_unique($ordersIds)));
         return $collection->load();
@@ -340,11 +340,11 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
      * @param array $ordersIds Parent orders IDs
      * @param bool $excludeChildren Whether children items should be excluded from the collection
      * @param string|null $eventName Name of the event that will be dispatched before the collection is loaded, if any
-     * @return Mage_Sales_Model_Mysql4_Order_Item_Collection
+     * @return Mage_Sales_Model_Resource_Order_Item_Collection
      */
     protected function _getOrdersItemsCollection($ordersIds, $excludeChildren = true, $eventName = null)
     {
-        /** @var $items Mage_Sales_Model_Mysql4_Order_Item_Collection */
+        /** @var $items Mage_Sales_Model_Resource_Order_Item_Collection */
         $items = Mage::getResourceModel('sales/order_item_collection');
         $items->addFieldToFilter('order_id', array('in' => array_unique($ordersIds)));
         
@@ -435,7 +435,7 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
      * @param Varien_Db_Select $select Database select
      * @param mixed $itemAlias Alias of the items table
      * @param Varien_Data_Collection_Db $collection Grid collection
-     * @param mixed $qi quoteIdentifier() callback
+     * @param callable $qi quoteIdentifier() callback
      * @return BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract
      */
     protected function _addExcludeChildFilterToSelect(
@@ -445,7 +445,7 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
         $qi
     ) {
         if (!$this->_isOrderItemsList()) {
-            $oiAlias = $this->_getUniqueTableAlias('oi');
+            $oiAlias = $this->getCollectionHandler()->getUniqueTableAlias('oi');
             
             $select->joinInner(
                 array($oiAlias => $collection->getTable('sales/order_item')),
@@ -464,11 +464,13 @@ abstract class BL_CustomGrid_Model_Custom_Column_Sales_Items_Abstract extends BL
         Varien_Data_Collection_Db $collection,
         Mage_Adminhtml_Block_Widget_Grid_Column $columnBlock
     ) {
-        /** @var $adapter Zend_Db_Adapter_Abstract */
-        list($adapter, $qi) = $this->_getCollectionAdapter($collection, true);
-        $mainAlias = $this->_getCollectionMainTableAlias($collection);
-        $itemAlias = $this->_getUniqueTableAlias();
+        $collectionHandler = $this->getCollectionHandler();
+        $mainAlias = $collectionHandler->getCollectionMainTableAlias($collection);
+        $itemAlias = $collectionHandler->getUniqueTableAlias();
         $params    = $columnBlock->getBlcgFilterParams();
+        
+        /** @var $adapter Zend_Db_Adapter_Abstract */
+        list($adapter, $qi) = $collectionHandler->getCollectionAdapter($collection, true);
         
         if (is_array($condition = $columnBlock->getFilter()->getCondition()) && isset($condition['like'])) {
             $condition = $condition['like'];

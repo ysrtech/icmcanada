@@ -17,7 +17,7 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
 {
     public function getFormAction()
     {
-        return $this->getUrl('customgrid/grid/saveDefaultParams');
+        return $this->getUrl('adminhtml/blcg_grid/saveDefaultParams');
     }
     
     public function getReloadGridAfterSuccess()
@@ -64,7 +64,7 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
      * 
      * @param string $columnBlockId Grid column block ID
      * @param mixed $filterValue Default filter value
-     * @param bool $isAppliable Whether the sub value is rendered in the appliable params fieldset (otherwise removable)
+     * @param bool $isAppliable Whether the sub value is rendered in the appliable parameters fieldset (otherwise removable)
      * @return string
      */
     protected function _renderDefaultFilterSubValue($columnBlockId, $filterValue, $isAppliable)
@@ -86,13 +86,15 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
      * Render the given default filter value
      * 
      * @param array|string $value Default filter value (array or encoded string)
-     * @param mixed $isAppliable Whether the value is rendered in the appliable params fieldset (otherwise removable)
+     * @param mixed $isAppliable Whether the value is rendered in the appliable parameters fieldset (otherwise removable)
      * @return string
      */
     protected function _renderDefaultFilterValue($value, $isAppliable)
     {
         if ($isAppliable && !is_array($value)) {
-            $value = $this->getGridModel()->getApplier()->decodeGridFiltersString($value);
+            $value = $this->getGridModel()
+                ->getFiltersHandler()
+                ->decodeGridFiltersString($value);
         }
         
         if (is_array($value) || is_array($value = @unserialize($value))) {
@@ -113,10 +115,11 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
     }
     
     /**
-     * Render the given default param value
+     * Render the given default parameter value
      * 
-     * @param mixed $value Default param value
-     * @param mixed $isAppliable Whether the value is rendered in the appliable params fieldset (otherwise removable)
+     * @param string $type Parameter type
+     * @param mixed $value Default parameter value
+     * @param mixed $isAppliable Whether the value is rendered in the appliable parameters fieldset (otherwise removable)
      * @return string
      */
     protected function _renderDefaultParamValue($type, $value, $isAppliable)
@@ -135,7 +138,7 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
     }
     
     /**
-     * Add removable params-related fields to the given form
+     * Add removable parameters-related fields to the given form
      * 
      * @param Varien_Data_Form $form Form
      * @return BL_CustomGrid_Block_Grid_Form_Default_Params
@@ -193,7 +196,7 @@ class BL_CustomGrid_Block_Grid_Form_Default_Params extends BL_CustomGrid_Block_G
     }
     
     /**
-     * Add appliable params-related fields to the given form
+     * Add appliable parameters-related fields to the given form
      * 
      * @param Varien_Data_Form $form Form
      * @return BL_CustomGrid_Block_Grid_Form_Default_Params

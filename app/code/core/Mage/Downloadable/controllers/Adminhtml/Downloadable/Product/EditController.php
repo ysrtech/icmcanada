@@ -1,27 +1,10 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Downloadable
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Downloadable
  */
 
 require_once 'Mage/Adminhtml/controllers/Catalog/ProductController.php';
@@ -29,17 +12,14 @@ require_once 'Mage/Adminhtml/controllers/Catalog/ProductController.php';
 /**
  * Adminhtml downloadable product edit
  *
- * @category    Mage
- * @package     Mage_Downloadable
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Downloadable
  */
 class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Mage_Adminhtml_Catalog_ProductController
 {
-
     /**
-     * Varien class constructor
-     *
+     * @inheritDoc
      */
+    #[Override]
     protected function _construct()
     {
         $this->setUsedModuleName('Mage_Downloadable');
@@ -47,14 +27,14 @@ class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Ma
 
     /**
      * Load downloadable tab fieldsets
-     *
+     * @return void
      */
     public function formAction()
     {
         $this->_initProduct();
         $this->getResponse()->setBody(
             $this->getLayout()->createBlock('downloadable/adminhtml_catalog_product_edit_tab_downloadable', 'admin.product.downloadable.information')
-                ->toHtml()
+                ->toHtml(),
         );
     }
 
@@ -67,7 +47,7 @@ class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Ma
     protected function _processDownload($resource, $resourceType)
     {
         $helper = Mage::helper('downloadable/download');
-        /* @var $helper Mage_Downloadable_Helper_Download */
+        /** @var Mage_Downloadable_Helper_Download $helper */
 
         $helper->setResource($resource, $resourceType);
 
@@ -87,7 +67,7 @@ class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Ma
 
         if ($contentDisposition = $helper->getContentDisposition()) {
             $this->getResponse()
-                ->setHeader('Content-Disposition', $contentDisposition . '; filename='.$fileName);
+                ->setHeader('Content-Disposition', $contentDisposition . '; filename=' . $fileName);
         }
 
         $this->getResponse()
@@ -101,6 +81,8 @@ class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Ma
     /**
      * Download link action
      *
+     * @SuppressWarnings("PHPMD.ExitExpression")
+     * @return void
      */
     public function linkAction()
     {
@@ -114,17 +96,19 @@ class Mage_Downloadable_Adminhtml_Downloadable_Product_EditController extends Ma
                 $resourceType = Mage_Downloadable_Helper_Download::LINK_TYPE_URL;
             } elseif ($link->getLinkType() == Mage_Downloadable_Helper_Download::LINK_TYPE_FILE) {
                 $resource = Mage::helper('downloadable/file')->getFilePath(
-                    Mage_Downloadable_Model_Link::getBasePath(), $link->getLinkFile()
+                    Mage_Downloadable_Model_Link::getBasePath(),
+                    $link->getLinkFile(),
                 );
                 $resourceType = Mage_Downloadable_Helper_Download::LINK_TYPE_FILE;
             }
+
             try {
                 $this->_processDownload($resource, $resourceType);
-            } catch (Mage_Core_Exception $e) {
-                $this->_getCustomerSession()->addError(Mage::helper('downloadable')->__('An error occurred while getting the requested content.'));
+            } catch (Mage_Core_Exception) {
+                $this->_getSession()->addError(Mage::helper('downloadable')->__('An error occurred while getting the requested content.'));
             }
         }
+
         exit(0);
     }
-
 }

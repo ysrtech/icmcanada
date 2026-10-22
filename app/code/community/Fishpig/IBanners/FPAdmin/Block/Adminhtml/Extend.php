@@ -162,7 +162,7 @@ implements Mage_Adminhtml_Block_Widget_Tab_Interface
 	 * @param array $e
 	 * @return string
 	 */
-	public function getTitle(array $e = null)
+	public function getTitle(?array $e = null)
 	{
 		// Being called as a tab
 		if (is_null($e)) {

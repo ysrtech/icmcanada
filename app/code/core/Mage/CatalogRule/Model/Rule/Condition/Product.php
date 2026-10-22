@@ -1,48 +1,35 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogRule
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogRule
  */
 
+use Carbon\Carbon;
 
 /**
  * Catalog Rule Product Condition data model
+ *
+ * @package    Mage_CatalogRule
  */
 class Mage_CatalogRule_Model_Rule_Condition_Product extends Mage_Rule_Model_Condition_Product_Abstract
 {
     /**
      * Validate product attribute value for condition
      *
-     * @param Varien_Object $object
      * @return bool
      */
+    #[Override]
     public function validate(Varien_Object $object)
     {
         $attrCode = $this->getAttribute();
-        if ('category_ids' == $attrCode) {
+        if ($attrCode == 'category_ids') {
             return $this->validateAttribute($object->getCategoryIds());
         }
-        if ('attribute_set_id' == $attrCode) {
+
+        if ($attrCode == 'attribute_set_id') {
             return $this->validateAttribute($object->getData($attrCode));
         }
 
@@ -51,13 +38,13 @@ class Mage_CatalogRule_Model_Rule_Condition_Product extends Mage_Rule_Model_Cond
         $result = $this->_validateProduct($object);
         $this->_restoreOldAttrValue($object, $oldAttrValue);
 
-        return (bool)$result;
+        return (bool) $result;
     }
 
     /**
      * Validate product
      *
-     * @param Varien_Object $object
+     * @param  Varien_Object $object
      * @return bool
      */
     protected function _validateProduct($object)
@@ -69,7 +56,7 @@ class Mage_CatalogRule_Model_Rule_Condition_Product extends Mage_Rule_Model_Cond
      * Restore old attribute value
      *
      * @param Varien_Object $object
-     * @param mixed $oldAttrValue
+     * @param mixed         $oldAttrValue
      */
     protected function _restoreOldAttrValue($object, $oldAttrValue)
     {
@@ -84,7 +71,7 @@ class Mage_CatalogRule_Model_Rule_Condition_Product extends Mage_Rule_Model_Cond
     /**
      * Get attribute value
      *
-     * @param Varien_Object $object
+     * @param  Varien_Object $object
      * @return mixed
      */
     protected function _getAttributeValue($object)
@@ -92,47 +79,50 @@ class Mage_CatalogRule_Model_Rule_Condition_Product extends Mage_Rule_Model_Cond
         $attrCode = $this->getAttribute();
         $storeId = $object->getStoreId();
         $defaultStoreId = Mage_Core_Model_App::ADMIN_STORE_ID;
-        $productValues  = isset($this->_entityAttributeValues[$object->getId()])
-            ? $this->_entityAttributeValues[$object->getId()] : array();
-        $defaultValue = isset($productValues[$defaultStoreId])
-            ? $productValues[$defaultStoreId] : $object->getData($attrCode);
-        $value = isset($productValues[$storeId]) ? $productValues[$storeId] : $defaultValue;
+        $productValues  = $this->_entityAttributeValues[$object->getId()] ?? [];
+        $defaultValue = $productValues[$defaultStoreId] ?? $object->getData($attrCode);
+        $value = $productValues[$storeId] ?? $defaultValue;
 
         $value = $this->_prepareDatetimeValue($value, $object);
-        $value = $this->_prepareMultiselectValue($value, $object);
 
-        return $value;
+        return $this->_prepareMultiselectValue($value, $object);
     }
 
     /**
      * Prepare datetime attribute value
      *
-     * @param mixed $value
-     * @param Varien_Object $object
+     * @param  mixed         $value
+     * @param  Varien_Object $object
      * @return mixed
      */
     protected function _prepareDatetimeValue($value, $object)
     {
         $attribute = $object->getResource()->getAttribute($this->getAttribute());
-        if ($attribute && $attribute->getBackendType() == 'datetime') {
-            $value = strtotime($value);
+        if ($attribute && $attribute->getBackendType() === 'datetime') {
+            if (!$value) {
+                return null;
+            }
+
+            $value = Carbon::parse($value)->getTimestamp();
         }
+
         return $value;
     }
 
     /**
      * Prepare multiselect attribute value
      *
-     * @param mixed $value
-     * @param Varien_Object $object
+     * @param  mixed         $value
+     * @param  Varien_Object $object
      * @return mixed
      */
     protected function _prepareMultiselectValue($value, $object)
     {
         $attribute = $object->getResource()->getAttribute($this->getAttribute());
         if ($attribute && $attribute->getFrontendInput() == 'multiselect') {
-            $value = strlen($value) ? explode(',', $value) : array();
+            return strlen($value) ? explode(',', $value) : [];
         }
+
         return $value;
     }
 }

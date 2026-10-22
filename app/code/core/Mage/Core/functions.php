@@ -1,54 +1,13 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Core
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
+
+use Monolog\Level;
 
 /**
- * Disable magic quotes in runtime if needed
- *
- * @link http://us3.php.net/manual/en/security.magicquotes.disabling.php
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Core
  */
-if (get_magic_quotes_gpc()) {
-    function mageUndoMagicQuotes($array, $topLevel=true) {
-        $newArray = array();
-        foreach($array as $key => $value) {
-            if (!$topLevel) {
-                $newKey = stripslashes($key);
-                if ($newKey!==$key) {
-                    unset($array[$key]);
-                }
-                $key = $newKey;
-            }
-            $newArray[$key] = is_array($value) ? mageUndoMagicQuotes($value, false) : stripslashes($value);
-        }
-        return $newArray;
-    }
-    $_GET = mageUndoMagicQuotes($_GET);
-    $_POST = mageUndoMagicQuotes($_POST);
-    $_COOKIE = mageUndoMagicQuotes($_COOKIE);
-    $_REQUEST = mageUndoMagicQuotes($_REQUEST);
-}
 
 /**
  * Object destructor
@@ -62,15 +21,16 @@ function destruct($object)
             destruct($obj);
         }
     }
+
     unset($object);
 }
 
 /**
  * Translator function
  *
+ * @return string
  * @deprecated 1.3
- * @param string $text the text to translate
- * @param mixed optional parameters to use in sprintf
+ * @SuppressWarnings("PHPMD.ShortMethodName")
  */
 function __()
 {
@@ -82,12 +42,12 @@ function __()
  *
  * Will capitalize first letters and convert separators if needed
  *
- * @param string $str
- * @param string $destSep
- * @param string $srcSep
+ * @param  string $str
+ * @param  string $destSep
+ * @param  string $srcSep
  * @return string
  */
-function uc_words($str, $destSep='_', $srcSep='_')
+function uc_words($str, $destSep = '_', $srcSep = '_')
 {
     return str_replace(' ', $destSep, ucwords(str_replace($srcSep, ' ', $str)));
 }
@@ -95,82 +55,74 @@ function uc_words($str, $destSep='_', $srcSep='_')
 /**
  * Simple sql format date
  *
- * @param string $format
+ * @param  bool   $dayOnly
  * @return string
+ * @deprecated use equivalent Varien method directly
+ * @see Varien_Date::now()
  */
-function now($dayOnly=false)
+function now($dayOnly = false)
 {
-    return date($dayOnly ? 'Y-m-d' : 'Y-m-d H:i:s');
+    return Varien_Date::now($dayOnly);
 }
 
 /**
  * Check whether sql date is empty
  *
- * @param string $date
- * @return boolean
+ * @param  string $date
+ * @return bool
  */
 function is_empty_date($date)
 {
-    return preg_replace('#[ 0:-]#', '', $date)==='';
+    return $date === null || preg_replace('#[ 0:-]#', '', $date) === '';
 }
 
+/**
+ * @param  string      $class
+ * @return bool|string
+ */
 function mageFindClassFile($class)
 {
-    if (defined('COMPILER_INCLUDE_PATH')) {
-        $classFile = $class.'.php';
-    } else {
-        $classFile = uc_words($class, DIRECTORY_SEPARATOR).'.php';
-    }
+    $classFile = uc_words($class, DIRECTORY_SEPARATOR) . '.php';
     $found = false;
     foreach (explode(PS, get_include_path()) as $path) {
-        $fileName = $path.DS.$classFile;
+        $fileName = $path . DS . $classFile;
         if (file_exists($fileName)) {
             $found = $fileName;
             break;
         }
     }
+
     return $found;
 }
 
 /**
  * Custom error handler
  *
- * @param integer $errno
- * @param string $errstr
- * @param string $errfile
- * @param integer $errline
+ * @param  int       $errno
+ * @param  string    $errstr
+ * @param  string    $errfile
+ * @param  int       $errline
+ * @return null|bool
  */
-function mageCoreErrorHandler($errno, $errstr, $errfile, $errline){
-    if (strpos($errstr, 'DateTimeZone::__construct')!==false) {
+function mageCoreErrorHandler($errno, $errstr, $errfile, $errline)
+{
+    if (str_contains($errstr, 'DateTimeZone::__construct')) {
         // there's no way to distinguish between caught system exceptions and warnings
         return false;
     }
 
-    $errno = $errno & error_reporting();
+    $errno &= error_reporting();
     if ($errno == 0) {
         return false;
     }
-    if (!defined('E_STRICT')) {
-        define('E_STRICT', 2048);
-    }
-    if (!defined('E_RECOVERABLE_ERROR')) {
-        define('E_RECOVERABLE_ERROR', 4096);
-    }
-    if (!defined('E_DEPRECATED')) {
-        define('E_DEPRECATED', 8192);
-    }
-
-    // Suppress deprecation warnings on PHP 7.x
-    if ($errno == E_DEPRECATED && version_compare(PHP_VERSION, '7.0.0', '>=')) {
-        return true;
-    }
 
     // PEAR specific message handling
-    if (stripos($errfile.$errstr, 'pear') !== false) {
-         // ignore strict and deprecated notices
-        if (($errno == E_STRICT) || ($errno == E_DEPRECATED)) {
+    if (stripos($errfile . $errstr, 'pear') !== false) {
+        // ignore strict and deprecated notices
+        if ((PHP_VERSION_ID < 80400 && $errno == E_STRICT) || ($errno == E_DEPRECATED)) {
             return true;
         }
+
         // ignore attempts to read system files when open_basedir is set
         if ($errno == E_WARNING && stripos($errstr, 'open_basedir') !== false) {
             return true;
@@ -179,237 +131,180 @@ function mageCoreErrorHandler($errno, $errstr, $errfile, $errline){
 
     $errorMessage = '';
 
-    switch($errno){
-        case E_ERROR:
-            $errorMessage .= "Error";
-            break;
-        case E_WARNING:
-            $errorMessage .= "Warning";
-            break;
-        case E_PARSE:
-            $errorMessage .= "Parse Error";
-            break;
-        case E_NOTICE:
-            $errorMessage .= "Notice";
-            break;
-        case E_CORE_ERROR:
-            $errorMessage .= "Core Error";
-            break;
-        case E_CORE_WARNING:
-            $errorMessage .= "Core Warning";
-            break;
-        case E_COMPILE_ERROR:
-            $errorMessage .= "Compile Error";
-            break;
-        case E_COMPILE_WARNING:
-            $errorMessage .= "Compile Warning";
-            break;
-        case E_USER_ERROR:
-            $errorMessage .= "User Error";
-            break;
-        case E_USER_WARNING:
-            $errorMessage .= "User Warning";
-            break;
-        case E_USER_NOTICE:
-            $errorMessage .= "User Notice";
-            break;
-        case E_STRICT:
-            $errorMessage .= "Strict Notice";
-            break;
-        case E_RECOVERABLE_ERROR:
-            $errorMessage .= "Recoverable Error";
-            break;
-        case E_DEPRECATED:
-            $errorMessage .= "Deprecated functionality";
-            break;
-        default:
-            $errorMessage .= "Unknown error ($errno)";
-            break;
-    }
+    match ($errno) {
+        E_ERROR => $errorMessage .= 'Error',
+        E_WARNING => $errorMessage .= 'Warning',
+        E_PARSE => $errorMessage .= 'Parse Error',
+        E_NOTICE => $errorMessage .= 'Notice',
+        E_CORE_ERROR => $errorMessage .= 'Core Error',
+        E_CORE_WARNING => $errorMessage .= 'Core Warning',
+        E_COMPILE_ERROR => $errorMessage .= 'Compile Error',
+        E_COMPILE_WARNING => $errorMessage .= 'Compile Warning',
+        E_USER_ERROR => $errorMessage .= 'User Error',
+        E_USER_WARNING => $errorMessage .= 'User Warning',
+        E_USER_NOTICE => $errorMessage .= 'User Notice',
+        // E_STRICT prior to PHP8.4
+        2048 => $errorMessage .= 'Strict Notice',
+        E_RECOVERABLE_ERROR => $errorMessage .= 'Recoverable Error',
+        E_DEPRECATED => $errorMessage .= 'Deprecated functionality',
+        E_USER_DEPRECATED => $errorMessage .= 'User deprecated functionality',
+        default => $errorMessage .= "Unknown error ({$errno})",
+    };
 
     $errorMessage .= ": {$errstr}  in {$errfile} on line {$errline}";
     if (Mage::getIsDeveloperMode()) {
         throw new Exception($errorMessage);
-    } else {
-        Mage::log($errorMessage, Zend_Log::ERR);
     }
+
+    Mage::log($errorMessage, Level::Error);
+    return null;
 }
 
-function mageDebugBacktrace($return=false, $html=true, $showFirst=false)
+/**
+ * @param  bool        $return
+ * @param  bool        $html
+ * @param  bool        $showFirst
+ * @return null|string
+ *
+ * @SuppressWarnings("PHPMD.ErrorControlOperator")
+ */
+function mageDebugBacktrace($return = false, $html = true, $showFirst = false)
 {
-    $d = debug_backtrace();
+    $debugBacktrace = debug_backtrace();
     $out = '';
-    if ($html) $out .= "<pre>";
-    foreach ($d as $i=>$r) {
-        if (!$showFirst && $i==0) {
+    if ($html) {
+        $out .= '<pre>';
+    }
+
+    foreach ($debugBacktrace as $index => $value) {
+        if (!$showFirst && $index == 0) {
             continue;
         }
+
         // sometimes there is undefined index 'file'
-        @$out .= "[$i] {$r['file']}:{$r['line']}\n";
+        @$out .= "[{$index}] {$value['file']}:{$value['line']}\n";
     }
-    if ($html) $out .= "</pre>";
+
+    if ($html) {
+        $out .= '</pre>';
+    }
+
     if ($return) {
         return $out;
-    } else {
-        echo $out;
     }
+
+    echo $out;
+    return null;
 }
 
-function mageSendErrorHeader()
+function mageSendErrorHeader() {}
+
+function mageSendErrorFooter() {}
+
+/**
+ * @param string $path
+ *
+ * @SuppressWarnings("PHPMD.ErrorControlOperator")
+ */
+function mageDelTree($path)
 {
-    return;
-    if (!isset($_SERVER['SCRIPT_NAME'])) {
-        return;
-    }
-    $action = Mage::app()->getRequest()->getBasePath()."bugreport.php";
-    echo '<form id="error_report" method="post" style="display:none" action="'.$action.'"><textarea name="error">';
-}
-
-function mageSendErrorFooter()
-{
-    return;
-    if (!isset($_SERVER['SCRIPT_NAME'])) {
-        return;
-    }
-    echo '</textarea></form><script type="text/javascript">document.getElementById("error_report").submit()</script>';
-    exit;
-}
-
-function mageDelTree($path) {
     if (is_dir($path)) {
         $entries = scandir($path);
         foreach ($entries as $entry) {
             if ($entry != '.' && $entry != '..') {
-                mageDelTree($path.DS.$entry);
+                mageDelTree($path . DS . $entry);
             }
         }
+
         @rmdir($path);
     } else {
         @unlink($path);
     }
 }
 
-function mageParseCsv($string, $delimiter=",", $enclosure='"', $escape='\\')
+/**
+ * @param  string $string
+ * @param  string $delimiter
+ * @param  string $enclosure
+ * @param  string $escape
+ * @return array
+ */
+function mageParseCsv($string, $delimiter = ',', $enclosure = '"', $escape = '\\')
 {
     $elements = explode($delimiter, $string);
-    for ($i = 0; $i < count($elements); $i++) {
+    $counter = count($elements);
+    for ($i = 0; $i < $counter; $i++) {
         $nquotes = substr_count($elements[$i], $enclosure);
-        if ($nquotes %2 == 1) {
-            for ($j = $i+1; $j < count($elements); $j++) {
+        if ($nquotes % 2 == 1) {
+            for ($j = $i + 1; $j < count($elements); $j++) {
                 if (substr_count($elements[$j], $enclosure) > 0) {
                     // Put the quoted string's pieces back together again
-                    array_splice($elements, $i, $j-$i+1,
-                        implode($delimiter, array_slice($elements, $i, $j-$i+1)));
+                    array_splice(
+                        $elements,
+                        $i,
+                        $j - $i + 1,
+                        implode($delimiter, array_slice($elements, $i, $j - $i + 1)),
+                    );
                     break;
                 }
             }
         }
+
         if ($nquotes > 0) {
             // Remove first and last quotes, then merge pairs of quotes
-            $qstr =& $elements[$i];
+            $qstr = & $elements[$i];
             $qstr = substr_replace($qstr, '', strpos($qstr, $enclosure), 1);
             $qstr = substr_replace($qstr, '', strrpos($qstr, $enclosure), 1);
-            $qstr = str_replace($enclosure.$enclosure, $enclosure, $qstr);
+            $qstr = str_replace($enclosure . $enclosure, $enclosure, $qstr);
         }
     }
+
     return $elements;
 }
 
-function is_dir_writeable($dir)
+/**
+ * @param  string $dir
+ * @return bool
+ *
+ * @SuppressWarnings("PHPMD.ErrorControlOperator")
+ */
+function isDirWriteable($dir)
 {
     if (is_dir($dir) && is_writable($dir)) {
         if (stripos(PHP_OS, 'win') === 0) {
-            $dir    = ltrim($dir, DIRECTORY_SEPARATOR);
-            $file   = $dir . DIRECTORY_SEPARATOR . uniqid(mt_rand()).'.tmp';
-            $exist  = file_exists($file);
-            $fp     = @fopen($file, 'a');
-            if ($fp === false) {
+            $dir        = ltrim($dir, DIRECTORY_SEPARATOR);
+            $file       = $dir . DIRECTORY_SEPARATOR . uniqid((string) mt_rand()) . '.tmp';
+            $exist      = file_exists($file);
+            $resource   = @fopen($file, 'a');
+            if ($resource === false) {
                 return false;
             }
-            fclose($fp);
+
+            fclose($resource);
             if (!$exist) {
                 unlink($file);
             }
         }
+
         return true;
     }
+
     return false;
 }
 
-if ( !function_exists('sys_get_temp_dir') ) {
-    // Based on http://www.phpit.net/
-    // article/creating-zip-tar-archives-dynamically-php/2/
-    function sys_get_temp_dir()
-    {
-        // Try to get from environment variable
-        if ( !empty($_ENV['TMP']) ) {
-            return realpath( $_ENV['TMP'] );
-        } else if ( !empty($_ENV['TMPDIR']) ) {
-            return realpath( $_ENV['TMPDIR'] );
-        } else if ( !empty($_ENV['TEMP']) ) {
-            return realpath( $_ENV['TEMP'] );
-        } else {
-            // Try to use system's temporary directory
-            // as random name shouldn't exist
-            $temp_file = tempnam( md5(uniqid(rand(), TRUE)), '' );
-            if ( $temp_file ) {
-                $temp_dir = realpath( dirname($temp_file) );
-                unlink( $temp_file );
-                return $temp_dir;
-            } else {
-                return FALSE;
-            }
-        }
-    }
-}
 
-if (!function_exists('hash_equals')) {
-    /**
-     * Compares two strings using the same time whether they're equal or not.
-     * A difference in length will leak
-     *
-     * @param string $known_string
-     * @param string $user_string
-     * @return boolean Returns true when the two strings are equal, false otherwise.
-     */
-    function hash_equals($known_string, $user_string)
-    {
-        $result = 0;
-
-        if (!is_string($known_string)) {
-            trigger_error("hash_equals(): Expected known_string to be a string", E_USER_WARNING);
-            return false;
-        }
-
-        if (!is_string($user_string)) {
-            trigger_error("hash_equals(): Expected user_string to be a string", E_USER_WARNING);
-            return false;
-        }
-
-        if (strlen($known_string) != strlen($user_string)) {
-            return false;
-        }
-
-        for ($i = 0; $i < strlen($known_string); $i++) {
-            $result |= (ord($known_string[$i]) ^ ord($user_string[$i]));
-        }
-
-        return 0 === $result;
-    }
-}
-
-if (version_compare(PHP_VERSION, '7.0.0', '<') && !function_exists('random_int')) {
-    /**
-     * Generates pseudo-random integers
-     *
-     * @param int $min
-     * @param int $max
-     * @return int Returns random integer in the range $min to $max, inclusive.
-     */
-    function random_int($min, $max)
-    {
-        mt_srand();
-
-        return mt_rand($min, $max);
-    }
+/**
+ * @param  string $dir
+ * @return bool
+ * @deprecated avoid php_codesniffer error
+ *
+ *     An error occurred during processing; checking has been aborted. The error message was: Undefined index: ^is_dir/i_writeab in
+ *     /var/www/html/vendor/squizlabs/php_codesniffer/src/Standards/Generic/Sniffs/PHP/ForbiddenFunctionsSniff.php on line 228
+ *     The error originated in the Generic.PHP.ForbiddenFunctions sniff on line 228. (Internal.Exception)
+ *
+ * @see isDirWriteable()
+ */
+function is_dir_writeable($dir)
+{
+    return isDirWriteable($dir);
 }

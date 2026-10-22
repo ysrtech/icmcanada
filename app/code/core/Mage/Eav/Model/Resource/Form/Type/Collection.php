@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Eav
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Eav
+ */
 
 /**
  * Eav Form Type Resource Collection
  *
- * @category    Mage
- * @package     Mage_Eav
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Eav
  */
 class Mage_Eav_Model_Resource_Form_Type_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
 {
     /**
-     * Initialize collection model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -48,6 +27,7 @@ class Mage_Eav_Model_Resource_Form_Type_Collection extends Mage_Core_Model_Resou
      *
      * @return array
      */
+    #[Override]
     public function toOptionArray()
     {
         return $this->_toOptionArray('type_id', 'label');
@@ -56,8 +36,8 @@ class Mage_Eav_Model_Resource_Form_Type_Collection extends Mage_Core_Model_Resou
     /**
      * Add Entity type filter to collection
      *
-     * @param Mage_Eav_Model_Entity_Type|int $entity
-     * @return Mage_Eav_Model_Resource_Form_Type_Collection
+     * @param  int|Mage_Eav_Model_Entity_Type $entity
+     * @return $this
      */
     public function addEntityTypeFilter($entity)
     {
@@ -67,9 +47,10 @@ class Mage_Eav_Model_Resource_Form_Type_Collection extends Mage_Core_Model_Resou
 
         $this->getSelect()
             ->join(
-                array('form_type_entity' => $this->getTable('eav/form_type_entity')),
+                ['form_type_entity' => $this->getTable('eav/form_type_entity')],
                 'main_table.type_id = form_type_entity.type_id',
-                array())
+                [],
+            )
             ->where('form_type_entity.entity_type_id = ?', $entity);
 
         return $this;

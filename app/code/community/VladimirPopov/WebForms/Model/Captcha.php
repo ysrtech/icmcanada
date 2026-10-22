@@ -1,7 +1,7 @@
 <?php
 class VladimirPopov_WebForms_Model_Captcha extends Zend_Service_ReCaptcha{
 
-	public function getHtml(){
+	public function getHtml($name = null){
 		/*if(Mage::getStoreConfig('webforms/captcha/api') === 'ajax'){
 			return parent::getHtml();
                 }*/

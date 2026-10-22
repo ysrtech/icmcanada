@@ -1,33 +1,17 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Checkout
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Checkout
  */
 
 /**
  * Nominal total rendered
- *
  * Each item is rendered as separate total with its details
+ *
+ * @package    Mage_Checkout
  */
 class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Default
 {
@@ -41,7 +25,6 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for a quote item name
      *
-     * @param Mage_Sales_Model_Quote_Item_Abstract $quoteItem
      * @return string
      */
     public function getItemName(Mage_Sales_Model_Quote_Item_Abstract $quoteItem)
@@ -52,7 +35,6 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for a quote item row total
      *
-     * @param Mage_Sales_Model_Quote_Item_Abstract $quoteItem
      * @return float
      */
     public function getItemRowTotal(Mage_Sales_Model_Quote_Item_Abstract $quoteItem)
@@ -63,7 +45,6 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for nominal total item details
      *
-     * @param Mage_Sales_Model_Quote_Item_Abstract $quoteItem
      * @return array
      */
     public function getTotalItemDetails(Mage_Sales_Model_Quote_Item_Abstract $quoteItem)
@@ -74,7 +55,6 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for details row label
      *
-     * @param Varien_Object $row
      * @return string
      */
     public function getItemDetailsRowLabel(Varien_Object $row)
@@ -85,8 +65,7 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for details row amount
      *
-     * @param Varien_Object $row
-     * @return string
+     * @return float
      */
     public function getItemDetailsRowAmount(Varien_Object $row)
     {
@@ -96,7 +75,6 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Getter for details row compounded state
      *
-     * @param Varien_Object $row
      * @return bool
      */
     public function getItemDetailsRowIsCompounded(Varien_Object $row)
@@ -107,7 +85,7 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
     /**
      * Format an amount without container
      *
-     * @param float $amount
+     * @param  float  $amount
      * @return string
      */
     public function formatPrice($amount)
@@ -120,6 +98,7 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
      *
      * @return string
      */
+    #[Override]
     protected function _toHtml()
     {
         $total = $this->getTotal();
@@ -128,8 +107,10 @@ class Mage_Checkout_Block_Total_Nominal extends Mage_Checkout_Block_Total_Defaul
             foreach ($total->getData() as $key => $value) {
                 $this->setData("total_{$key}", $value);
             }
+
             return parent::_toHtml();
         }
+
         return '';
     }
 }

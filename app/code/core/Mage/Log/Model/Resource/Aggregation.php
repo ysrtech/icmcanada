@@ -1,42 +1,21 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Log
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Log
  */
 
-
 /**
- * Log aggregation resource model 
+ * Log aggregation resource model
  *
- * @category    Mage
- * @package     Mage_Log
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_Log
  */
 class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Resource initialization
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -52,8 +31,10 @@ class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Ab
     {
         $adapter    = $this->_getReadAdapter();
         $select     = $adapter->select()
-            ->from($this->getTable('log/summary_table'),
-                array($adapter->quoteIdentifier('date')=>'MAX(add_date)'));
+            ->from(
+                $this->getTable('log/summary_table'),
+                [$adapter->quoteIdentifier('date') => 'MAX(add_date)'],
+            );
 
         return $adapter->fetchOne($select);
     }
@@ -61,19 +42,19 @@ class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Ab
     /**
      * Retrieve count of visitors, customers
      *
-     * @param string $from
-     * @param string $to
-     * @param int $store
-     * @return array
+     * @param  null|string                         $dateFrom
+     * @param  null|string                         $dateTo
+     * @param  int                                 $store
+     * @return array<string, null|bool|int|string>
      */
-    public function getCounts($from, $to, $store)
+    public function getCounts($dateFrom, $dateTo, $store)
     {
         $adapter    = $this->_getReadAdapter();
-        $result     = array('customers'=>0, 'visitors'=>0);
+        $result     = ['customers' => 0, 'visitors' => 0];
         $select     = $adapter->select()
             ->from($this->getTable('log/customer'), 'visitor_id')
-            ->where('login_at >= ?', $from)
-            ->where('login_at <= ?', $to);
+            ->where('login_at >= ?', $dateFrom)
+            ->where('login_at <= ?', $dateTo);
         if ($store) {
             $select->where('store_id = ?', $store);
         }
@@ -81,21 +62,20 @@ class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Ab
         $customers = $adapter->fetchCol($select);
         $result['customers'] = count($customers);
 
-
         $select = $adapter->select();
         $select->from($this->getTable('log/visitor'), 'COUNT(*)')
-            ->where('first_visit_at >= ?', $from)
-            ->where('first_visit_at <= ?', $to);
+            ->where('first_visit_at >= ?', $dateFrom)
+            ->where('first_visit_at <= ?', $dateTo);
 
         if ($store) {
             $select->where('store_id = ?', $store);
         }
+
         if ($result['customers']) {
             $select->where('visitor_id NOT IN(?)', $customers);
         }
 
         $result['visitors'] = $adapter->fetchOne($select);
-
 
         return $result;
     }
@@ -103,8 +83,8 @@ class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Ab
     /**
      * Save log
      *
-     * @param array $data
-     * @param int $id
+     * @param array  $data
+     * @param string $id
      */
     public function saveLog($data, $id = null)
     {
@@ -125,28 +105,28 @@ class Mage_Log_Model_Resource_Aggregation extends Mage_Core_Model_Resource_Db_Ab
     public function removeEmpty($date)
     {
         $adapter    = $this->_getWriteAdapter();
-        $condition  = array(
+        $condition  = [
             'add_date < ?' => $date,
             'customer_count = 0',
-            'visitor_count = 0'
-        ); 
+            'visitor_count = 0',
+        ];
         $adapter->delete($this->getTable('log/summary_table'), $condition);
     }
 
     /**
      * Retrieve log id
      *
-     * @param string $from
-     * @param string $to
+     * @param  string $dateFrom
+     * @param  string $dateTo
      * @return string
      */
-    public function getLogId($from, $to)
+    public function getLogId($dateFrom, $dateTo)
     {
         $adapter    = $this->_getReadAdapter();
         $select     = $adapter->select()
             ->from($this->getTable('log/summary_table'), 'summary_id')
-            ->where('add_date >= ?', $from)
-            ->where('add_date <= ?', $to);
+            ->where('add_date >= ?', $dateFrom)
+            ->where('add_date <= ?', $dateTo);
 
         return $adapter->fetchOne($select);
     }

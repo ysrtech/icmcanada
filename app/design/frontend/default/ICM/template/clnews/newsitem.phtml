@@ -134,18 +134,18 @@
                     <?php if (!$this->helper('customer')->isLoggedIn()): ?>
                         <div class="input-box">
                             <label for="name"><?php echo Mage::helper('clnews')->__('Name') ?> <span class="required">*</span></label>
-                            <input name="user" id="user" value="<?php echo $this->getCommentName(); ?>" title="<?php echo $this->__('Name') ?>" value="<?php echo $this->htmlEscape($this->helper('clnews')->getUserName()) ?>" class="required-entry input-text" type="text" />
+                            <input name="user" id="user" value="<?php echo $this->getCommentName(); ?>" title="<?php echo $this->__('Name') ?>" value="<?php echo $this->escapeHtml($this->helper('clnews')->getUserName()) ?>" class="required-entry input-text" type="text" />
                         </div>
                         <div class="clear"></div>
 
                         <div class="input-box">
                             <label for="email"><?php echo Mage::helper('clnews')->__('Email') ?> <span class="required">*</span></label>
-                            <input name="email" id="email" value="<?php echo $this->getCommentEmail(); ?>" title="<?php echo $this->__('Email') ?>" value="<?php echo $this->htmlEscape($this->helper('clnews')->getUserEmail()) ?>" class="required-entry input-text validate-email" type="text" />
+                            <input name="email" id="email" value="<?php echo $this->getCommentEmail(); ?>" title="<?php echo $this->__('Email') ?>" value="<?php echo $this->escapeHtml($this->helper('clnews')->getUserEmail()) ?>" class="required-entry input-text validate-email" type="text" />
                         </div>
                     <?php else: ?>
                         <input name="post_id" type="hidden" value="<?php echo $item->getPostId();?>" />
-                        <input name="email" type="hidden" value="<?php echo $this->htmlEscape($this->helper('clnews')->getUserEmail()) ?>"/><br/>
-                        <input name="user" type="hidden" value="<?php echo $this->htmlEscape($this->helper('clnews')->getUserName()) ?>"/><br/>
+                        <input name="email" type="hidden" value="<?php echo $this->escapeHtml($this->helper('clnews')->getUserEmail()) ?>"/><br/>
+                        <input name="user" type="hidden" value="<?php echo $this->escapeHtml($this->helper('clnews')->getUserName()) ?>"/><br/>
                     <?php endif ?>
                     <div class="clear"></div>
                     <div class="input-box">

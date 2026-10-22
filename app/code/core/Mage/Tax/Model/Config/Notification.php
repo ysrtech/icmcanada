@@ -1,35 +1,20 @@
 <?php
+
 /**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tax
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Tax
  */
 
 /**
  * Tax Config Notification
  *
- * @category   Mage
  * @package    Mage_Tax
- * @author     Magento Core Team <core@magentocommerce.com>
+ *
+ * @method Mage_Tax_Model_Resource_Sales_Order_Tax_Item            _getResource()
+ * @method Mage_Tax_Model_Resource_Sales_Order_Tax_Item_Collection getCollection()
+ * @method Mage_Tax_Model_Resource_Sales_Order_Tax_Item            getResource()
  */
 class Mage_Tax_Model_Config_Notification extends Mage_Core_Model_Config_Data
 {
@@ -42,12 +27,10 @@ class Mage_Tax_Model_Config_Notification extends Mage_Core_Model_Config_Data
 
     /**
      * Initialize class instance
-     *
-     * @param array $args
      */
-    public function __construct(array $args = array())
+    public function __construct(array $args = [])
     {
-        $this->_factory = !empty($args['factory']) ? $args['factory'] : Mage::getSingleton('core/factory');
+        $this->_factory = empty($args['factory']) ? Mage::getSingleton('core/factory') : $args['factory'];
         parent::__construct($args);
     }
 
@@ -58,36 +41,38 @@ class Mage_Tax_Model_Config_Notification extends Mage_Core_Model_Config_Data
      */
     protected function _getConfig()
     {
-        return $this->_factory->getModel('core/config_data');
+        /** @var Mage_Core_Model_Config_Data $model */
+        $model = $this->_factory->getModel('core/config_data');
+        return $model;
     }
 
     /**
      * Prepare and store cron settings after save
      *
-     * @return Mage_Tax_Model_Config_Notification
+     * @inheritDoc
+     * @throws Throwable
      */
+    #[Override]
     protected function _afterSave()
     {
         if ($this->isValueChanged()) {
             $this->_resetNotificationFlag(Mage_Tax_Model_Config::XML_PATH_TAX_NOTIFICATION_DISCOUNT);
             $this->_resetNotificationFlag(Mage_Tax_Model_Config::XML_PATH_TAX_NOTIFICATION_PRICE_DISPLAY);
         }
+
         return parent::_afterSave();
     }
 
     /**
      * Reset flag for showing tax notifications
      *
-     * @param string $path
-     * @return Mage_Tax_Model_Config_Notification
+     * @param  string    $path
+     * @return $this
+     * @throws Throwable
      */
     protected function _resetNotificationFlag($path)
     {
-        $this->_getConfig()
-            ->load($path, 'path')
-            ->setValue(0)
-            ->setPath($path)
-            ->save();
+        Mage::helper('tax')->setIsIgnored($path, false);
         return $this;
     }
 }

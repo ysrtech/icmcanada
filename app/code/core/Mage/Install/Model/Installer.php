@@ -1,50 +1,28 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Install
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Install
+ */
 
 /**
  * Installer model
  *
- * @category   Mage
  * @package    Mage_Install
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 class Mage_Install_Model_Installer extends Varien_Object
 {
-
     /**
      * Installer host response used to check urls
-     *
      */
-    const INSTALLER_HOST_RESPONSE   = 'MAGENTO';
+    public const INSTALLER_HOST_RESPONSE   = 'MAGENTO';
 
     /**
      * Installer data model used to store data between installation steps
      *
-     * @var Varien_Object
+     * @var null|Mage_Install_Model_Installer_Data|Mage_Install_Model_Session
      */
     protected $_dataModel;
 
@@ -61,43 +39,27 @@ class Mage_Install_Model_Installer extends Varien_Object
     /**
      * Get data model
      *
-     * @return Varien_Object
+     * @return Mage_Install_Model_Session
      */
     public function getDataModel()
     {
         if (is_null($this->_dataModel)) {
             $this->setDataModel(Mage::getSingleton('install/session'));
         }
+
         return $this->_dataModel;
     }
 
     /**
      * Set data model to store data between installation steps
      *
-     * @param Varien_Object $model
-     * @return Mage_Install_Model_Installer
+     * @param  Mage_Install_Model_Installer_Data|Mage_Install_Model_Session $model
+     * @return $this
      */
     public function setDataModel(Varien_Object $model)
     {
         $this->_dataModel = $model;
         return $this;
-    }
-
-    /**
-     * Check packages (pear) downloads
-     *
-     * @return boolean
-     */
-    public function checkDownloads()
-    {
-        try {
-            $result = Mage::getModel('install/installer_pear')->checkDownloads();
-            $result = true;
-        } catch (Exception $e) {
-            $result = false;
-        }
-        $this->setDownloadCheckStatus($result);
-        return $result;
     }
 
     /**
@@ -112,9 +74,10 @@ class Mage_Install_Model_Installer extends Varien_Object
 
             Mage::getModel('install/installer_env')->install();
             $result = true;
-        } catch (Exception $e) {
+        } catch (Exception) {
             $result = false;
         }
+
         $this->setData('server_check_status', $result);
         return $result;
     }
@@ -122,22 +85,23 @@ class Mage_Install_Model_Installer extends Varien_Object
     /**
      * Retrieve server checking result status
      *
-     * @return unknown
+     * @return bool
      */
     public function getServerCheckStatus()
     {
-        $status = $this->getData('server_check_status');
+        $status = $this->getDataByKey('server_check_status');
         if (is_null($status)) {
-            $status = $this->checkServer();
+            return $this->checkServer();
         }
+
         return $status;
     }
 
     /**
      * Installation config data
      *
-     * @param   array $data
-     * @return  Mage_Install_Model_Installer
+     * @param  array $data
+     * @return $this
      */
     public function installConfig($data)
     {
@@ -154,7 +118,7 @@ class Mage_Install_Model_Installer extends Varien_Object
     /**
      * Database installation
      *
-     * @return Mage_Install_Model_Installer
+     * @return $this
      */
     public function installDb()
     {
@@ -171,11 +135,10 @@ class Mage_Install_Model_Installer extends Varien_Object
         }
 
         if (!empty($data['enable_charts'])) {
-            $setupModel->setConfigData(Mage_Adminhtml_Block_Dashboard::XML_PATH_ENABLE_CHARTS, 1);
+            $setupModel->setConfigData(Mage_Adminhtml_Helper_Dashboard_Data::XML_PATH_ENABLE_CHARTS, 1);
         } else {
-            $setupModel->setConfigData(Mage_Adminhtml_Block_Dashboard::XML_PATH_ENABLE_CHARTS, 0);
+            $setupModel->setConfigData(Mage_Adminhtml_Helper_Dashboard_Data::XML_PATH_ENABLE_CHARTS, 0);
         }
-
 
         $unsecureBaseUrl = Mage::getBaseUrl('web');
         if (!empty($data['unsecure_base_url'])) {
@@ -189,8 +152,7 @@ class Mage_Install_Model_Installer extends Varien_Object
             if (!empty($data['use_secure_admin'])) {
                 $setupModel->setConfigData(Mage_Core_Model_Store::XML_PATH_SECURE_IN_ADMINHTML, 1);
             }
-        }
-        elseif (!empty($data['unsecure_base_url'])) {
+        } elseif (!empty($data['unsecure_base_url'])) {
             $setupModel->setConfigData(Mage_Core_Model_Store::XML_PATH_SECURE_BASE_URL, $unsecureBaseUrl);
         }
 
@@ -201,9 +163,11 @@ class Mage_Install_Model_Installer extends Varien_Object
         if (!empty($locale['locale'])) {
             $setupModel->setConfigData(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE, $locale['locale']);
         }
+
         if (!empty($locale['timezone'])) {
             $setupModel->setConfigData(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE, $locale['timezone']);
         }
+
         if (!empty($locale['currency'])) {
             $setupModel->setConfigData(Mage_Directory_Model_Currency::XML_PATH_CURRENCY_BASE, $locale['currency']);
             $setupModel->setConfigData(Mage_Directory_Model_Currency::XML_PATH_CURRENCY_DEFAULT, $locale['currency']);
@@ -217,8 +181,9 @@ class Mage_Install_Model_Installer extends Varien_Object
      * Prepare admin user data in model and validate it.
      * Returns TRUE or array of error messages.
      *
-     * @param array $data
-     * @return mixed
+     * @param  array                       $data
+     * @return array|Mage_Admin_Model_User
+     * @throws Mage_Core_Exception
      */
     public function validateAndPrepareAdministrator($data)
     {
@@ -231,18 +196,22 @@ class Mage_Install_Model_Installer extends Varien_Object
             foreach ($result as $error) {
                 $this->getDataModel()->addError($error);
             }
+
             return $result;
         }
+
         return $user;
     }
 
     /**
      * Create admin user.
-     * Paramater can be prepared user model or array of data.
+     * Parameter can be prepared user model or array of data.
      * Returns TRUE or throws exception.
      *
-     * @param mixed $data
+     * @param  mixed               $data
      * @return bool
+     * @throws Mage_Core_Exception
+     * @throws Throwable
      */
     public function createAdministrator($data)
     {
@@ -255,21 +224,15 @@ class Mage_Install_Model_Installer extends Varien_Object
         //to support old logic checking if real data was passed
         if (is_array($data)) {
             $data = $this->validateAndPrepareAdministrator($data);
-            if (is_array(data)) {
+            if (is_array($data)) {
                 throw new Exception(Mage::helper('install')->__('Please correct the user data and try again.'));
             }
         }
 
         //run time flag to force saving entered password
         $data->setForceNewPassword(true);
-
         $data->save();
-        $data->setRoleIds(array(1))->saveRelations();
-
-        /*Mage::getModel("permissions/user")->setRoleId(1)
-            ->setUserId($user->getId())
-            ->setFirstname($user->getFirstname())
-            ->add();*/
+        $data->setRoleIds([1])->saveRelations();
 
         return true;
     }
@@ -278,23 +241,23 @@ class Mage_Install_Model_Installer extends Varien_Object
      * Validating encryption key.
      * Returns TRUE or array of error messages.
      *
-     * @param $key
-     * @return unknown_type
+     * @param  string        $key
+     * @return string[]|true
      */
     public function validateEncryptionKey($key)
     {
-        $errors = array();
+        $errors = [];
 
         try {
             if ($key) {
                 Mage::helper('core')->validateKey($key);
             }
-        } catch (Exception $e) {
-            $errors[] = $e->getMessage();
-            $this->getDataModel()->addError($e->getMessage());
+        } catch (Exception $exception) {
+            $errors[] = $exception->getMessage();
+            $this->getDataModel()->addError($exception->getMessage());
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             return $errors;
         }
 
@@ -304,29 +267,33 @@ class Mage_Install_Model_Installer extends Varien_Object
     /**
      * Set encryption key
      *
-     * @param string $key
-     * @return Mage_Install_Model_Installer
+     * @param  string $key
+     * @return $this
      */
     public function installEnryptionKey($key)
     {
         if ($key) {
             Mage::helper('core')->validateKey($key);
         }
+
         Mage::getSingleton('install/installer_config')->replaceTmpEncryptKey($key);
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function finish()
     {
         Mage::getSingleton('install/installer_config')->replaceTmpInstallDate();
         Mage::app()->cleanCache();
 
-        $cacheData = array();
-        foreach (Mage::helper('core')->getCacheTypes() as $type => $label) {
+        $cacheData = [];
+        foreach (array_keys(Mage::helper('core')->getCacheTypes()) as $type) {
             $cacheData[$type] = 1;
         }
+
         Mage::app()->saveUseCache($cacheData);
         return $this;
     }
-
 }

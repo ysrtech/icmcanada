@@ -72,15 +72,15 @@ if($_attr) {
 
 			$_imgHtml = '
 				<a href="'.$this->getUrl('/').$_attr->getAttributeCode().'/'.$_attr->getIdentifier().'"
-				title="'.$this->htmlEscape($_attr->getName()).'"
+				title="'.$this->escapeHtml($_attr->getName()).'"
 				style="display: block; background:url(\''.$_imgUrl.'\') no-repeat top center; height: '.($thumbnail_height ? $thumbnail_height : $height).'px"
 				</a>';
 		} else {
 			$_imgHtml = '<img
 				width="'.($thumbnail_width ? $thumbnail_width : $width) .'"
 		        src="'.$_imgUrl.'"
-		        alt="'.$this->htmlEscape($_attr->getValue()).'"
-		        title="'.$this->htmlEscape($_attr->getValue()).'"
+		        alt="'.$this->escapeHtml($_attr->getValue()).'"
+		        title="'.$this->escapeHtml($_attr->getValue()).'"
 		        align="'.$img_align.'"
 		        class="product-attribute-image" />';
 		}
@@ -89,8 +89,8 @@ if($_attr) {
 /*if ($_imgUrl = $_attr->getImageUrl()) {
 	$_imgHtml = '<img
         src="'.$_imgUrl.'"
-        alt="'.$this->htmlEscape($_attr->getValue()).'"
-        title="'.$this->htmlEscape($_attr->getValue()).'"
+        alt="'.$this->escapeHtml($_attr->getValue()).'"
+        title="'.$this->escapeHtml($_attr->getValue()).'"
         align="'.$img_align.'"
         class="attribute-image" />';
 }*/

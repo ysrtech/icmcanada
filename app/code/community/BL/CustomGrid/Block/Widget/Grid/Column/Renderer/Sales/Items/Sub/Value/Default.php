@@ -43,7 +43,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Sales_Items_Sub_Value_Defa
      */
     protected function _renderItemName()
     {
-        return $this->htmlEscape($this->getItem()->getName());
+        return $this->escapeHtml($this->getItem()->getName());
     }
     
     /**
@@ -53,7 +53,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Sales_Items_Sub_Value_Defa
      */
     protected function _renderItemSku()
     {
-        return implode('<br />', $this->helper('catalog')->splitSku($this->htmlEscape($this->getItem()->getSku())));
+        return implode('<br />', $this->helper('catalog')->splitSku($this->escapeHtml($this->getItem()->getSku())));
     }
     
     /**
@@ -76,7 +76,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Sales_Items_Sub_Value_Defa
     protected function _renderItemSingleQty()
     {
         $code = $this->getCode();
-        return $this->getItem()->getDataUsingMethod($code == 'quantity' ? 'qty' : $code)*1;
+        return $this->getItem()->getDataUsingMethod($code == 'quantity' ? 'qty' : $code) * 1;
     }
     
     /**

@@ -81,6 +81,22 @@ class BL_CustomGrid_Object extends Varien_Object
     }
     
     /**
+     * Complement the original data with the given data
+     *
+     * @param array $data Data to only add if missing (on a per-value basis)
+     * @return BL_CustomGrid_Object
+     */
+    public function complementData(array $data)
+    {
+        foreach ($data as $key => $value) {
+            if (!$this->hasData($key)) {
+                $this->setData($key, $value);
+            }
+        }
+        return $this;
+    }
+    
+    /**
      * Merge the given data into the original data
      * 
      * @param array $data Data to merge
@@ -186,6 +202,7 @@ class BL_CustomGrid_Object extends Varien_Object
      * 
      * @param string $key Data key
      * @param BL_CustomGrid_Object $object Object with which to compare the given value
+     * @param bool $withCase Whether string values should be compared case-sensitively
      * @return int 1 if the value from this object is greater, -1 if it is lesser, 0 if both values are equal
      */
     public function compareStringDataTo($key, BL_CustomGrid_Object $object, $withCase = true)
@@ -193,6 +210,29 @@ class BL_CustomGrid_Object extends Varien_Object
         $value = (string) $this->getData($key);
         $otherValue = (string) $object->getData($key);
         return ($withCase ? strcmp($value, $otherValue) : strcasecmp($value, $otherValue));
+    }
+    
+    /**
+     * Sort the values contained in the array corresponding to the given data key
+     * (does nothing if the value is not an array)
+     *
+     * @see sort() and ksort()
+     * @param string $key Data key
+     * @param int $flags Sorting type flags
+     * @param bool $byKey Whether the value should be sorted by key
+     * @return BL_CustomGrid_Object
+     */
+    protected function _sortData($key, $flags = SORT_REGULAR, $byKey = false)
+    {
+        if (is_array($data = $this->getData($key))) {
+            if ($byKey) {
+                ksort($data, $flags);
+            } else {
+                sort($data, $flags);
+            }
+            $this->setData($key, $data);
+        }
+        return $this;
     }
     
     /**
@@ -206,11 +246,7 @@ class BL_CustomGrid_Object extends Varien_Object
      */
     public function sortData($key, $flags = SORT_REGULAR)
     {
-        if (is_array($data = $this->getData($key))) {
-            sort($data, $flags);
-            $this->setData($key, $data);
-        }
-        return $this;
+        return $this->_sortData($key, $flags);
     }
     
     /**
@@ -224,11 +260,7 @@ class BL_CustomGrid_Object extends Varien_Object
      */
     public function ksortData($key, $flags = SORT_REGULAR)
     {
-        if (is_array($data = $this->getData($key))) {
-            ksort($data, $flags);
-            $this->setData($key, $data);
-        }
-        return $this;
+        return $this->_sortData($key, $flags, true);
     }
     
     /**
@@ -239,7 +271,66 @@ class BL_CustomGrid_Object extends Varien_Object
      */
     protected function _explodeCompoundKey($key)
     {
-        return array_filter(explode('/', $key), create_function('$v', 'return ($v !== "");'));
+        return array_filter(explode('/', $key), function($v) { return ($v !== ''); });
+    }
+    
+    /**
+     * Traverse the object data by following the given keys and by initializing as much array sub-values as needed
+     * 
+     * @param array $keys Data keys
+     * @return array 0 => Whether the data was left untouched because every key already existed
+     *               1 => A reference to the value holded by the last key
+     */
+    protected function _hardTraverseDataKeys(array $keys)
+    {
+        $data =& $this->_data;
+        $isDataUntouched = true;
+        
+        foreach ($keys as $key) {
+            if (!isset($data[$key])
+                || !(is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
+                $isDataUntouched = false;
+                $data[$key] = array();
+            }
+            if ($data[$key] instanceof Varien_Object) {
+                $data =& $data[$key]->_data;
+            } else {
+                $data =& $data[$key];
+            }
+        }
+        
+        return array($isDataUntouched, &$data);
+    }
+    
+    /**
+     * Traverse the object data by following the given keys and by stopping as soon as a key can not be found
+     * 
+     * @param array $keys Data keys
+     * @return array 0 => Whether the last key was found
+     *               1 => If any, the first key that was not found, otherwise the last key
+     *               2 => A reference to tshe value holded by the latest key that was found
+     */
+    protected function _softTraverseDataKeys(array $keys)
+    {
+        $key = null;
+        $data =& $this->_data;
+        $isLastKeyFound = true;
+        
+        foreach ($keys as $key) {
+            if (isset($data[$key])
+                && (is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
+                if ($data[$key] instanceof Varien_Object) {
+                    $data =& $data[$key]->_data;
+                } else {
+                    $data =& $data[$key];
+                }
+            } else {
+                $isLastKeyFound = false;
+                break;
+            }
+        }
+        
+        return array($isLastKeyFound, $key, &$data);
     }
     
     /**
@@ -253,22 +344,9 @@ class BL_CustomGrid_Object extends Varien_Object
     {
         if (is_string($key) && (strpos($key, '/') !== false)) {
             $this->_hasDataChanges = true;
-            $data =& $this->_data;
             $keys =  $this->_explodeCompoundKey($key);
-            
-            foreach ($keys as $key) {
-                if (!isset($data[$key])
-                    || !(is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
-                    $data[$key] = array();
-                }
-                if ($data[$key] instanceof Varien_Object) {
-                    $data =& $data[$key]->_data;
-                } else {
-                    $data =& $data[$key];
-                }
-            }
-            
-            $data = $value;
+            $result = $this->_hardTraverseDataKeys($keys);
+            $result[1] = $value;
             return $this;
         }
         return parent::setData($key, $value);
@@ -284,27 +362,12 @@ class BL_CustomGrid_Object extends Varien_Object
     {
         if (is_string($key) && (strpos($key, '/') !== false)) {
             $this->_hasDataChanges = true;
-            $data    =& $this->_data;
             $keys    =  $this->_explodeCompoundKey($key);
             $lastKey =  array_pop($keys);
-            $found   =  true;
+            $result  = $this->_softTraverseDataKeys($keys);
             
-            foreach ($keys as $key) {
-                if (isset($data[$key])
-                    && (is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
-                    if ($data[$key] instanceof Varien_Object) {
-                        $data =& $data[$key]->_data;
-                    } else {
-                        $data =& $data[$key];
-                    }
-                } else {
-                    $found = false;
-                    break;
-                }
-            }
-            
-            if ($found) {
-                unset($data[$lastKey]);
+            if ($result[0] && isset($result[2][$lastKey])) {
+                unset($result[2][$lastKey]);
             }
             
             return $this;
@@ -323,29 +386,15 @@ class BL_CustomGrid_Object extends Varien_Object
     public function getDataSetDefault($key, $default)
     {
         if (is_string($key) && (strpos($key, '/') !== false)) {
-            $data    =& $this->_data;
             $keys    =  $this->_explodeCompoundKey($key);
             $lastKey =  array_pop($keys);
-            $found   =  true;
+            $result  = $this->_hardTraverseDataKeys($keys);
             
-            foreach ($keys as $key) {
-                if (!isset($data[$key])
-                    || !(is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
-                    $found = false;
-                    $data[$key] = array();
-                }
-                if ($data[$key] instanceof Varien_Object) {
-                    $data =& $data[$key]->_data;
-                } else {
-                    $data =& $data[$key];
-                }
+            if (!$result[0] || !isset($result[1][$lastKey])) {
+                $result[1][$lastKey] = $default;
             }
             
-            if (!$found || !isset($data[$lastKey])) {
-                $data[$lastKey] = $default;
-            }
-            
-            return $data[$lastKey];
+            return $result[1][$lastKey];
         }
         return parent::getDataSetDefault($key, $default);
     }
@@ -375,27 +424,14 @@ class BL_CustomGrid_Object extends Varien_Object
     public function hasData($key = '')
     {
         if (is_string($key) && (strpos($key, '/') !== false)) {
-            $data    =& $this->_data;
             $keys    =  $this->_explodeCompoundKey($key);
             $lastKey =  array_pop($keys);
-            $found   =  true;
+            $result  = $this->_softTraverseDataKeys($keys);
             
-            foreach ($keys as $key) {
-                if (isset($data[$key])
-                    && (is_array($data[$key]) || ($data[$key] instanceof Varien_Object))) {
-                    if ($data[$key] instanceof Varien_Object) {
-                        $data =& $data[$key]->_data;
-                    } else {
-                        $data =& $data[$key];
-                    }
-                } else {
-                    $found = false;
-                    break;
-                }
-            }
-            
-            if ($found) {
-                $found = array_key_exists($lastKey, $data);
+            if ($result[0]) {
+                $found = array_key_exists($lastKey, $result[2]);
+            } else {
+                $found = false;
             }
             
             return $found;

@@ -1,42 +1,21 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_CatalogSearch
+ */
 
 /**
  * CatalogSearch Fulltext Index Engine resource model
  *
- * @category    Mage
- * @package     Mage_CatalogSearch
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @package    Mage_CatalogSearch
  */
 class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
-     * Init resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -46,45 +25,46 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
     /**
      * Add entity data to fulltext search table
      *
-     * @param int $entityId
-     * @param int $storeId
-     * @param array $index
-     * @param string $entity 'product'|'cms'
-     * @return Mage_CatalogSearch_Model_Resource_Fulltext_Engine
+     * @param  int    $entityId
+     * @param  int    $storeId
+     * @param  array  $index
+     * @param  string $entity   'product'|'cms'
+     * @return $this
      */
     public function saveEntityIndex($entityId, $storeId, $index, $entity = 'product')
     {
-        $this->_getWriteAdapter()->insert($this->getMainTable(), array(
+        $this->_getWriteAdapter()->insert($this->getMainTable(), [
             'product_id'    => $entityId,
             'store_id'      => $storeId,
-            'data_index'    => $index
-        ));
+            'data_index'    => $index,
+        ]);
         return $this;
     }
 
     /**
      * Multi add entities data to fulltext search table
      *
-     * @param int $storeId
-     * @param array $entityIndexes
-     * @param string $entity 'product'|'cms'
-     * @return Mage_CatalogSearch_Model_Resource_Fulltext_Engine
+     * @param  int    $storeId
+     * @param  array  $entityIndexes
+     * @param  string $entity        'product'|'cms'
+     * @return $this
      */
     public function saveEntityIndexes($storeId, $entityIndexes, $entity = 'product')
     {
-        $data    = array();
-        $storeId = (int)$storeId;
+        $data    = [];
+        $storeId = (int) $storeId;
         foreach ($entityIndexes as $entityId => $index) {
-            $data[] = array(
-                'product_id'    => (int)$entityId,
+            $data[] = [
+                'product_id'    => (int) $entityId,
                 'store_id'      => $storeId,
-                'data_index'    => $index
-            );
+                'data_index'    => $index,
+            ];
         }
 
         if ($data) {
-            Mage::getResourceHelper('catalogsearch')
-                ->insertOnDuplicate($this->getMainTable(), $data, array('data_index'));
+            /** @var Mage_CatalogSearch_Model_Resource_Helper_Mysql4 $helper */
+            $helper = Mage::getResourceHelper('catalogsearch');
+            $helper->insertOnDuplicate($this->getMainTable(), $data, ['data_index']);
         }
 
         return $this;
@@ -97,7 +77,7 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
      */
     public function getAllowedVisibility()
     {
-        return Mage::getSingleton('catalog/product_visibility')->getVisibleInSearchIds();
+        return Mage::getSingleton('catalog/product_visibility')::getVisibleInSearchIds();
     }
 
     /**
@@ -113,18 +93,19 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
     /**
      * Remove entity data from fulltext search table
      *
-     * @param int $storeId
-     * @param int $entityId
-     * @param string $entity 'product'|'cms'
-     * @return Mage_CatalogSearch_Model_Resource_Fulltext_Engine
+     * @param  int    $storeId
+     * @param  int    $entityId
+     * @param  string $entity   'product'|'cms'
+     * @return $this
      */
     public function cleanIndex($storeId = null, $entityId = null, $entity = 'product')
     {
-        $where = array();
+        $where = [];
 
         if (!is_null($storeId)) {
             $where[] = $this->_getWriteAdapter()->quoteInto('store_id=?', $storeId);
         }
+
         if (!is_null($entityId)) {
             $where[] = $this->_getWriteAdapter()->quoteInto('product_id IN (?)', $entityId);
         }
@@ -137,8 +118,8 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
     /**
      * Prepare index array as a string glued by separator
      *
-     * @param array $index
-     * @param string $separator
+     * @param  array  $index
+     * @param  string $separator
      * @return string
      */
     public function prepareEntityIndex($index, $separator = ' ')
@@ -148,8 +129,6 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
 
     /**
      * Stub method for compatibility with other search engines
-     *
-     * @return null
      */
     public function getResourceName()
     {
@@ -187,7 +166,7 @@ class Mage_CatalogSearch_Model_Resource_Fulltext_Engine extends Mage_Core_Model_
     }
 
     /**
-     * Define if engine is avaliable
+     * Define if engine is available
      *
      * @return bool
      */

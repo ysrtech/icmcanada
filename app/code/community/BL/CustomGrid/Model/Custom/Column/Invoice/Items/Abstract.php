@@ -32,7 +32,7 @@ abstract class BL_CustomGrid_Model_Custom_Column_Invoice_Items_Abstract extends 
                 $ordersIds[]   = $invoice->getOrderId();
             }
             
-            /** @var $items Mage_Sales_Model_Mysql4_Order_Invoice_Item_Collection */
+            /** @var $items Mage_Sales_Model_Resource_Order_Invoice_Item_Collection */
             $items = Mage::getResourceModel('sales/order_invoice_item_collection');
             $items->addFieldToFilter('parent_id', array('in' => $invoicesIds));
             $items->load();
@@ -82,7 +82,7 @@ abstract class BL_CustomGrid_Model_Custom_Column_Invoice_Items_Abstract extends 
                 
                 /** @var $session BL_CustomGrid_Model_Session */
                 $session = Mage::getSingleton('customgrid/session');
-                $session->addError($this->_getBaseHelper()->__('An error occurred while initializing items'));
+                $session->addError($this->getBaseHelper()->__('An error occurred while initializing items'));
             }
         }
         return $this;

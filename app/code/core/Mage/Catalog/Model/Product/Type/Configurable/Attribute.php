@@ -1,51 +1,43 @@
 <?php
-/**
- * Magento
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magento.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magento.com for more information.
- *
- * @category    Mage
- * @package     Mage_Catalog
- * @copyright  Copyright (c) 2006-2020 Magento, Inc. (http://www.magento.com)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- */
 
+/**
+ * @copyright  For copyright and license information, read the COPYING.txt file.
+ * @link       /COPYING.txt
+ * @license    Open Software License (OSL 3.0)
+ * @package    Mage_Catalog
+ */
 
 /**
  * Catalog Configurable Product Attribute Model
  *
- * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute _getResource()
- * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute getResource()
- * @method int getProductId()
- * @method Mage_Catalog_Model_Product_Type_Configurable_Attribute setProductId(int $value)
- * @method int getAttributeId()
- * @method Mage_Catalog_Model_Product_Type_Configurable_Attribute setAttributeId(int $value)
- * @method int getPosition()
- * @method Mage_Catalog_Model_Product_Type_Configurable_Attribute setPosition(int $value)
+ * @package    Mage_Catalog
  *
- * @category    Mage
- * @package     Mage_Catalog
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute            _getResource()
+ * @method string                                                                     getAttributeCode()
+ * @method int                                                                        getAttributeId()
+ * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute_Collection getCollection()
+ * @method int                                                                        getPosition()
+ * @method array                                                                      getPrices()
+ * @method Mage_Catalog_Model_Resource_Eav_Attribute                                  getProductAttribute()
+ * @method int                                                                        getProductId()
+ * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute            getResource()
+ * @method Mage_Catalog_Model_Resource_Product_Type_Configurable_Attribute_Collection getResourceCollection()
+ * @method int                                                                        getStoreId()
+ * @method int                                                                        getUseDefault()
+ * @method array                                                                      getValues()
+ * @method $this                                                                      setAttributeId(int $value)
+ * @method $this                                                                      setLabel(string $value)
+ * @method $this                                                                      setPosition(int $value)
+ * @method $this                                                                      setPrices(array $value)
+ * @method $this                                                                      setProductAttribute(Mage_Catalog_Model_Resource_Eav_Attribute $value)
+ * @method $this                                                                      setProductId(int $value)
+ * @method $this                                                                      setStoreId(int $value)
+ * @method $this                                                                      setUseDefault(int $value)
  */
 class Mage_Catalog_Model_Product_Type_Configurable_Attribute extends Mage_Core_Model_Abstract
 {
     /**
-     * Initialize resource model
-     *
+     * @inheritDoc
      */
     protected function _construct()
     {
@@ -55,15 +47,16 @@ class Mage_Catalog_Model_Product_Type_Configurable_Attribute extends Mage_Core_M
     /**
      * Add price data to attribute
      *
-     * @param array $priceData
-     * @return Mage_Catalog_Model_Product_Type_Configurable_Attribute
+     * @param  array $priceData
+     * @return $this
      */
     public function addPrice($priceData)
     {
         $data = $this->getPrices();
         if (is_null($data)) {
-            $data = array();
+            $data = [];
         }
+
         $data[] = $priceData;
         $this->setPrices($data);
         return $this;
@@ -76,20 +69,23 @@ class Mage_Catalog_Model_Product_Type_Configurable_Attribute extends Mage_Core_M
      */
     public function getLabel()
     {
-        if ($this->getData('use_default') && $this->getProductAttribute()) {
+        if ($this->getDataByKey('use_default') && $this->getProductAttribute()) {
             return $this->getProductAttribute()->getStoreLabel();
-        } else if (is_null($this->getData('label')) && $this->getProductAttribute()) {
+        }
+
+        if (is_null($this->getDataByKey('label')) && $this->getProductAttribute()) {
             $this->setData('label', $this->getProductAttribute()->getStoreLabel());
         }
 
-        return $this->getData('label');
+        return $this->getDataByKey('label');
     }
 
     /**
      * After save process
      *
-     * @return Mage_Catalog_Model_Product_Type_Configurable_Attribute
+     * @return $this
      */
+    #[Override]
     protected function _afterSave()
     {
         parent::_afterSave();

@@ -19,12 +19,12 @@
     <li <?php if ($_item->getMSelected()): ?>class="m-selected-ln-item"<?php endif; ?>>
         <?php // MANA BEGIN ?>
         <?php if ($_item->getMSelected()): ?>
-        	<input type="checkbox" class="checkbox" onclick="setLocation('<?php echo $this->urlEscape($_item->getRemoveUrl()) ?>')" checked/>
+        	<input type="checkbox" class="checkbox" onclick="setLocation('<?php echo $this->escapeUrl($_item->getRemoveUrl()) ?>')" checked/>
                 <span class="m-selected-filter-item"><?php echo $_item->getLabel() ?></span>
         <?php else : ?>
 	        <?php if ($_item->getCount() > 0): ?>
-                <input type="checkbox" class="checkbox" onclick="setLocation('<?php echo $this->urlEscape($_item->getUrl()) ?>')" />
-	        <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>" title="<?php echo $_item->getLabel() ?>"><?php echo $_item->getLabel() ?></a>
+                <input type="checkbox" class="checkbox" onclick="setLocation('<?php echo $this->escapeUrl($_item->getUrl()) ?>')" />
+	        <a href="<?php echo $this->escapeUrl($_item->getUrl()) ?>" title="<?php echo $_item->getLabel() ?>"><?php echo $_item->getLabel() ?></a>
 	        <?php else: echo $_item->getLabel() ?>
 	        <?php endif; ?>
         <?php endif; ?>
